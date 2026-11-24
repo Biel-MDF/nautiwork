@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
   // Conexão direta (sem pooler) para migrations. Localmente pode ser igual à DATABASE_URL.
   directUrl = env("DATABASE_URL_UNPOOLED")
@@ -53,23 +53,27 @@ enum ApplicationStatus {
 }
 
 model User {
-  id             String            @id @default(cuid())
-  email          String            @unique
-  name           String
-  passwordHash   String
-  role           Role
-  active         Boolean           @default(true)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  candidate      CandidateProfile?
-  company        CompanyProfile?
-  notifications  Notification[]
-  image          UserImage?
+  id                 String            @id @default(cuid())
+  email              String            @unique
+  name               String
+  passwordHash       String
+  role               Role
+  active             Boolean           @default(true)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  candidate          CandidateProfile?
+  company            CompanyProfile?
+  notifications      Notification[]
+  image              UserImage?
   // Preenchido quando a pessoa confirma o e-mail pelo link enviado.
-  emailVerified  DateTime?
+  emailVerified      DateTime?
   // Incrementado ao trocar ou redefinir a senha: invalida as sessões abertas.
-  sessionVersion Int               @default(0)
-  authTokens     AuthToken[]
+  sessionVersion     Int               @default(0)
+  authTokens         AuthToken[]
+  // Preferência da janela de Configurações: também receber por e-mail as notificações do site.
+  emailNotifications Boolean           @default(true)
+  supportTickets     SupportTicket[]
+  supportMessages    SupportMessage[]
 }
 
 enum AuthTokenType {
@@ -261,4 +265,47 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([userId, read])
+}
+
+enum SupportCategory {
+  ACCOUNT
+  JOBS
+  APPLICATIONS
+  BUG
+  OTHER
+}
+
+enum SupportStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+}
+
+// Pedido de suporte aberto por um usuário; a conversa fica em SupportMessage.
+model SupportTicket {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  category  SupportCategory
+  status    SupportStatus    @default(OPEN)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  messages  SupportMessage[]
+
+  @@index([userId, status])
+  @@index([status, updatedAt])
+}
+
+model SupportMessage {
+  id        String        @id @default(cuid())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  fromStaff Boolean       @default(false)
+  body      String
+  createdAt DateTime      @default(now())
+
+  @@index([ticketId, createdAt])
 }

@@ -1,6 +1,6 @@
 import { appendFile } from "node:fs/promises";
 
-export type Mail = { to: string; subject: string; text: string; html: string };
+export type Mail = { to: string; subject: string; text: string; html: string; replyTo?: string };
 export type MailResult = { sent: boolean; via: "resend" | "outbox" | "log" | "none" };
 
 /**
@@ -19,7 +19,7 @@ export async function sendMail(mail: Mail): Promise<MailResult> {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from, to: [mail.to], subject: mail.subject, text: mail.text, html: mail.html }),
+        body: JSON.stringify({ from, to: [mail.to], subject: mail.subject, text: mail.text, html: mail.html, ...(mail.replyTo ? { reply_to: mail.replyTo } : {}) }),
         signal: AbortSignal.timeout(10_000),
       });
       if (!res.ok) console.error(`[mail] Resend respondeu ${res.status}: ${(await res.text()).slice(0, 200)}`);

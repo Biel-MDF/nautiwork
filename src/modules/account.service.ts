@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
-import { accountSchema, companyProfileSchema, notificationsReadSchema, passwordChangeSchema } from "@/lib/validators";
+import { accountSchema, companyProfileSchema, notificationsReadSchema, passwordChangeSchema, preferencesSchema } from "@/lib/validators";
 
 export async function updateAccount(userId: string, raw: unknown) {
   const { name } = accountSchema.parse(raw);
@@ -32,4 +32,9 @@ export async function markNotificationsRead(userId: string, raw: unknown) {
   const where = "all" in input ? { userId, read: false } : { userId, id: { in: input.ids } };
   const { count } = await db.notification.updateMany({ where, data: { read: true } });
   return { updated: count };
+}
+
+export async function updatePreferences(userId: string, raw: unknown) {
+  const data = preferencesSchema.parse(raw);
+  return db.user.update({ where: { id: userId }, data, select: { emailNotifications: true } });
 }

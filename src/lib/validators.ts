@@ -126,3 +126,13 @@ const tokenField = z.string().trim().min(20, "Link inválido").max(200, "Link in
 export const tokenSchema = z.object({ token: tokenField });
 export const forgotPasswordSchema = z.object({ email: z.string().trim().toLowerCase().email("E-mail inválido") });
 export const resetPasswordSchema = z.object({ token: tokenField, newPassword: password });
+
+export const supportCategories = ["ACCOUNT", "JOBS", "APPLICATIONS", "BUG", "OTHER"] as const;
+export const supportTicketSchema = z.object({
+  subject: z.string().trim().min(5, "Descreva o assunto em pelo menos 5 caracteres").max(120),
+  category: z.enum(supportCategories, { error: "Escolha uma categoria" }),
+  message: z.string().trim().min(10, "Explique o problema em pelo menos 10 caracteres").max(4000),
+});
+export const supportMessageSchema = z.object({ body: z.string().trim().min(2, "Escreva a mensagem").max(4000) });
+export const supportStatusSchema = z.object({ status: z.enum(["OPEN", "ANSWERED", "CLOSED"]) });
+export const preferencesSchema = z.object({ emailNotifications: z.boolean() });

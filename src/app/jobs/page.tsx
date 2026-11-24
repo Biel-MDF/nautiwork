@@ -3,6 +3,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Empty, JobCard } from "@/components/ui";
 import { searchJobs } from "@/modules/jobs.service";
+import { db } from "@/lib/db";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Vagas — Nautiwork" };
@@ -12,12 +14,31 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
   const clean = Object.fromEntries(Object.entries(searchParams).filter(([, v]) => v));
   const parsed = await searchJobs(clean).catch(() => null);
   const qs = (page: number) => new URLSearchParams({ ...clean, page: String(page) }).toString();
+  const open = { status: "ACTIVE" as const, flagged: false, company: { user: { active: true } } };
+  const [total, remote, internships, hiring] = await Promise.all([
+    db.job.count({ where: open }), db.job.count({ where: { ...open, workMode: "REMOTE" } }),
+    db.job.count({ where: { ...open, contractType: "INTERNSHIP" } }),
+    db.companyProfile.count({ where: { user: { active: true }, jobs: { some: { status: "ACTIVE", flagged: false } } } }),
+  ]);
+  // atalhos de busca: cada um aplica um filtro real e mostra quantas vagas ele traz
+  const shortcuts: [string, Record<string, string>, number][] = [["Remotas", { workMode: "REMOTE" }, remote], ["Estágio", { contractType: "INTERNSHIP" }, internships], ["Publicadas nesta semana", { days: "7" }, -1]];
   return (
     <>
       <Navbar />
+      <PageHeader title="Vagas" description="Busque por cargo, cidade, modalidade, tipo de contratação e salário. Com perfil preenchido, cada vaga mostra o quanto combina com você."
+        stats={[["Vagas abertas", total], ["Remotas", remote], ["Empresas contratando", hiring]]}>
+        <nav aria-label="Atalhos de busca" className="mt-6 flex flex-wrap gap-2">
+          {shortcuts.map(([label, params, n]) => {
+            const on = Object.entries(params).every(([k, v]) => clean[k] === v);
+            return <Link key={label} href={`/jobs?${new URLSearchParams(params)}`} aria-current={on ? "true" : undefined}
+              className={`inline-flex min-h-[40px] items-center gap-2 rounded-full border px-4 text-sm transition-colors ${on ? "border-tide/60 bg-foam text-abyss" : "border-mist text-abyss/75 hover:border-tide/50 hover:text-abyss"}`}>
+              {label}{n >= 0 && <span className="tabular text-abyss/55">{n}</span>}</Link>;
+          })}
+        </nav>
+      </PageHeader>
       <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 md:grid-cols-[260px_1fr]">
-        <form className="card h-fit space-y-3" role="search" aria-label="Filtros">
-          <h1 className="text-lg font-bold">Buscar vagas</h1>
+        <form className="card h-fit space-y-3 md:sticky md:top-24" role="search" aria-label="Filtros">
+          <h2 className="font-display text-lg font-semibold">Filtros</h2>
           <div><label className="label" htmlFor="q">Palavra-chave</label><input id="q" name="q" defaultValue={clean.q} className="input" placeholder="Cargo, empresa, habilidade" /></div>
           <div><label className="label" htmlFor="area">Área</label><input id="area" name="area" defaultValue={clean.area} className="input" /></div>
           <div><label className="label" htmlFor="location">Cidade</label><input id="location" name="location" defaultValue={clean.location} className="input" /></div>

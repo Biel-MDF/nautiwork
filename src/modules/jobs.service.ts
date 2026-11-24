@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
+import { emailNotify } from "./notify";
 import { jobSchema, jobSearchSchema } from "@/lib/validators";
 import { connectSkills } from "./skills";
 
@@ -72,6 +73,7 @@ export async function setJobStatus(userId: string, jobId: string, status: "ACTIV
     });
     await db.notification.createMany({ data: apps.map((a) => ({
       userId: a.candidate.userId, title: "Vaga encerrada", body: `A vaga "${job.title}" foi encerrada pela empresa.` })) });
+    await emailNotify(apps.map((a) => a.candidate.userId), "Vaga encerrada", `A vaga "${job.title}" foi encerrada pela empresa.`, "/candidate/applications");
   }
   return updated;
 }

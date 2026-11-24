@@ -5,7 +5,7 @@ import { deleteUserImage, MAX_IMAGE_BYTES, saveUserImage } from "@/modules/image
 
 // Envio em multipart/form-data, campo "file". Foto (candidato) ou logotipo (empresa).
 export const POST = handle(async (req: Request) => {
-  const { userId } = await requireRole("CANDIDATE", "COMPANY");
+  const { userId } = await requireRole("CANDIDATE", "COMPANY", "ADMIN");
   // Recusa cedo pelo cabeçalho, antes de ler o corpo inteiro na memória.
   const declared = Number(req.headers.get("content-length") ?? 0);
   if (declared > MAX_IMAGE_BYTES + 64 * 1024) throw new HttpError(413, "A imagem deve ter no máximo 1 MB.");
@@ -17,6 +17,6 @@ export const POST = handle(async (req: Request) => {
 });
 
 export const DELETE = handle(async () => {
-  const { userId } = await requireRole("CANDIDATE", "COMPANY");
+  const { userId } = await requireRole("CANDIDATE", "COMPANY", "ADMIN");
   return NextResponse.json(await deleteUserImage(userId));
 });

@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
+import { appStatusLabel } from "@/lib/labels";
+import { emailNotify } from "./notify";
 import { applySchema, statusSchema } from "@/lib/validators";
 import { computeCompatibility } from "./compatibility";
 
@@ -25,7 +27,7 @@ export async function applyToJob(userId: string, raw: unknown) {
   );
 
   try {
-    return await db.$transaction(async (tx) => {
+    const created = await db.$transaction(async (tx) => {
       const app = await tx.jobApplication.create({
         data: { jobId, candidateId: profile.id, coverNote, compatibility: compat.score,
           history: { create: { status: "SUBMITTED", changedById: userId } } },
@@ -36,6 +38,8 @@ export async function applyToJob(userId: string, raw: unknown) {
       ] });
       return app;
     });
+    await emailNotify([job.company.userId], "Nova candidatura", `${profile.user.name} se candidatou a "${job.title}".`, "/company/applications");
+    return created;
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002")
       throw new HttpError(409, "Você já se candidatou a esta vaga.");
@@ -52,13 +56,15 @@ export async function updateApplicationStatus(userId: string, applicationId: str
   if (app.job.company.userId !== userId) throw new HttpError(403, "Esta candidatura pertence a outra empresa.");
   if (app.status === "WITHDRAWN") throw new HttpError(409, "O candidato retirou esta candidatura.");
   if (app.status === status) return app;
-  return db.$transaction(async (tx) => {
-    const updated = await tx.jobApplication.update({ where: { id: applicationId }, data: { status } });
+  const body = `Sua candidatura para "${app.job.title}" passou para a etapa "${appStatusLabel[status]}".`;
+  const updated = await db.$transaction(async (tx) => {
+    const u = await tx.jobApplication.update({ where: { id: applicationId }, data: { status } });
     await tx.applicationStatusHistory.create({ data: { applicationId, status, changedById: userId } });
-    await tx.notification.create({ data: { userId: app.candidate.userId, title: "Candidatura atualizada",
-      body: `Sua candidatura para "${app.job.title}" mudou de status.` } });
-    return updated;
+    await tx.notification.create({ data: { userId: app.candidate.userId, title: "Candidatura atualizada", body } });
+    return u;
   });
+  await emailNotify([app.candidate.userId], "Candidatura atualizada", body, "/candidate/applications");
+  return updated;
 }
 
 export async function withdrawApplication(userId: string, applicationId: string) {

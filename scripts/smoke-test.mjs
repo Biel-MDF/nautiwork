@@ -329,6 +329,49 @@ if (!OUTBOX) {
   check("navbar não mostra sessão encerrada como logada", r.text.includes("Criar conta") && !r.text.includes("Meu painel"), "navbar ainda logada");
 }
 
+// 13. Suporte, preferências e menu da conta
+{
+  const sup = new Client("10.4.0.1");
+  const supEmail = `sup-${run}@teste.local`;
+  await new Client("10.4.0.2").req("POST", "/api/register", { name: "Pessoa Suporte", email: supEmail, password: "Senha1234", role: "CANDIDATE" });
+  const ls = await sup.login(supEmail, "Senha1234");
+  if (ls.session?.user?.id) createdUsers.push(ls.session.user.id);
+  r = await anon.req("POST", "/api/support", { subject: "Teste anônimo", category: "OTHER", message: "Não deveria passar." });
+  check("abrir pedido de suporte sem login retorna 401", r.status === 401, `status ${r.status}`);
+  r = await sup.req("POST", "/api/support", { subject: "oi", category: "X", message: "curta" });
+  check("pedido de suporte inválido retorna 400", r.status === 400, `status ${r.status}`);
+  r = await sup.req("POST", "/api/support", { subject: `Teste de suporte ${run}`, category: "BUG", message: "Mensagem de teste criada pelo smoke test." });
+  check("candidato abre pedido de suporte (201)", r.status === 201 && r.json?.id, JSON.stringify(r.json));
+  const tid = r.json?.id;
+  r = await other.req("POST", `/api/support/${tid}/messages`, { body: "intrometido" });
+  check("outra conta respondendo pedido alheio retorna 404", r.status === 404, `status ${r.status}`);
+  r = await other.req("GET", `/support/${tid}`);
+  check("outra conta abrindo a página do pedido não vê o conteúdo", !r.text.includes(`Teste de suporte ${run}`), `status ${r.status}`);
+  r = await admin.req("POST", `/api/support/${tid}/messages`, { body: "Resposta da equipe pelo smoke test." });
+  check("admin responde ao pedido (201)", r.status === 201, `status ${r.status}`);
+  r = await sup.req("GET", `/support/${tid}`);
+  check("dono vê a resposta da equipe na conversa", r.status === 200 && r.text.includes("Resposta da equipe pelo smoke test.") && r.text.includes("Respondido"), `status ${r.status}`);
+  r = await sup.req("PATCH", `/api/support/${tid}`, { status: "OPEN" });
+  check("dono não pode marcar o próprio pedido como aberto pelo status (403)", r.status === 403, `status ${r.status}`);
+  r = await sup.req("PATCH", `/api/support/${tid}`, { status: "CLOSED" });
+  check("dono encerra o próprio pedido", r.status === 200 && r.json?.status === "CLOSED", JSON.stringify(r.json));
+  r = await admin.req("GET", "/admin/support?status=CLOSED");
+  check("pedido encerrado aparece na fila do admin", r.text.includes(`Teste de suporte ${run}`), `status ${r.status}`);
+  r = await sup.req("GET", "/admin/support");
+  check("candidato na fila do admin é redirecionado", r.status >= 300 && r.status < 400 || /url=\/(login)?["']?/.test(r.text) && !r.text.includes(`Teste de suporte ${run}`), `status ${r.status}`);
+  r = await sup.req("PATCH", "/api/account/preferences", { emailNotifications: false });
+  check("salvar preferência de e-mail", r.status === 200 && r.json?.emailNotifications === false, JSON.stringify(r.json));
+  r = await sup.req("PATCH", "/api/account/preferences", { emailNotifications: "talvez" });
+  check("preferência inválida retorna 400", r.status === 400, `status ${r.status}`);
+  r = await sup.req("GET", "/");
+  check("barra mostra o menu da conta para quem está logado", r.text.includes('aria-haspopup="menu"') && !r.text.includes(">Criar conta<"), "menu ausente");
+  r = await anon.req("GET", "/");
+  check("barra não mostra o menu da conta para visitante", !r.text.includes('aria-haspopup="menu"') && r.text.includes("Criar conta"), "menu indevido");
+  for (const p of ["/support", "/support/new"]) { r = await sup.req("GET", p); check(`página ${p} responde 200 para quem está logado`, r.status === 200, `status ${r.status}`); }
+  r = await anon.req("GET", "/support");
+  check("visitante em /support vai para o login", (r.status >= 300 && r.status < 400) || /url=\/login/.test(r.text), `status ${r.status}`);
+}
+
 // Limpeza: desativa as contas criadas pelo teste (somem das páginas públicas).
 if (process.env.SMOKE_CLEANUP === "1") {
   const cleaner = new Client("10.9.0.1");

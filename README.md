@@ -18,7 +18,9 @@ Next.js 15.5.29 (App Router), React 19, TypeScript, Tailwind CSS 3, PostgreSQL, 
 - **Administrador:** métricas, contas (desativar/reativar), empresas (vagas, candidaturas, desativação) e moderação de vagas.
 - **Compatibilidade por regras** (`src/modules/compatibility.ts`): habilidades 50, área 20, modalidade 10, cidade 10, experiência 10; critérios sem dado são ignorados e os pesos renormalizados. Sem IA.
 - **Imagens:** foto e logotipo em PNG, JPEG ou WebP, até 1 MB, gravados no próprio PostgreSQL (tabela `UserImage`). O formato é conferido pelos bytes do arquivo, não pela extensão. Logotipo de empresa é público; foto de candidato só aparece para o próprio candidato, para administradores e para empresas que receberam candidatura dele.
-- Notificações gravadas no banco (não são em tempo real).
+- Notificações gravadas no banco (não são em tempo real) e, para quem deixa ligado nas Configurações, também enviadas por e-mail.
+- **Menu da conta:** avatar no canto superior direito (foto ou inicial colorida) com Meu painel, Configurações de perfil, Configurações (janela com Conta, Foto, Segurança e Notificações, cada uma com Salvar), Suporte e Sair.
+- **Suporte:** pedidos com categoria e conversa entre usuário e equipe, fila para o administrador com filtros por status, aviso no site e por e-mail a cada resposta, limite de 5 pedidos abertos por pessoa.
 
 ## Visual
 Tema escuro "sonar", inspirado em instrumentos de navegação. Paleta, tipografia, componentes de assinatura e verificações de acessibilidade estão em `docs/DESIGN.md`.
@@ -45,6 +47,7 @@ Ao mudar o `schema.prisma`, crie uma nova migration com `npx prisma migrate dev 
 | `AUTH_SECRET` | sim | Assinatura das sessões (Auth.js) |
 | `APP_URL` | sim em produção | Endereço público usado nos links dos e-mails. Em produção os links nunca são montados a partir do cabeçalho `Host` (que pode ser forjado) |
 | `RESEND_API_KEY`, `EMAIL_FROM` | para enviar e-mail de verdade | Conta no Resend com domínio verificado. Sem elas, em desenvolvimento os e-mails aparecem no console do servidor; em produção não são enviados |
+| `SUPPORT_EMAIL` | para receber pedidos de suporte por e-mail | Endereço da equipe. Não aparece no site; o e-mail sai com "responder para" o usuário |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | recomendadas em produção | Limite de tentativas compartilhado entre instâncias |
 | `TEST_DATABASE_URL` | só para testes | Banco descartável do `test:integration` |
 | `MAIL_DEV_OUTBOX` | só para testes | Grava os e-mails em um arquivo em vez de enviar |

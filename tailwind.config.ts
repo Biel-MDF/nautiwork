@@ -23,10 +23,12 @@ export default {
       keyframes: {
         sweep: { from: { transform: "rotate(0deg)" }, to: { transform: "rotate(360deg)" } },
         contact: { "0%": { opacity: "0", transform: "scale(.4)" }, "60%": { opacity: "1", transform: "scale(1.35)" }, "100%": { opacity: "1", transform: "scale(1)" } },
+        menu: { from: { opacity: "0", transform: "translateY(-4px) scale(.98)" }, to: { opacity: "1", transform: "none" } },
       },
       animation: {
         sweep: "sweep 2600ms linear 1 both", // linear: cada ponto acende quando o feixe passa por ele
         contact: "contact 600ms ease-out both",
+        menu: "menu 140ms ease-out",
       },
     },
   },

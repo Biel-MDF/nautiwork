@@ -12,7 +12,8 @@ type Role = "CANDIDATE" | "COMPANY" | "ADMIN";
 export async function currentUser() {
   const session = await auth();
   if (!session?.user) return null;
-  const user = await db.user.findUnique({ where: { id: session.user.id }, select: { id: true, name: true, email: true, role: true, active: true, sessionVersion: true, emailVerified: true } });
+  const user = await db.user.findUnique({ where: { id: session.user.id }, select: { id: true, name: true, email: true, role: true, active: true, sessionVersion: true, emailVerified: true,
+    emailNotifications: true, image: { select: { updatedAt: true } } } });
   if (!user?.active || user.sessionVersion !== (session.user.sv ?? 0)) return null;
   return user;
 }
@@ -30,5 +31,12 @@ export async function requirePageRole(role: Role) {
   const user = await currentUser();
   if (!user) redirect("/login");
   if (user.role !== role) redirect("/");
+  return user;
+}
+
+/** Para páginas abertas a qualquer pessoa logada (ex.: suporte). */
+export async function requirePageUser() {
+  const user = await currentUser();
+  if (!user) redirect("/login");
   return user;
 }

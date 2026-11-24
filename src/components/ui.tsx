@@ -1,3 +1,4 @@
+import { UserAvatar } from "./UserAvatar";
 import Link from "next/link";
 import { appStatusLabel, appStatusTone, contractLabel, salaryRange, workModeLabel } from "@/lib/labels";
 
@@ -74,11 +75,7 @@ export function JobCard({ job, score }: { job: JobCardJob; score?: number }) {
   );
 }
 
-/** Foto ou logotipo servido por /api/images (com checagem de permissão). Sem imagem, mostra as iniciais. */
+/** Foto ou logotipo servido por /api/images (com checagem de permissão). Sem imagem, a inicial na cor fixa da pessoa. */
 export function Avatar({ userId, name, version, size = 48 }: { userId: string; name: string; version?: Date | null; size?: number }) {
-  const initials = name.replace(/\[[^\]]*\]/g, "").split(/\s+/).map((w) => w.match(/\p{L}/u)?.[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
-  const box = { width: size, height: size };
-  if (!version) return <span aria-hidden="true" style={box} className="inline-flex shrink-0 items-center justify-center rounded-full border border-mist bg-foam font-display text-sm font-semibold text-deep">{initials}</span>;
-  // eslint-disable-next-line @next/next/no-img-element -- next/image exige o otimizador, que fica sem uso no projeto
-  return <img src={`/api/images/${userId}?v=${version.getTime()}`} alt="" style={box} className="shrink-0 rounded-full border border-mist object-cover" />;
+  return <UserAvatar userId={userId} name={name} imageVersion={version ? version.getTime() : null} size={size} />;
 }
