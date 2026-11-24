@@ -1,5 +1,7 @@
 # Nautiwork
 
+Site: https://nautiwork.vercel.app · Código: https://github.com/Biel-MDF/nautiwork
+
 Plataforma de empregabilidade (projeto de TCC) que conecta candidatos e empresas: perfil profissional e currículo, busca de vagas, candidatura, acompanhamento de status e gestão de recrutamento.
 
 ## Tecnologias
@@ -88,7 +90,7 @@ Como está montado:
 - **`.vercelignore`:** impede o envio do `.env` local, do `.next` e do `node_modules`.
 - **Ainda sem configurar:** `RESEND_API_KEY` e `EMAIL_FROM` (os e-mails não são enviados em produção) e Upstash (o limite de tentativas fica em memória por instância).
 
-Para publicar de novo: `vercel deploy --prod` na pasta do projeto (com o Vercel CLI logado), ou conecte o repositório do GitHub ao projeto na Vercel para publicar a cada push.
+Publicação automática: o projeto na Vercel está ligado a este repositório. Cada push na `main` gera um deploy de produção; outras branches geram prévias.
 
 O banco de produção não aceita conexão direta de fora da Vercel a partir de redes com a porta 5432 bloqueada; nesses casos, migrations e seed rodam pelo build.
 
