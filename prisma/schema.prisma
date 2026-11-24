@@ -1,0 +1,264 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  // Conexão direta (sem pooler) para migrations. Localmente pode ser igual à DATABASE_URL.
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Role {
+  CANDIDATE
+  COMPANY
+  ADMIN
+}
+
+enum JobStatus {
+  ACTIVE
+  PAUSED
+  CLOSED
+}
+
+enum WorkMode {
+  ONSITE
+  HYBRID
+  REMOTE
+}
+
+enum ContractType {
+  CLT
+  PJ
+  INTERNSHIP
+  TEMPORARY
+}
+
+enum Seniority {
+  INTERN
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  IN_REVIEW
+  IN_PROCESS
+  INTERVIEW
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+model User {
+  id             String            @id @default(cuid())
+  email          String            @unique
+  name           String
+  passwordHash   String
+  role           Role
+  active         Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  candidate      CandidateProfile?
+  company        CompanyProfile?
+  notifications  Notification[]
+  image          UserImage?
+  // Preenchido quando a pessoa confirma o e-mail pelo link enviado.
+  emailVerified  DateTime?
+  // Incrementado ao trocar ou redefinir a senha: invalida as sessões abertas.
+  sessionVersion Int               @default(0)
+  authTokens     AuthToken[]
+}
+
+enum AuthTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+// Tokens de uso único enviados por e-mail. Só o hash SHA-256 fica no banco.
+model AuthToken {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      AuthTokenType
+  tokenHash String        @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@index([userId, type])
+}
+
+// Foto do candidato ou logotipo da empresa. Fica no banco para não depender de serviço
+// externo de arquivos (o disco da Vercel é somente leitura). Limite de tamanho na aplicação.
+model UserImage {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      Bytes
+  mimeType  String
+  size      Int
+  updatedAt DateTime @updatedAt
+}
+
+model CandidateProfile {
+  id              String           @id @default(cuid())
+  userId          String           @unique
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline        String?
+  about           String?
+  location        String?
+  interestArea    String?
+  workMode        WorkMode?
+  objective       String?
+  linkedinUrl     String?
+  yearsExperience Int              @default(0)
+  skills          CandidateSkill[]
+  educations      Education[]
+  experiences     Experience[]
+  applications    JobApplication[]
+  savedJobs       SavedJob[]
+  updatedAt       DateTime         @updatedAt
+}
+
+model Education {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  institution String
+  course      String
+  startYear   Int
+  endYear     Int?
+
+  @@index([candidateId])
+}
+
+model Experience {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  company     String
+  role        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+
+  @@index([candidateId])
+}
+
+model Skill {
+  id         String           @id @default(cuid())
+  name       String           @unique
+  candidates CandidateSkill[]
+  jobs       JobSkill[]
+}
+
+model CandidateSkill {
+  candidateId String
+  skillId     String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skill       Skill            @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([candidateId, skillId])
+}
+
+model CompanyProfile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  industry    String?
+  website     String?
+  location    String?
+  jobs        Job[]
+}
+
+model Job {
+  id               String           @id @default(cuid())
+  companyId        String
+  company          CompanyProfile   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title            String
+  description      String
+  responsibilities String?
+  requirements     String?
+  benefits         String?
+  area             String
+  location         String
+  workMode         WorkMode
+  contractType     ContractType
+  seniority        Seniority
+  salaryMin        Int?
+  salaryMax        Int?
+  minYears         Int              @default(0)
+  status           JobStatus        @default(ACTIVE)
+  flagged          Boolean          @default(false)
+  publishedAt      DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  skills           JobSkill[]
+  applications     JobApplication[]
+  saved            SavedJob[]
+
+  @@index([status, publishedAt])
+  @@index([companyId])
+}
+
+model JobSkill {
+  jobId   String
+  skillId String
+  job     Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([jobId, skillId])
+}
+
+model JobApplication {
+  id            String                     @id @default(cuid())
+  jobId         String
+  candidateId   String
+  job           Job                        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidate     CandidateProfile           @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  status        ApplicationStatus          @default(SUBMITTED)
+  coverNote     String?
+  compatibility Int?
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
+  history       ApplicationStatusHistory[]
+
+  @@unique([jobId, candidateId])
+  @@index([candidateId])
+}
+
+model ApplicationStatusHistory {
+  id            String            @id @default(cuid())
+  applicationId String
+  application   JobApplication    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status        ApplicationStatus
+  changedById   String?
+  createdAt     DateTime          @default(now())
+
+  @@index([applicationId])
+}
+
+model SavedJob {
+  candidateId String
+  jobId       String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job         Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+
+  @@id([candidateId, jobId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+}
