@@ -1,0 +1,82 @@
+[
+  {
+    "email": "ancora", "name": "[Demo] Âncora Logística", "industry": "Logística", "location": "Santos",
+    "website": "https://ancora.demo.nautiwork.test",
+    "description": "Empresa fictícia de logística portuária: armazenagem, transporte rodoviário e rastreamento de cargas entre o Porto de Santos e o interior paulista.",
+    "jobs": [
+      { "title": "Analista de Logística Júnior", "area": "Logística", "location": "Santos", "workMode": "ONSITE", "contractType": "CLT", "seniority": "JUNIOR", "minYears": 1, "salaryMin": 3200, "salaryMax": 4200, "skills": ["Excel", "Controle de estoque", "Comunicação"],
+        "description": "Acompanhar a entrada e saída de cargas no armazém, conferir notas fiscais e manter os indicadores de prazo atualizados para o time de operações." },
+      { "title": "Estágio em Operações", "area": "Logística", "location": "Santos", "workMode": "ONSITE", "contractType": "INTERNSHIP", "seniority": "INTERN", "minYears": 0, "salaryMin": 1400, "salaryMax": 1700, "skills": ["Excel", "Organização"],
+        "description": "Apoiar a equipe de operações no agendamento de coletas, no registro de ocorrências e na organização dos relatórios diários do armazém." },
+      { "title": "Coordenador(a) de Frota", "area": "Logística", "location": "Santos", "workMode": "HYBRID", "contractType": "CLT", "seniority": "SENIOR", "minYears": 5, "salaryMin": 9000, "salaryMax": 12000, "skills": ["Gestão de equipes", "Roteirização", "Power BI"],
+        "description": "Liderar a equipe de frota própria e terceirizada, definir rotas, acompanhar custos de manutenção e negociar com transportadoras parceiras." }
+    ]
+  },
+  {
+    "email": "coral", "name": "[Demo] Coral Educação", "industry": "Educação", "location": "Belo Horizonte",
+    "website": "https://coral.demo.nautiwork.test",
+    "description": "Escola fictícia de cursos técnicos online e presenciais, com foco em tecnologia e empregabilidade para jovens de 16 a 24 anos.",
+    "jobs": [
+      { "title": "Professor(a) de Programação Web", "area": "Educação", "location": "Belo Horizonte", "workMode": "REMOTE", "contractType": "PJ", "seniority": "MID", "minYears": 2, "salaryMin": 5000, "salaryMax": 7500, "skills": ["JavaScript", "HTML", "Didática"],
+        "description": "Ministrar aulas ao vivo de HTML, CSS e JavaScript para turmas de até 30 alunos e acompanhar os projetos finais de cada um." },
+      { "title": "Designer Instrucional", "area": "Educação", "location": "Belo Horizonte", "workMode": "HYBRID", "contractType": "CLT", "seniority": "JUNIOR", "minYears": 1, "salaryMin": 3500, "salaryMax": 4800, "skills": ["Canva", "Roteiro de aulas", "Figma"],
+        "description": "Transformar o conteúdo dos professores em trilhas de aprendizagem com vídeos, exercícios e avaliações na plataforma da escola." },
+      { "title": "Estágio em Atendimento ao Aluno", "area": "Atendimento", "location": "Belo Horizonte", "workMode": "HYBRID", "contractType": "INTERNSHIP", "seniority": "INTERN", "minYears": 0, "salaryMin": 1300, "salaryMax": 1500, "skills": ["Comunicação", "Organização"],
+        "description": "Responder dúvidas de alunos por chat e e-mail, registrar pedidos no sistema e ajudar a equipe pedagógica nos períodos de matrícula." }
+    ]
+  },
+  {
+    "email": "brisa", "name": "[Demo] Brisa Energia", "industry": "Energia renovável", "location": "Fortaleza",
+    "website": "https://brisa.demo.nautiwork.test",
+    "description": "Empresa fictícia de energia solar e eólica que instala e mantém usinas de médio porte no Nordeste.",
+    "jobs": [
+      { "title": "Engenheiro(a) Eletricista", "area": "Engenharia", "location": "Fortaleza", "workMode": "ONSITE", "contractType": "CLT", "seniority": "MID", "minYears": 3, "salaryMin": 8000, "salaryMax": 11000, "skills": ["AutoCAD", "NR-10", "Sistemas fotovoltaicos"],
+        "description": "Projetar e acompanhar a instalação de usinas solares, revisar laudos técnicos e garantir que as obras sigam as normas de segurança." },
+      { "title": "Técnico(a) em Manutenção Solar", "area": "Engenharia", "location": "Fortaleza", "workMode": "ONSITE", "contractType": "CLT", "seniority": "JUNIOR", "minYears": 1, "salaryMin": 3000, "salaryMax": 3800, "skills": ["NR-10", "Elétrica", "Multímetro"],
+        "description": "Fazer a manutenção preventiva e corretiva de painéis e inversores nas usinas dos clientes, com deslocamento dentro da Região Metropolitana." },
+      { "title": "Analista ESG", "area": "Sustentabilidade", "location": "Fortaleza", "workMode": "HYBRID", "contractType": "CLT", "seniority": "SENIOR", "minYears": 4, "salaryMin": 9500, "salaryMax": 13000, "skills": ["Relatórios ESG", "Excel", "Comunicação"],
+        "description": "Montar os relatórios anuais de sustentabilidade, medir a redução de emissões dos clientes e conduzir auditorias com certificadoras." },
+      { "title": "Assistente Administrativo Temporário", "area": "Administrativo", "location": "Fortaleza", "workMode": "ONSITE", "contractType": "TEMPORARY", "seniority": "JUNIOR", "minYears": 0, "salaryMin": 2000, "salaryMax": 2300, "skills": ["Excel", "Organização"],
+        "description": "Contrato de 6 meses para apoiar o financeiro no lançamento de notas, conferência de pagamentos e arquivo de contratos." }
+    ]
+  },
+  {
+    "email": "tridente", "name": "[Demo] Tridente Finanças", "industry": "Tecnologia financeira", "location": "São Paulo",
+    "website": "https://tridente.demo.nautiwork.test",
+    "description": "Fintech fictícia de conta digital para pequenos negócios, com cartão, maquininha e crédito simplificado.",
+    "jobs": [
+      { "title": "Desenvolvedor(a) Mobile React Native", "area": "Tecnologia", "location": "São Paulo", "workMode": "REMOTE", "contractType": "PJ", "seniority": "MID", "minYears": 3, "salaryMin": 10000, "salaryMax": 14000, "skills": ["React Native", "TypeScript", "Git"],
+        "description": "Construir novas telas do aplicativo da conta digital, cuidar do desempenho em celulares simples e publicar versões semanais nas lojas." },
+      { "title": "Analista de Risco de Crédito", "area": "Finanças", "location": "São Paulo", "workMode": "HYBRID", "contractType": "CLT", "seniority": "MID", "minYears": 2, "salaryMin": 7000, "salaryMax": 9500, "skills": ["SQL", "Python", "Estatística"],
+        "description": "Analisar o histórico dos clientes, ajustar as regras de concessão de crédito e acompanhar a inadimplência da carteira." },
+      { "title": "Estágio em Dados", "area": "Tecnologia", "location": "São Paulo", "workMode": "REMOTE", "contractType": "INTERNSHIP", "seniority": "INTERN", "minYears": 0, "salaryMin": 2000, "salaryMax": 2400, "skills": ["SQL", "Excel", "Python"],
+        "description": "Montar consultas e painéis para os times de produto, aprender boas práticas de dados e participar dos rituais do time de engenharia." }
+    ]
+  },
+  {
+    "email": "perola", "name": "[Demo] Pérola Varejo", "industry": "Varejo", "location": "Curitiba",
+    "website": "https://perola.demo.nautiwork.test",
+    "description": "Rede fictícia de lojas de moda e acessórios com 18 unidades no Sul e loja virtual própria.",
+    "jobs": [
+      { "title": "Vendedor(a) Temporário de Fim de Ano", "area": "Vendas", "location": "Curitiba", "workMode": "ONSITE", "contractType": "TEMPORARY", "seniority": "JUNIOR", "minYears": 0, "salaryMin": 1900, "salaryMax": 2400, "skills": ["Atendimento ao cliente", "Comunicação"],
+        "description": "Contrato de novembro a janeiro para atender clientes nas lojas de shopping, organizar vitrines e operar o caixa, com comissão sobre vendas." },
+      { "title": "Analista de Marketing Digital", "area": "Marketing", "location": "Curitiba", "workMode": "HYBRID", "contractType": "CLT", "seniority": "JUNIOR", "minYears": 1, "salaryMin": 3800, "salaryMax": 5000, "skills": ["Meta Ads", "Google Analytics", "Canva"],
+        "description": "Planejar campanhas para a loja virtual, acompanhar os resultados de anúncios e produzir relatórios semanais para a gerência." }
+    ]
+  },
+  {
+    "email": "abissal", "name": "[Demo] Abissal Games", "industry": "Jogos digitais", "location": "Porto Alegre",
+    "website": "https://abissal.demo.nautiwork.test",
+    "description": "Estúdio fictício de jogos independentes para celular e PC, conhecido por títulos de exploração submarina.",
+    "jobs": [
+      { "title": "Desenvolvedor(a) Unity", "area": "Tecnologia", "location": "Porto Alegre", "workMode": "REMOTE", "contractType": "CLT", "seniority": "MID", "minYears": 2, "salaryMin": 7500, "salaryMax": 10500, "skills": ["Unity", "C#", "Git"],
+        "description": "Programar mecânicas de jogo, integrar artes e sons e otimizar o desempenho dos jogos em celulares Android de entrada." },
+      { "title": "Artista 2D", "area": "Design", "location": "Porto Alegre", "workMode": "REMOTE", "contractType": "PJ", "seniority": "JUNIOR", "minYears": 1, "salaryMin": 3500, "salaryMax": 5000, "skills": ["Ilustração", "Photoshop", "Animação 2D"],
+        "description": "Criar personagens, cenários e ícones seguindo o guia visual do estúdio, com entregas semanais revisadas pelo diretor de arte." },
+      { "title": "Estágio em Testes de Jogos (QA)", "area": "Tecnologia", "location": "Porto Alegre", "workMode": "HYBRID", "contractType": "INTERNSHIP", "seniority": "INTERN", "minYears": 0, "salaryMin": 1500, "salaryMax": 1800, "skills": ["Atenção a detalhes", "Jogos", "Comunicação"],
+        "description": "Jogar as versões em desenvolvimento, registrar falhas com passos para reproduzir e conferir se as correções resolveram o problema." },
+      { "title": "Líder Técnico(a) de Jogos", "area": "Tecnologia", "location": "Porto Alegre", "workMode": "HYBRID", "contractType": "CLT", "seniority": "LEAD", "minYears": 6, "salaryMin": 15000, "salaryMax": 19000, "skills": ["Unity", "C#", "Gestão de equipes"],
+        "description": "Conduzir um time de 6 pessoas, definir a arquitetura dos novos jogos e garantir prazos e qualidade nas entregas para as lojas." }
+    ]
+  }
+]

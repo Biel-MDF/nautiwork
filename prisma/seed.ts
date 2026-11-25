@@ -1,6 +1,8 @@
 // Dados de DEMONSTRAÇÃO (fictícios). Uso: npm run db:seed
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 const db = new PrismaClient();
 // Local: senha padrão documentada no README. Em servidor público, defina SEED_PASSWORD e
@@ -49,6 +51,25 @@ async function main() {
       responsibilities: "Planejar, desenvolver e acompanhar entregas.", requirements: `Conhecimento em ${j.skills.join(", ")}.`, benefits: "Vale-refeição, plano de saúde",
       area: j.area, location: j.location, workMode: j.workMode, contractType: j.contractType, seniority: j.seniority,
       minYears: j.minYears, salaryMin: j.salaryMin, salaryMax: j.salaryMax, skills: { create: sk.map((s) => ({ skillId: s.id })) } } }));
+  }
+
+  // Empresas fictícias extras (as mesmas que scripts/create-demo-companies.mjs cria no site publicado).
+  type DemoJob = { title: string; area: string; location: string; workMode: "ONSITE" | "HYBRID" | "REMOTE"; contractType: "CLT" | "PJ" | "INTERNSHIP" | "TEMPORARY";
+    seniority: "INTERN" | "JUNIOR" | "MID" | "SENIOR" | "LEAD"; minYears: number; salaryMin: number; salaryMax: number; skills: string[]; description: string };
+  type DemoCompany = { email: string; name: string; industry: string; location: string; website: string; description: string; jobs: DemoJob[] };
+  const extra: DemoCompany[] = JSON.parse(readFileSync(path.join(__dirname, "demo-companies.json"), "utf8"));
+  let daysAgo = 1;
+  for (const c of extra) {
+    const u = await db.user.create({ data: { name: c.name, email: `${c.email}${D}`, passwordHash, emailVerified: new Date(), role: "COMPANY",
+      company: { create: { name: c.name, industry: c.industry, location: c.location, description: c.description, website: c.website } } }, include: { company: true } });
+    for (const j of c.jobs) {
+      const sk = await Promise.all(j.skills.map(skill));
+      await db.job.create({ data: {
+        companyId: u.company!.id, title: j.title, description: j.description, requirements: `Conhecimento em ${j.skills.join(", ")}.`,
+        benefits: "Vale-refeição, plano de saúde", area: j.area, location: j.location, workMode: j.workMode, contractType: j.contractType, seniority: j.seniority,
+        minYears: j.minYears, salaryMin: j.salaryMin, salaryMax: j.salaryMax, publishedAt: new Date(Date.now() - daysAgo++ * 86_400_000),
+        skills: { create: sk.map((s) => ({ skillId: s.id })) } } });
+    }
   }
 
   const candidates = [

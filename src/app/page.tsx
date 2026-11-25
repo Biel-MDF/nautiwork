@@ -22,8 +22,12 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
       include: { company: { select: { id: true, name: true } }, skills: { include: { skill: true } } } }),
     db.companyProfile.findMany({ where: { user: { active: true } }, take: 6, orderBy: [{ jobs: { _count: "desc" } }, { name: "asc" }],
       include: { _count: { select: { jobs: { where: { status: "ACTIVE", flagged: false } } } } } }),
-    db.job.findMany({ where: publicJob, orderBy: { publishedAt: "desc" }, take: 12,
-      select: { id: true, title: true, publishedAt: true, company: { select: { name: true } } } }),
+    // radar: empresas ativas com vaga pública, com as vagas para o painel
+    db.companyProfile.findMany({ where: { user: { active: true }, jobs: { some: { status: "ACTIVE", flagged: false } } },
+      select: { id: true, userId: true, name: true, industry: true, location: true, description: true,
+        user: { select: { image: { select: { updatedAt: true } } } },
+        jobs: { where: { status: "ACTIVE", flagged: false }, orderBy: { publishedAt: "desc" },
+          select: { id: true, title: true, area: true, location: true, workMode: true, contractType: true, seniority: true, salaryMin: true, salaryMax: true, publishedAt: true } } } }),
     db.job.count({ where: publicJob }),
   ]);
   return (
@@ -42,8 +46,9 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
                 fill="none" stroke="#5CB8FF" strokeOpacity={0.07 - i * 0.004} strokeWidth="1" />
             ))}
           </svg>
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:pb-20 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:gap-8">
-            <div>
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:pb-20 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-8">
+            {/* alinhado ao topo: abrir o painel do radar não empurra o texto */}
+            <div className="lg:pt-16">
               <h1 className="max-w-[14ch] text-[40px] font-semibold leading-[1.05] sm:text-6xl lg:text-[64px]">Ache a vaga que combina com o seu rumo.</h1>
               <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-abyss/80">Monte seu perfil, veja o quanto cada vaga se aproxima das suas habilidades e acompanhe cada etapa da candidatura.</p>
               <form action="/jobs" className="mt-8 grid max-w-xl gap-2 rounded-panel border border-[#4269A1] bg-casco/80 p-2 backdrop-blur focus-within:border-tide sm:grid-cols-[1.3fr_1fr_auto]" role="search">
@@ -55,7 +60,10 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
               </form>
               <p className="mt-4 text-sm text-abyss/60">Sem cadastro para buscar. Para se candidatar, crie um perfil grátis.</p>
             </div>
-            <Sonar total={openCount} contacts={contacts.map((c) => ({ id: c.id, title: c.title, company: c.company.name, publishedAt: c.publishedAt }))} />
+            <Sonar totalJobs={openCount} companies={contacts
+              .sort((a, b) => b.jobs[0].publishedAt.getTime() - a.jobs[0].publishedAt.getTime()).slice(0, 12)
+              .map(({ user, jobs: js, ...c }) => ({ ...c, imageVersion: user.image ? user.image.updatedAt.getTime() : null,
+                jobs: js.map(({ publishedAt: _p, ...j }) => j) }))} />
           </div>
         </section>
 
