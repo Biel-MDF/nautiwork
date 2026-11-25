@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, Sora } from "next/font/google";
 import "./globals.css";
+import { currentUser, viewMode } from "@/lib/rbac";
+import { ViewModeBar } from "@/components/ViewMode";
+import { splitDemo } from "@/lib/display";
 
 const display = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display" });
 const body = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-body" });
@@ -18,10 +21,16 @@ export const metadata: Metadata = {
 
 export const viewport = { themeColor: "#030A1A", colorScheme: "dark" };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Modo de visualização do admin: barra fixa avisando e permitindo voltar.
+  const mode = await viewMode();
+  const as = mode && mode !== "visitor" ? await currentUser() : null;
   return (
     <html lang="pt-BR" className={`${display.variable} ${body.variable}`}>
-      <body>{children}</body>
+      <body className={mode ? "pb-28" : undefined}>
+        {children}
+        {mode && <ViewModeBar mode={mode} as={as ? `${splitDemo(as.name).name}, conta de demonstração` : null} />}
+      </body>
     </html>
   );
 }

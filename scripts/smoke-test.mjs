@@ -401,6 +401,42 @@ if (!OUTBOX) {
   check("conta excluída não consegue entrar de novo", !again.session?.user, "login funcionou");
 }
 
+// 15. Modo de visualização do admin: ver como visitante/candidato/empresa, só leitura, some no login
+{
+  const va = new Client("10.6.0.1");
+  const vs = await va.login("admin@demo.nautiwork.test", ADMIN_PASSWORD);
+  if (!vs.session?.user) console.log("  (modo de visualização pulado: conta admin de demonstração indisponível)");
+  else {
+    r = await va.req("POST", "/api/admin/view", { mode: "candidate" });
+    check("admin liga a visão de candidato", r.status === 200 && r.json?.redirect === "/candidate/dashboard", `status ${r.status}`);
+    r = await va.req("GET", "/candidate/dashboard");
+    const bar = (t, who) => new RegExp(`Vendo o site como (<!-- -->)?${who}`).test(t);
+    check("na visão de candidato, o painel do candidato abre", r.status === 200 && bar(r.text, "candidato"), `status ${r.status} ${r.location ?? ""}`);
+    r = await va.req("GET", "/admin/dashboard");
+    // o redirecionamento pode vir como 3xx ou como meta refresh (página em streaming)
+    check("na visão de candidato, o painel do admin não abre", (r.status >= 300 && r.status < 400) || (r.text.includes('http-equiv="refresh"') && !r.text.includes("Painel administrativo")), `status ${r.status}`);
+    r = await va.req("POST", "/api/saved-jobs", { jobId: "qualquer" });
+    check("na visão de candidato, ações são recusadas (403)", r.status === 403 && /visualiza/i.test(r.json?.error ?? ""), `status ${r.status}`);
+    r = await va.req("POST", "/api/admin/view", { mode: "visitor" });
+    r = await va.req("GET", "/");
+    check("na visão de visitante, a página mostra Entrar/Criar conta", r.text.includes('href="/register"') && bar(r.text, "visitante"), "barra ou botões ausentes");
+    r = await va.req("POST", "/api/admin/view", { mode: "admin" });
+    r = await va.req("GET", "/admin/dashboard");
+    check("voltar ao modo admin reabre o painel do admin", r.status === 200 && !r.text.includes("Vendo o site como"), `status ${r.status}`);
+    await va.req("POST", "/api/admin/view", { mode: "company" });
+    await va.login("admin@demo.nautiwork.test", ADMIN_PASSWORD);
+    r = await va.req("GET", "/admin/dashboard");
+    check("novo login sempre volta ao modo admin", r.status === 200 && !r.text.includes("Vendo o site como"), `status ${r.status}`);
+  }
+  const intruder = new Client("10.6.0.2");
+  await intruder.login("ana@demo.nautiwork.test", DEMO_PASSWORD);
+  r = await intruder.req("POST", "/api/admin/view", { mode: "company" });
+  check("quem não é admin não liga o modo de visualização (403)", r.status === 403, `status ${r.status}`);
+  intruder.cookies.set("nw_view", "company");
+  r = await intruder.req("GET", "/company/dashboard");
+  check("cookie forjado por não admin é ignorado", r.status >= 300 && r.status < 400, `status ${r.status}`);
+}
+
 // Limpeza: desativa as contas criadas pelo teste (somem das páginas públicas).
 if (process.env.SMOKE_CLEANUP === "1") {
   const cleaner = new Client("10.9.0.1");

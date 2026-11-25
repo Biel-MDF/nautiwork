@@ -4,6 +4,7 @@ import { requirePageRole } from "@/lib/rbac";
 import { Shell } from "@/components/Shell";
 import { Stat } from "@/components/ui";
 import { appStatusLabel } from "@/lib/labels";
+import { ViewAsButtons } from "@/components/ViewMode";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,11 @@ export default async function AdminDashboard() {
   const count = Object.fromEntries(byStatus.map((s) => [s.status, s._count._all])) as Record<string, number>;
   return (
     <Shell role="ADMIN" title="Painel administrativo">
+      <section className="mb-6" aria-labelledby="ver-como">
+        <h2 id="ver-como" className="font-semibold">Ver o site como um usuário</h2>
+        <p className="mb-3 mt-1 text-sm text-abyss/65">Só leitura e sem salvar nada. Usa contas da demonstração e volta ao modo admin a cada login ou ao fechar o navegador.</p>
+        <ViewAsButtons />
+      </section>
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="Candidatos" value={candidates} /><Stat label="Empresas" value={companies} /><Stat label="Vagas" value={jobs} />
         <Stat label="Candidaturas" value={apps} /><Stat label="Vagas retidas" value={flagged} /><Stat label="Contas desativadas" value={inactive} />

@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client";
+import { ViewAsMenuItems } from "./ViewMode";
 import { AccountNameForm, DataExport, DeleteAccountForm, ImageUpload, PasswordForm } from "./account-forms";
 import { Msg } from "./forms";
 import { UserAvatar } from "./UserAvatar";
@@ -91,6 +92,12 @@ export function AccountMenu({ user, signOutAction }: { user: MenuUser; signOutAc
             <Icon d={icons.config} />
             <span><span className="block">Configurações</span><span className="block text-xs text-abyss/55">Conta, foto, senha, avisos e privacidade</span></span>
           </button>
+          {user.role === "ADMIN" && (
+            <div className="my-1 border-y border-mist/70 py-1" role="group" aria-label="Ver o site como">
+              <p className="px-3 pb-1 pt-1.5 text-xs text-abyss/55">Ver o site como</p>
+              <ViewAsMenuItems />
+            </div>
+          )}
           <Link role="menuitem" href={user.role === "ADMIN" ? "/admin/support" : "/support"} className={item} onClick={() => setOpen(false)}><Icon d={icons.suporte} />Suporte</Link>
           <div className="my-1 h-px bg-mist" />
           <form action={signOutAction}>
