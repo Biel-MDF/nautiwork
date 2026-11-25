@@ -80,10 +80,17 @@ export function AccountMenu({ user, signOutAction }: { user: MenuUser; signOutAc
           </div>
           <div className="my-1 h-px bg-mist" />
           <Link role="menuitem" href={home[user.role]} className={item} onClick={() => setOpen(false)}><Icon d={icons.painel} />Meu painel</Link>
-          {profile
-            ? <Link role="menuitem" href={profile} className={item} onClick={() => setOpen(false)}><Icon d={icons.perfil} />Configurações de perfil</Link>
-            : <button role="menuitem" type="button" className={item} onClick={() => openSettings("conta")}><Icon d={icons.perfil} />Configurações de perfil</button>}
-          <button role="menuitem" type="button" className={item} onClick={() => openSettings("conta")}><Icon d={icons.config} />Configurações</button>
+          {/* Perfil = o que os outros veem (currículo ou página da empresa). Admin não tem perfil público. */}
+          {profile && (
+            <Link role="menuitem" href={profile} className={`${item} py-2`} onClick={() => setOpen(false)}>
+              <Icon d={icons.perfil} />
+              <span><span className="block">Configurações de perfil</span><span className="block text-xs text-abyss/55">{user.role === "COMPANY" ? "O que os candidatos veem da empresa" : "O que as empresas veem de você"}</span></span>
+            </Link>
+          )}
+          <button role="menuitem" type="button" className={`${item} py-2`} onClick={() => openSettings("conta")}>
+            <Icon d={icons.config} />
+            <span><span className="block">Configurações</span><span className="block text-xs text-abyss/55">Conta, foto, senha, avisos e privacidade</span></span>
+          </button>
           <Link role="menuitem" href={user.role === "ADMIN" ? "/admin/support" : "/support"} className={item} onClick={() => setOpen(false)}><Icon d={icons.suporte} />Suporte</Link>
           <div className="my-1 h-px bg-mist" />
           <form action={signOutAction}>
