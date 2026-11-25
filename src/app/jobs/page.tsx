@@ -3,6 +3,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Empty, JobCard } from "@/components/ui";
 import { searchJobs } from "@/modules/jobs.service";
+import { jobViewer } from "@/modules/viewer";
 import { db } from "@/lib/db";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -12,16 +13,17 @@ export const metadata = { title: "Vagas — Nautiwork" };
 export default async function Jobs(props: { searchParams: Promise<Record<string, string>> }) {
   const searchParams = await props.searchParams;
   const clean = Object.fromEntries(Object.entries(searchParams).filter(([, v]) => v));
-  const parsed = await searchJobs(clean).catch(() => null);
+  const [parsed, viewer] = await Promise.all([searchJobs(clean).catch(() => null), jobViewer()]);
   const qs = (page: number) => new URLSearchParams({ ...clean, page: String(page) }).toString();
   const open = { status: "ACTIVE" as const, flagged: false, company: { user: { active: true } } };
-  const [total, remote, internships, hiring] = await Promise.all([
+  const [total, remote, internships, hiring, noExp] = await Promise.all([
     db.job.count({ where: open }), db.job.count({ where: { ...open, workMode: "REMOTE" } }),
     db.job.count({ where: { ...open, contractType: "INTERNSHIP" } }),
     db.companyProfile.count({ where: { user: { active: true }, jobs: { some: { status: "ACTIVE", flagged: false } } } }),
+    db.job.count({ where: { ...open, minYears: 0 } }),
   ]);
   // atalhos de busca: cada um aplica um filtro real e mostra quantas vagas ele traz
-  const shortcuts: [string, Record<string, string>, number][] = [["Remotas", { workMode: "REMOTE" }, remote], ["Estágio", { contractType: "INTERNSHIP" }, internships], ["Publicadas nesta semana", { days: "7" }, -1]];
+  const shortcuts: [string, Record<string, string>, number][] = [["Remotas", { workMode: "REMOTE" }, remote], ["Estágio", { contractType: "INTERNSHIP" }, internships], ["Sem experiência", { noExp: "1" }, noExp], ["Publicadas nesta semana", { days: "7" }, -1]];
   return (
     <>
       <Navbar />
@@ -45,6 +47,8 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
           <div><label className="label" htmlFor="workMode">Modalidade</label><select id="workMode" name="workMode" defaultValue={clean.workMode ?? ""} className="input"><option value="">Todas</option><option value="REMOTE">Remoto</option><option value="HYBRID">Híbrido</option><option value="ONSITE">Presencial</option></select></div>
           <div><label className="label" htmlFor="contractType">Contratação</label><select id="contractType" name="contractType" defaultValue={clean.contractType ?? ""} className="input"><option value="">Todas</option><option value="CLT">CLT</option><option value="PJ">PJ</option><option value="INTERNSHIP">Estágio</option><option value="TEMPORARY">Temporário</option></select></div>
           <div><label className="label" htmlFor="minSalary">Salário a partir de (R$)</label><input id="minSalary" name="minSalary" type="number" min={1} defaultValue={clean.minSalary} className="input" /></div>
+          <div><label className="label" htmlFor="seniority">Nível</label><select id="seniority" name="seniority" defaultValue={clean.seniority ?? ""} className="input"><option value="">Todos</option><option value="INTERN">Estagiário</option><option value="JUNIOR">Júnior</option><option value="MID">Pleno</option><option value="SENIOR">Sênior</option><option value="LEAD">Liderança</option></select></div>
+          <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm"><input type="checkbox" name="noExp" value="1" defaultChecked={clean.noExp === "1"} className="h-5 w-5 accent-tide" />Só vagas sem experiência exigida</label>
           <div><label className="label" htmlFor="days">Publicada nos últimos</label><select id="days" name="days" defaultValue={clean.days ?? ""} className="input"><option value="">Qualquer data</option><option value="1">1 dia</option><option value="7">7 dias</option><option value="30">30 dias</option></select></div>
           <button className="btn-primary w-full">Aplicar filtros</button>
           <Link href="/jobs" className="block text-center text-sm text-tide">Limpar</Link>
@@ -54,7 +58,7 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
             <>
               <p className="mb-4 text-sm text-abyss/70">{parsed.total} {parsed.total === 1 ? "vaga encontrada" : "vagas encontradas"}</p>
               {parsed.items.length === 0 ? <Empty title="Nenhuma vaga com esses filtros" hint="Tente remover algum filtro ou buscar por outra palavra." href="/jobs" cta="Limpar filtros" /> :
-                <div className="grid gap-4">{parsed.items.map((j) => <JobCard key={j.id} job={j} />)}</div>}
+                <div className="grid gap-4">{parsed.items.map((j) => <JobCard key={j.id} job={j} save={viewer.save(j.id)} score={viewer.score(j)} />)}</div>}
               {parsed.pages > 1 && <div className="mt-6 flex items-center justify-between">
                 {parsed.page > 1 ? <Link className="btn-ghost" href={`/jobs?${qs(parsed.page - 1)}`}>Anterior</Link> : <span />}
                 <span className="text-sm">Página {parsed.page} de {parsed.pages}</span>

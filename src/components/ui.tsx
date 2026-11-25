@@ -1,4 +1,8 @@
 import { UserAvatar } from "./UserAvatar";
+import { CompanyMark } from "./CompanyMark";
+import { CompanyName } from "./CompanyName";
+import { SaveIconButton } from "./SaveIconButton";
+import { timeAgo } from "@/lib/display";
 import Link from "next/link";
 import { appStatusLabel, appStatusTone, contractLabel, salaryRange, workModeLabel } from "@/lib/labels";
 
@@ -47,30 +51,48 @@ const Mode = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" a
 const Doc = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-tide/80"><path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10A.5.5 0 0 1 7 20V3.5Z" stroke="currentColor" strokeWidth="1.8"/><path d="M10 12h5M10 15.5h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
 
 type JobCardJob = { id: string; title: string; location: string; workMode: keyof typeof workModeLabel; contractType: keyof typeof contractLabel;
-  salaryMin: number | null; salaryMax: number | null; company: { id: string; name: string }; skills: { skill: { name: string } }[] };
-export function JobCard({ job, score }: { job: JobCardJob; score?: number }) {
+  salaryMin: number | null; salaryMax: number | null; publishedAt?: Date | null;
+  company: { id: string; name: string; userId?: string; user?: { image: { updatedAt: Date } | null } };
+  skills: { skill: { name: string } }[] };
+
+/**
+ * Cartão de vaga. Opcionais: score (compatibilidade, para candidato logado) e
+ * save ("saved"/"unsaved" mostram o marcador; "login" leva ao login).
+ * O conteúdo ocupa a altura toda e as habilidades descem para o pé, para a grade ficar alinhada.
+ */
+export function JobCard({ job, score, save }: { job: JobCardJob; score?: number; save?: "saved" | "unsaved" | "login" }) {
   const salary = salaryRange(job.salaryMin, job.salaryMax);
+  const mark = job.company.userId;
   return (
-    <article className="card group relative transition-colors hover:border-tide/60">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
+    <article className="card group relative flex h-full flex-col transition-colors hover:border-tide/60">
+      <div className="flex items-start gap-3">
+        {mark && <CompanyMark userId={mark} name={job.company.name} imageVersion={job.company.user?.image ? job.company.user.image.updatedAt.getTime() : null} size={44} />}
+        <div className="min-w-0 flex-1">
           <h3 className="text-[17px] font-semibold leading-snug">
-            {/* o link cobre o cartão todo; o da empresa fica acima dele */}
+            {/* o link cobre o cartão todo; empresa e marcador ficam acima dele */}
             <Link href={`/jobs/${job.id}`} className="after:absolute after:inset-0 after:rounded-panel group-hover:text-deep">{job.title}</Link>
           </h3>
-          <Link href={`/companies/${job.company.id}`} className="relative z-10 mt-0.5 inline-block text-sm text-abyss/70 hover:text-tide hover:underline">{job.company.name}</Link>
+          <Link href={`/companies/${job.company.id}`} className="relative z-10 mt-0.5 inline-block text-sm text-abyss/70 hover:text-tide hover:underline"><CompanyName name={job.company.name} /></Link>
         </div>
-        {score !== undefined && <ScoreRing score={score} />}
+        {save && <div className="relative z-10 -mr-2 -mt-2"><SaveIconButton jobId={job.id} state={save} title={job.title} /></div>}
       </div>
       <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-abyss/85">
         <li className="flex items-center gap-1.5"><Pin />{job.location}</li>
         <li className="flex items-center gap-1.5"><Mode />{workModeLabel[job.workMode]}</li>
         <li className="flex items-center gap-1.5"><Doc />{contractLabel[job.contractType]}</li>
       </ul>
-      {salary && <p className="tabular mt-2 text-sm font-medium text-abyss">{salary}</p>}
-      {job.skills.length > 0 && <div className="mt-4 flex flex-wrap gap-1.5">
-        {job.skills.slice(0, 5).map((s) => <span key={s.skill.name} className="chip">{s.skill.name}</span>)}
-      </div>}
+      {(salary || score !== undefined) && (
+        <div className="mt-2 flex items-center justify-between gap-3">
+          {salary ? <p className="tabular text-sm font-medium text-abyss">{salary}</p> : <span />}
+          {score !== undefined && <span className="flex items-center gap-2 text-xs text-abyss/60">compatibilidade<ScoreRing score={score} size={44} /></span>}
+        </div>
+      )}
+      <div className="mt-auto flex items-end justify-between gap-3 pt-4">
+        {job.skills.length > 0 ? <div className="flex flex-wrap gap-1.5">
+          {job.skills.slice(0, 4).map((s) => <span key={s.skill.name} className="chip">{s.skill.name}</span>)}
+        </div> : <span />}
+        {job.publishedAt && <time dateTime={job.publishedAt.toISOString()} className="shrink-0 text-xs text-abyss/55">{timeAgo(job.publishedAt)}</time>}
+      </div>
     </article>
   );
 }

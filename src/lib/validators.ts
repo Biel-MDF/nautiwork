@@ -69,6 +69,9 @@ export const jobSearchSchema = z.object({
   contractType: z.enum(["CLT", "PJ", "INTERNSHIP", "TEMPORARY"]).optional(),
   minSalary: z.coerce.number().int().positive().optional(),
   days: z.coerce.number().int().positive().max(365).optional(),
+  seniority: z.enum(["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"]).optional(),
+  // "1" = só vagas que não pedem experiência
+  noExp: z.enum(["1"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
 

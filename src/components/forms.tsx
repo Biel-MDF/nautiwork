@@ -42,9 +42,9 @@ export function LoginForm() {
   );
 }
 
-export function RegisterForm() {
+export function RegisterForm({ initialRole = "CANDIDATE" }: { initialRole?: "CANDIDATE" | "COMPANY" }) {
   const router = useRouter();
-  const [role, setRole] = useState<"CANDIDATE" | "COMPANY">("CANDIDATE");
+  const [role, setRole] = useState<"CANDIDATE" | "COMPANY">(initialRole);
   const [err, setErr] = useState<{ error?: string; fields?: Record<string, string[]> }>({}); const [busy, setBusy] = useState(false);
   return (
     <form className="space-y-4" onSubmit={async (e) => {

@@ -1,3 +1,4 @@
+import { jobCardCompany } from "@/lib/queries";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -22,11 +23,13 @@ export async function searchJobs(input: z.input<typeof jobSearchSchema>) {
   if (f.workMode) where.workMode = f.workMode;
   if (f.contractType) where.contractType = f.contractType;
   if (f.minSalary) where.salaryMax = { gte: f.minSalary };
+  if (f.seniority) where.seniority = f.seniority;
+  if (f.noExp) where.minYears = 0;
   if (f.days) where.publishedAt = { gte: new Date(Date.now() - f.days * 86_400_000) };
   const [items, total] = await Promise.all([
     db.job.findMany({
       where, orderBy: { publishedAt: "desc" }, skip: (f.page - 1) * PAGE_SIZE, take: PAGE_SIZE,
-      include: { company: { select: { id: true, name: true } }, skills: { include: { skill: true } } },
+      include: { company: jobCardCompany, skills: { include: { skill: true } } },
     }),
     db.job.count({ where }),
   ]);

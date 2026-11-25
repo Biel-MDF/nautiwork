@@ -1,3 +1,4 @@
+import { jobCardCompany } from "@/lib/queries";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requirePageRole } from "@/lib/rbac";
@@ -19,7 +20,7 @@ export default async function CandidateDashboard() {
   const progress = Math.round((checks.filter(Boolean).length / checks.length) * 100);
   const applied = new Set((await db.jobApplication.findMany({ where: { candidateId: profile.id }, select: { jobId: true } })).map((a) => a.jobId));
   const jobs = await db.job.findMany({ where: { status: "ACTIVE", flagged: false, company: { user: { active: true } } }, orderBy: { publishedAt: "desc" }, take: 50,
-    include: { company: { select: { id: true, name: true } }, skills: { include: { skill: true } } } });
+    include: { company: jobCardCompany, skills: { include: { skill: true } } } });
   const mine = { skills: profile.skills.map((s) => s.skill.name), interestArea: profile.interestArea, workMode: profile.workMode, location: profile.location, yearsExperience: profile.yearsExperience };
   const recommended = jobs.filter((j) => !applied.has(j.id))
     .map((j) => ({ j, score: computeCompatibility(mine, { skills: j.skills.map((s) => s.skill.name), area: j.area, workMode: j.workMode, location: j.location, minYears: j.minYears }).score }))

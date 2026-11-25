@@ -8,6 +8,7 @@ import { ApplyButton, SaveButton } from "@/components/forms";
 import { ScoreRing } from "@/components/ui";
 import { contractLabel, salaryRange, seniorityLabel, workModeLabel } from "@/lib/labels";
 import { computeCompatibility } from "@/modules/compatibility";
+import { CompanyName } from "@/components/CompanyName";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,7 @@ export default async function JobPage(props: { params: Promise<{ id: string }> }
       <main className="mx-auto grid max-w-6xl gap-10 px-4 pb-32 pt-10 lg:grid-cols-[1fr_340px] lg:pb-10">
         <article className="min-w-0">
           {job.status !== "ACTIVE" && <p role="status" className="mb-5 rounded-control border border-coral/40 bg-coral/10 p-3 text-sm text-coral">Esta vaga está {job.status === "PAUSED" ? "pausada" : "encerrada"} e não recebe candidaturas.</p>}
-          <Link href={`/companies/${job.company.id}`} className="text-sm font-medium text-tide hover:text-deep hover:underline">{job.company.name}</Link>
+          <Link href={`/companies/${job.company.id}`} className="text-sm font-medium text-tide hover:text-deep hover:underline"><CompanyName name={job.company.name} /></Link>
           <h1 className="mt-2 text-3xl font-semibold leading-tight sm:text-[40px]">{job.title}</h1>
           <p className="mt-2 flex items-center gap-1.5 text-abyss/75">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-tide/80"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="9.5" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>

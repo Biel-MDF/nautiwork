@@ -1,27 +1,34 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { jobCardCompany } from "@/lib/queries";
+import { splitDemo } from "@/lib/display";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Empty, JobCard } from "@/components/ui";
 import { Sonar } from "@/components/Sonar";
+import { CompatibilityPreview } from "@/components/home/CompatibilityPreview";
+import { jobViewer } from "@/modules/viewer";
 
 export const dynamic = "force-dynamic";
 
 const faqs = [
-  ["A compatibilidade mostra se eu sou bom para a vaga?", "Não. Ela compara habilidades, área, modalidade, cidade e experiência com os requisitos da vaga, por regras que você pode ver. É um guia, não um julgamento."],
-  ["Preciso pagar para me candidatar?", "Este é um projeto acadêmico e não cobra de ninguém."],
-  ["Como sei em que etapa está minha candidatura?", "O status aparece em Candidaturas, com o histórico de cada mudança."],
-  ["Os dados da demonstração são reais?", "Não. Empresas, vagas e pessoas do ambiente de demonstração são fictícias."],
+  ["A compatibilidade mostra se eu sou bom para a vaga?", "Não. Ela compara habilidades, área, modalidade, cidade e experiência com os requisitos da vaga, por regras que você pode ver. É um guia, não um julgamento, e a decisão é sempre de uma pessoa da empresa."],
+  ["Preciso pagar para me candidatar?", "Não. Candidatos nunca pagam nada. Empresas que pedem pagamento de candidatos são removidas da plataforma."],
+  ["Como sei em que etapa está minha candidatura?", "Em Candidaturas, com o histórico de cada mudança. Toda mudança também gera um aviso no site e, se você quiser, por e-mail."],
+  ["O que a empresa vê de mim?", "Só a empresa da vaga em que você se candidatou vê seu perfil, foto e e-mail. Outras empresas não veem suas candidaturas."],
+  ["Posso apagar meus dados?", "Sim. Em Configurações, Privacidade, você baixa uma cópia dos seus dados ou exclui a conta na hora."],
+  ["Os dados da demonstração são reais?", "Não. Empresas e vagas com o selo Demo são fictícias e servem para mostrar como a plataforma funciona."],
 ];
+
+const ACTIVE_APP = ["SUBMITTED", "IN_REVIEW", "IN_PROCESS", "INTERVIEW"] as const;
+const plural = (n: number, one: string, many: string) => `${n.toLocaleString("pt-BR")} ${n === 1 ? one : many}`;
 
 export default async function Home(props: { searchParams: Promise<{ aviso?: string }> }) {
   const { aviso } = await props.searchParams;
   const publicJob = { status: "ACTIVE" as const, flagged: false, company: { user: { active: true } } };
-  const [jobs, companies, contacts, openCount] = await Promise.all([
-    db.job.findMany({ where: publicJob, orderBy: { publishedAt: "desc" }, take: 6,
-      include: { company: { select: { id: true, name: true } }, skills: { include: { skill: true } } } }),
-    db.companyProfile.findMany({ where: { user: { active: true } }, take: 6, orderBy: [{ jobs: { _count: "desc" } }, { name: "asc" }],
-      include: { _count: { select: { jobs: { where: { status: "ACTIVE", flagged: false } } } } } }),
+  const [pool, contacts, openCount, applications, quick, areas, cities, viewer] = await Promise.all([
+    db.job.findMany({ where: publicJob, orderBy: { publishedAt: "desc" }, take: 40,
+      include: { company: jobCardCompany, skills: { include: { skill: true } } } }),
     // radar: empresas ativas com vaga pública, com as vagas para o painel
     db.companyProfile.findMany({ where: { user: { active: true }, jobs: { some: { status: "ACTIVE", flagged: false } } },
       select: { id: true, userId: true, name: true, industry: true, location: true, description: true,
@@ -29,7 +36,49 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
         jobs: { where: { status: "ACTIVE", flagged: false }, orderBy: { publishedAt: "desc" },
           select: { id: true, title: true, area: true, location: true, workMode: true, contractType: true, seniority: true, salaryMin: true, salaryMax: true, publishedAt: true } } } }),
     db.job.count({ where: publicJob }),
+    db.jobApplication.count(),
+    Promise.all([
+      db.job.count({ where: { ...publicJob, contractType: "INTERNSHIP" } }),
+      db.job.count({ where: { ...publicJob, workMode: "REMOTE" } }),
+      db.job.count({ where: { ...publicJob, minYears: 0 } }),
+      db.job.count({ where: { ...publicJob, seniority: "JUNIOR" } }),
+    ]),
+    db.job.groupBy({ by: ["area"], where: publicJob, _count: { _all: true }, orderBy: { _count: { area: "desc" } }, take: 8 }),
+    db.job.groupBy({ by: ["location"], where: publicJob, _count: { _all: true }, orderBy: { _count: { location: "desc" } }, take: 8 }),
+    jobViewer(),
   ]);
+
+  const personal = viewer.user ? await personalData(viewer.user) : null;
+  const recommended = viewer.user?.role === "CANDIDATE"
+    ? pool.filter((j) => !personal?.appliedIds.has(j.id)).map((j) => ({ j, score: viewer.score(j) ?? 0 })).sort((a, b) => b.score - a.score).slice(0, 3)
+    : [];
+  const shown = new Set(recommended.map((r) => r.j.id));
+
+  // vagas recentes variadas: no máximo duas por empresa, sem repetir as recomendadas
+  const perCompany = new Map<string, number>();
+  const recent = pool.filter((j) => !shown.has(j.id)).filter((j) => {
+    const n = perCompany.get(j.companyId) ?? 0;
+    if (n >= 2) return false;
+    perCompany.set(j.companyId, n + 1);
+    return true;
+  }).slice(0, 6);
+  const example = [...pool].sort((a, b) => b.skills.length - a.skills.length)[0];
+  const radar = contacts
+    .sort((a, b) => b.jobs[0].publishedAt.getTime() - a.jobs[0].publishedAt.getTime()).slice(0, 12)
+    .map(({ user, jobs: js, ...c }) => ({ ...c, imageVersion: user.image ? user.image.updatedAt.getTime() : null, jobs: js.map(({ publishedAt: _p, ...j }) => j) }));
+
+  // sugestões da busca: cargos, habilidades e empresas que existem de verdade
+  const suggestions = [...new Set([
+    ...pool.map((j) => j.title),
+    ...pool.flatMap((j) => j.skills.map((s) => s.skill.name)),
+    ...contacts.map((c) => splitDemo(c.name).name),
+  ])].slice(0, 60);
+  const [internships, remote, noExp, junior] = quick;
+  const shortcuts: [string, string, number][] = [
+    ["Estágio", "contractType=INTERNSHIP", internships], ["Remoto", "workMode=REMOTE", remote],
+    ["Sem experiência", "noExp=1", noExp], ["Júnior", "seniority=JUNIOR", junior],
+  ];
+
   return (
     <>
       <Navbar />
@@ -46,88 +95,185 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
                 fill="none" stroke="#5CB8FF" strokeOpacity={0.07 - i * 0.004} strokeWidth="1" />
             ))}
           </svg>
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:pb-20 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-8">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:pb-20 sm:pt-14 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-8">
             {/* alinhado ao topo: abrir o painel do radar não empurra o texto */}
-            <div className="lg:pt-16">
-              <h1 className="max-w-[14ch] text-[40px] font-semibold leading-[1.05] sm:text-6xl lg:text-[64px]">Ache a vaga que combina com o seu rumo.</h1>
-              <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-abyss/80">Monte seu perfil, veja o quanto cada vaga se aproxima das suas habilidades e acompanhe cada etapa da candidatura.</p>
+            <div className="lg:pt-10">
+              {personal ? (
+                <>
+                  <h1 className="max-w-[16ch] text-[40px] font-semibold leading-[1.05] sm:text-6xl lg:text-[60px]">Olá, {personal.firstName}.</h1>
+                  <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-abyss/80">{personal.summary}</p>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    {personal.actions.map(([label, href], i) => <Link key={href} href={href} className={i === 0 ? "btn-primary" : "btn-ghost"}>{label}</Link>)}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h1 className="max-w-[14ch] text-[40px] font-semibold leading-[1.05] sm:text-6xl lg:text-[64px]">Ache a vaga que combina com o seu rumo.</h1>
+                  <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-abyss/80">Monte seu perfil, veja o quanto cada vaga se aproxima das suas habilidades e acompanhe cada etapa da candidatura.</p>
+                </>
+              )}
+
               <form action="/jobs" className="mt-8 grid max-w-xl gap-2 rounded-panel border border-[#4269A1] bg-casco/80 p-2 backdrop-blur focus-within:border-tide sm:grid-cols-[1.3fr_1fr_auto]" role="search">
                 <label className="sr-only" htmlFor="q">Cargo, empresa ou habilidade</label>
-                <input id="q" name="q" placeholder="Cargo, empresa ou habilidade" className="input rounded-none border-transparent border-b-mist bg-transparent hover:border-transparent hover:border-b-mist sm:border-b-transparent sm:hover:border-b-transparent" />
+                <input id="q" name="q" list="home-q" autoComplete="off" placeholder="Cargo, empresa ou habilidade" className="input rounded-none border-transparent border-b-mist bg-transparent hover:border-transparent hover:border-b-mist sm:border-b-transparent sm:hover:border-b-transparent" />
+                <datalist id="home-q">{suggestions.map((s) => <option key={s} value={s} />)}</datalist>
                 <label className="sr-only" htmlFor="location">Cidade</label>
-                <input id="location" name="location" placeholder="Cidade" className="input border-transparent bg-transparent hover:border-transparent sm:border-l-mist sm:rounded-none" />
+                <input id="location" name="location" list="home-city" autoComplete="off" placeholder="Cidade" className="input border-transparent bg-transparent hover:border-transparent sm:border-l-mist sm:rounded-none" />
+                <datalist id="home-city">{cities.map((c) => <option key={c.location} value={c.location} />)}</datalist>
                 <button className="btn-primary">Buscar vagas</button>
               </form>
-              <p className="mt-4 text-sm text-abyss/60">Sem cadastro para buscar. Para se candidatar, crie um perfil grátis.</p>
+              <nav aria-label="Buscas rápidas" className="mt-4 flex flex-wrap items-center gap-2">
+                {shortcuts.filter(([, , n]) => n > 0).map(([label, qs, n]) => (
+                  <Link key={label} href={`/jobs?${qs}`} className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-mist bg-casco/50 px-4 text-sm text-abyss/80 transition-colors hover:border-tide/50 hover:text-abyss">
+                    {label}<span className="tabular text-abyss/50">{n}</span>
+                  </Link>
+                ))}
+              </nav>
+
+              <dl className="mt-9 grid max-w-xl grid-cols-3 gap-4 border-t border-mist/70 pt-6">
+                {([["vagas abertas", openCount], ["empresas contratando", contacts.length], ["candidaturas enviadas", applications]] as const).map(([label, n]) => (
+                  <div key={label}>
+                    <dt className="sr-only">{label}</dt>
+                    <dd><span className="tabular block font-display text-3xl font-semibold text-abyss sm:text-4xl">{n.toLocaleString("pt-BR")}</span><span className="mt-1 block text-sm text-abyss/65">{label}</span></dd>
+                  </div>
+                ))}
+              </dl>
+
+              {!personal && (
+                <p className="mt-6 text-sm text-abyss/70">
+                  É empresa? <Link href="/register?tipo=empresa" className="font-semibold text-tide hover:text-deep hover:underline">Publique vagas sem custo</Link> e receba candidaturas organizadas por etapa.
+                </p>
+              )}
             </div>
-            <Sonar totalJobs={openCount} companies={contacts
-              .sort((a, b) => b.jobs[0].publishedAt.getTime() - a.jobs[0].publishedAt.getTime()).slice(0, 12)
-              .map(({ user, jobs: js, ...c }) => ({ ...c, imageVersion: user.image ? user.image.updatedAt.getTime() : null,
-                jobs: js.map(({ publishedAt: _p, ...j }) => j) }))} />
+            <Sonar companies={radar} />
           </div>
         </section>
+
+        {recommended.length > 0 && (
+          <section className="mx-auto max-w-6xl px-4 pt-16">
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div><h2 className="text-2xl font-semibold sm:text-[28px]">Recomendadas para você</h2><p className="mt-1 text-sm text-abyss/65">Ordenadas pela compatibilidade com o seu perfil.</p></div>
+              <Link href="/candidate/dashboard" className="shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver no painel</Link>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{recommended.map(({ j, score }) => <JobCard key={j.id} job={j} score={score} save={viewer.save(j.id)} />)}</div>
+          </section>
+        )}
 
         <section className="mx-auto max-w-6xl px-4 pt-16">
-          <div className="mb-6 flex items-end justify-between gap-4"><h2 className="text-2xl font-semibold sm:text-[28px]">Vagas recentes</h2><Link href="/jobs" className="text-sm font-semibold text-tide hover:text-deep hover:underline">Ver todas as vagas</Link></div>
-          {jobs.length === 0 ? <Empty title="Ainda não há vagas publicadas" hint="Quando uma empresa publicar, ela aparece aqui." href="/register" cta="Criar conta de empresa" />
-            : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{jobs.map((j) => <JobCard key={j.id} job={j} />)}</div>}
+          <div className="mb-6 flex items-end justify-between gap-4"><h2 className="text-2xl font-semibold sm:text-[28px]">Vagas recentes</h2><Link href="/jobs" className="shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver todas as vagas</Link></div>
+          {recent.length === 0 ? <Empty title="Ainda não há vagas publicadas" hint="Quando uma empresa publicar, ela aparece aqui." href="/register?tipo=empresa" cta="Criar conta de empresa" />
+            : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{recent.map((j) => <JobCard key={j.id} job={j} save={viewer.save(j.id)} score={viewer.score(j)} />)}</div>}
         </section>
 
-        <section className="mx-auto mt-16 max-w-6xl px-4">
-          <div className="grid gap-px overflow-hidden rounded-panel border border-mist bg-mist md:grid-cols-2">
-            <div className="bg-casco p-7 sm:p-9">
-              <h2 className="text-xl font-semibold">Para quem busca vaga</h2>
-              <p className="mt-3 max-w-[48ch] leading-relaxed text-abyss/80">Um perfil só, usado em todas as candidaturas. Salve vagas, veja o que falta para cada uma e acompanhe o status sem precisar perguntar.</p>
-              <Link href="/register" className="btn-primary mt-6">Criar perfil</Link>
+        <section className="mx-auto max-w-6xl px-4 pt-20" aria-labelledby="como-funciona">
+          <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-14 [&>*]:min-w-0">
+            <div>
+              <h2 id="como-funciona" className="text-2xl font-semibold sm:text-[28px]">Saiba o quanto combina antes de se candidatar</h2>
+              <p className="mt-3 max-w-[52ch] leading-relaxed text-abyss/75">A compatibilidade segue regras abertas: habilidades valem metade, e área, modalidade, cidade e experiência completam a conta. Você vê o que falta e decide onde investir.</p>
+              <ol className="mt-8 space-y-6">
+                {[["Monte o perfil", "Habilidades, área de interesse, modalidade e cidade. Leva poucos minutos e vale para todas as candidaturas."],
+                  ["Compare e candidate-se", "Cada vaga mostra a porcentagem, os critérios que pesaram e as habilidades que faltam."],
+                  ["Acompanhe cada etapa", "Toda mudança de status fica no histórico e gera um aviso. Sem precisar perguntar à empresa."]].map(([t, d], i) => (
+                  <li key={t} className="flex gap-4">
+                    <span className="tabular flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-tide/50 font-display text-sm font-semibold text-tide">{i + 1}</span>
+                    <div><h3 className="font-semibold">{t}</h3><p className="mt-1 max-w-[46ch] text-sm leading-relaxed text-abyss/75">{d}</p></div>
+                  </li>
+                ))}
+              </ol>
             </div>
-            <div className="bg-casco p-7 sm:p-9">
-              <h2 className="text-xl font-semibold">Para empresas</h2>
-              <p className="mt-3 max-w-[48ch] leading-relaxed text-abyss/80">Publique vagas, receba candidaturas organizadas por etapa e veja habilidades, formação e experiência de cada pessoa.</p>
-              <Link href="/register" className="btn-ghost mt-6">Publicar vaga</Link>
-            </div>
+            {example && <CompatibilityPreview job={example} />}
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 pt-20">
-          <h2 className="mb-8 text-2xl font-semibold sm:text-[28px]">Como funciona</h2>
-          <ol className="relative grid gap-8 md:grid-cols-3 md:gap-6">
-            {/* linha de rumo ligando as etapas */}
-            <span className="absolute left-5 right-5 top-5 hidden h-px bg-gradient-to-r from-tide/60 via-mist to-mist md:block" aria-hidden="true" />
-            {[["Monte o perfil", "Informe habilidades, área e modalidade preferida. É o que alimenta a compatibilidade."],
-              ["Encontre e candidate-se", "Filtre vagas e veja a compatibilidade calculada por regras que você pode conferir."],
-              ["Acompanhe", "Cada mudança de status fica registrada no histórico e gera uma notificação."]].map(([t, d], i) => (
-              <li key={t} className="relative">
-                <span className="tabular relative flex h-10 w-10 items-center justify-center rounded-full border border-tide/50 bg-fossa font-display text-sm font-semibold text-tide">{i + 1}</span>
-                <h3 className="mt-4 text-lg font-semibold">{t}</h3>
-                <p className="mt-1.5 max-w-[36ch] text-sm leading-relaxed text-abyss/75">{d}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
+        {(areas.length > 0 || cities.length > 0) && (
+          <section className="mx-auto max-w-6xl px-4 pt-20" aria-labelledby="explorar">
+            <div className="mb-6 flex items-end justify-between gap-4"><h2 id="explorar" className="text-2xl font-semibold sm:text-[28px]">Explorar vagas</h2><Link href="/companies" className="shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver empresas</Link></div>
+            <div className="grid gap-8 md:grid-cols-[1.4fr_1fr]">
+              <div>
+                <h3 className="text-sm font-medium text-abyss/70">Por área</h3>
+                <ul className="mt-3 grid gap-2 sm:grid-cols-2">{areas.map((a) => (
+                  <li key={a.area}><Link href={`/jobs?area=${encodeURIComponent(a.area)}`} className="card flex min-h-[56px] items-center justify-between gap-3 py-3 transition-colors hover:border-tide/60">
+                    <span className="font-medium">{a.area}</span><span className="tabular text-sm text-abyss/60">{plural(a._count._all, "vaga", "vagas")}</span></Link></li>))}</ul>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-abyss/70">Por cidade</h3>
+                <ul className="mt-3 grid gap-2">{cities.slice(0, 6).map((c) => (
+                  <li key={c.location}><Link href={`/jobs?location=${encodeURIComponent(c.location)}`} className="card flex min-h-[56px] items-center justify-between gap-3 py-3 transition-colors hover:border-tide/60">
+                    <span className="font-medium">{c.location}</span><span className="tabular text-sm text-abyss/60">{plural(c._count._all, "vaga", "vagas")}</span></Link></li>))}</ul>
+              </div>
+            </div>
+          </section>
+        )}
 
-        <section className="mx-auto max-w-6xl px-4 pt-20">
-          <div className="mb-6 flex items-end justify-between gap-4"><h2 className="text-2xl font-semibold sm:text-[28px]">Empresas</h2><Link href="/companies" className="text-sm font-semibold text-tide hover:text-deep hover:underline">Ver todas as empresas</Link></div>
-          {companies.length === 0 ? <Empty title="Nenhuma empresa cadastrada" hint="As empresas aparecem aqui depois do cadastro." /> :
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{companies.map((c) => (
-              <Link key={c.id} href={`/companies/${c.id}`} className="card flex items-center justify-between gap-4 transition-colors hover:border-tide/60">
-                <span className="min-w-0"><span className="block truncate font-semibold">{c.name}</span><span className="block text-sm text-abyss/70">{c.industry ?? "Área não informada"}</span></span>
-                <span className="tabular shrink-0 text-sm text-abyss/70"><span className="font-semibold text-abyss">{c._count.jobs}</span> {c._count.jobs === 1 ? "vaga" : "vagas"}</span>
-              </Link>))}</div>}
-        </section>
+        {!personal && (
+          <section className="mx-auto mt-20 max-w-6xl px-4">
+            <div className="grid gap-px overflow-hidden rounded-panel border border-mist bg-mist md:grid-cols-2">
+              <div className="bg-casco p-7 sm:p-9">
+                <h2 className="text-xl font-semibold">Para quem busca vaga</h2>
+                <p className="mt-3 max-w-[46ch] leading-relaxed text-abyss/80">Um perfil só para todas as candidaturas, vagas salvas e o status de cada processo num lugar.</p>
+                <Link href="/register" className="btn-primary mt-6">Criar perfil grátis</Link>
+              </div>
+              <div className="bg-casco p-7 sm:p-9">
+                <h2 className="text-xl font-semibold">Para empresas</h2>
+                <p className="mt-3 max-w-[46ch] leading-relaxed text-abyss/80">Publique vagas, receba candidaturas ordenadas por compatibilidade e mova cada pessoa pelas etapas.</p>
+                <Link href="/register?tipo=empresa" className="btn-primary mt-6">Publicar vaga</Link>
+              </div>
+            </div>
+          </section>
+        )}
 
-        <section className="mx-auto max-w-6xl px-4 pb-6 pt-20">
-          <h2 className="mb-6 text-2xl font-semibold sm:text-[28px]">Perguntas frequentes</h2>
-          <div className="max-w-3xl divide-y divide-mist overflow-hidden rounded-panel border border-mist bg-casco">{faqs.map(([q, a]) => (
-            <details key={q} className="group">
-              <summary className="flex min-h-[56px] cursor-pointer items-center justify-between gap-4 px-5 font-medium hover:bg-foam/50">
-                {q}
-                <svg className="shrink-0 text-tide transition-transform group-open:rotate-45" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-              </summary>
-              <p className="max-w-[62ch] px-5 pb-5 leading-relaxed text-abyss/80">{a}</p>
-            </details>))}</div>
+        <section className="mx-auto max-w-6xl px-4 pb-6 pt-20" aria-labelledby="faq">
+          <h2 id="faq" className="mb-6 text-2xl font-semibold sm:text-[28px]">Perguntas frequentes</h2>
+          <div className="grid items-start gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="divide-y divide-mist overflow-hidden rounded-panel border border-mist bg-casco">{faqs.map(([q, a]) => (
+              <details key={q} className="group">
+                <summary className="flex min-h-[56px] cursor-pointer items-center justify-between gap-4 px-5 font-medium hover:bg-foam/50">
+                  {q}
+                  <svg className="shrink-0 text-tide transition-transform group-open:rotate-45" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                </summary>
+                <p className="max-w-[62ch] px-5 pb-5 leading-relaxed text-abyss/80">{a}</p>
+              </details>))}</div>
+            <aside className="card">
+              <h3 className="font-semibold">Não achou sua resposta?</h3>
+              <p className="mt-2 text-sm leading-relaxed text-abyss/75">Abra um pedido de suporte. A resposta chega no site e no seu e-mail, e o histórico fica guardado.</p>
+              <Link href={viewer.user ? "/support/new" : "/login"} className="btn-ghost mt-4 w-full">{viewer.user ? "Falar com o suporte" : "Entrar para falar com o suporte"}</Link>
+            </aside>
+          </div>
         </section>
       </main>
       <Footer />
     </>
   );
+}
+
+/** Saudação e atalhos da página inicial para quem está logado, conforme o papel. */
+async function personalData(user: { id: string; name: string; role: "CANDIDATE" | "COMPANY" | "ADMIN" }) {
+  const firstName = splitDemo(user.name).name.split(" ")[0] || "de volta";
+  const week = new Date(Date.now() - 7 * 86_400_000);
+  if (user.role === "CANDIDATE") {
+    const apps = await db.jobApplication.findMany({ where: { candidate: { userId: user.id } }, select: { jobId: true, status: true } });
+    const active = apps.filter((a) => (ACTIVE_APP as readonly string[]).includes(a.status)).length;
+    return {
+      firstName, appliedIds: new Set(apps.map((a) => a.jobId)),
+      summary: active > 0 ? `Você tem ${plural(active, "candidatura em andamento", "candidaturas em andamento")}. Veja abaixo as vagas que mais combinam com o seu perfil.`
+        : "Você não tem candidaturas em andamento. As vagas abaixo estão ordenadas pelo quanto combinam com o seu perfil.",
+      actions: [["Minhas candidaturas", "/candidate/applications"], ["Editar perfil", "/candidate/profile"]] as [string, string][],
+    };
+  }
+  if (user.role === "COMPANY") {
+    const company = await db.companyProfile.findUnique({ where: { userId: user.id }, select: { id: true,
+      _count: { select: { jobs: { where: { status: "ACTIVE" } } } } } });
+    const fresh = company ? await db.jobApplication.count({ where: { job: { companyId: company.id }, createdAt: { gte: week } } }) : 0;
+    return {
+      firstName, appliedIds: new Set<string>(),
+      summary: `${plural(fresh, "candidatura nova", "candidaturas novas")} nos últimos 7 dias, em ${plural(company?._count.jobs ?? 0, "vaga aberta", "vagas abertas")}.`,
+      actions: [["Ver candidaturas", "/company/applications"], ["Publicar vaga", "/company/jobs/new"]] as [string, string][],
+    };
+  }
+  const [tickets, flagged] = await Promise.all([db.supportTicket.count({ where: { status: "OPEN" } }), db.job.count({ where: { flagged: true } })]);
+  return {
+    firstName, appliedIds: new Set<string>(),
+    summary: `${plural(tickets, "pedido de suporte aberto", "pedidos de suporte abertos")} e ${plural(flagged, "vaga sinalizada", "vagas sinalizadas")} para revisar.`,
+    actions: [["Painel do admin", "/admin/dashboard"], ["Fila de suporte", "/admin/support"]] as [string, string][],
+  };
 }

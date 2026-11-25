@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 
 // Abas públicas. Cada uma tem uma descrição curta (aparece como dica e é lida por leitores de tela).
 export const tabs = [
-  { href: "/", label: "Início", hint: "Sonar de vagas abertas, vagas recentes e como funciona" },
+  { href: "/", label: "Início", hint: "Radar de empresas contratando, vagas recentes e como funciona" },
   { href: "/jobs", label: "Vagas", hint: "Busque por cargo, cidade, modalidade, contratação e salário" },
   { href: "/companies", label: "Empresas", hint: "Quem está contratando e as vagas abertas de cada empresa" },
   { href: "/about", label: "Sobre", hint: "O projeto e como a compatibilidade é calculada" },

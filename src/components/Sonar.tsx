@@ -2,7 +2,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { contractLabel, salaryRange, seniorityLabel, workModeLabel } from "@/lib/labels";
-import { UserAvatar } from "./UserAvatar";
+import { CompanyMark } from "./CompanyMark";
+import { CompanyName } from "./CompanyName";
 
 export type SonarJob = {
   id: string; title: string; area: string; location: string;
@@ -29,7 +30,7 @@ function tally<K extends string>(jobs: SonarJob[], key: (j: SonarJob) => K, labe
  * Distância do centro = ordem da vaga mais recente (mais perto, publicou há menos tempo);
  * tamanho = quantidade de vagas abertas. Tocar numa empresa abre o painel com as vagas dela.
  */
-export function Sonar({ companies, totalJobs }: { companies: SonarCompany[]; totalJobs: number }) {
+export function Sonar({ companies }: { companies: SonarCompany[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const panelId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -91,9 +92,9 @@ export function Sonar({ companies, totalJobs }: { companies: SonarCompany[]; tot
                   aria-expanded={on} aria-controls={panelId}
                   aria-label={`${plain(c.name)}, ${count} ${count === 1 ? "vaga aberta" : "vagas abertas"}`}
                   className="group absolute -translate-x-1/2 -translate-y-1/2 rounded-full p-1 focus-visible:outline-offset-0">
-                  <span className={`relative block rounded-full ring-2 transition-transform duration-200 group-hover:scale-110 ${on ? "scale-110 ring-tide" : "ring-reef/70"} motion-safe:animate-echo`}
+                  <span className={`relative block rounded-[30%] ring-2 transition-transform duration-200 group-hover:scale-110 ${on ? "scale-110 ring-tide" : "ring-reef/70"} motion-safe:animate-echo`}
                     style={{ width: size, height: size, animationDelay: `${((angle / 360) * SWEEP_S).toFixed(2)}s` }}>
-                    <UserAvatar userId={c.userId} name={c.name} imageVersion={c.imageVersion} size={size} />
+                    <CompanyMark userId={c.userId} name={c.name} imageVersion={c.imageVersion} size={size} />
                     <span className="tabular absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border border-fossa bg-reef px-1 text-[11px] font-bold leading-none text-fossa">
                       {count}
                     </span>
@@ -108,9 +109,7 @@ export function Sonar({ companies, totalJobs }: { companies: SonarCompany[]; tot
       <div id={panelId} ref={panelRef} aria-live="polite" className="mt-5">
         {selected ? <CompanyPanel company={selected} onClose={() => setSelectedId(null)} /> : (
           <figcaption className="text-center text-sm leading-relaxed text-abyss/70">
-            <span className="tabular font-semibold text-abyss">{companies.length}</span> {companies.length === 1 ? "empresa contratando" : "empresas contratando"},{" "}
-            <span className="tabular font-semibold text-abyss">{totalJobs}</span> {totalJobs === 1 ? "vaga aberta" : "vagas abertas"}.
-            {companies.length > 0 && <> Toque numa empresa no radar para ver as vagas dela. Mais perto do centro, vaga mais recente.</>}
+            {companies.length > 0 ? "Toque numa empresa no radar para ver as vagas dela. Mais perto do centro, vaga mais recente." : "Nenhuma empresa contratando agora."}
           </figcaption>
         )}
       </div>
@@ -126,9 +125,9 @@ function CompanyPanel({ company: c, onClose }: { company: SonarCompany; onClose:
   return (
     <section aria-label={`Vagas de ${plain(c.name)}`} className="card motion-safe:animate-menu p-0 text-left">
       <header className="flex items-start gap-3 border-b border-mist p-4">
-        <UserAvatar userId={c.userId} name={c.name} imageVersion={c.imageVersion} size={44} />
+        <CompanyMark userId={c.userId} name={c.name} imageVersion={c.imageVersion} size={44} />
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold leading-tight">{c.name}</h3>
+          <h3 className="font-semibold leading-tight"><CompanyName name={c.name} /></h3>
           <p className="mt-0.5 text-sm text-abyss/65">{[c.industry, c.location].filter(Boolean).join(", ")}</p>
         </div>
         <button type="button" onClick={onClose} aria-label="Fechar painel da empresa"

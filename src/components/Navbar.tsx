@@ -4,6 +4,7 @@ import { currentUser } from "@/lib/rbac";
 import { Logo } from "./Logo";
 import { NavTabs } from "./NavTabs";
 import { AccountMenu } from "./AccountMenu";
+import { MobileMenu } from "./MobileMenu";
 
 const home = { CANDIDATE: "/candidate/dashboard", COMPANY: "/company/dashboard", ADMIN: "/admin/dashboard" } as const;
 
@@ -27,13 +28,13 @@ export async function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" className="btn-ghost px-3 sm:px-4">Entrar</Link>
+              <Link href="/login" className="btn-ghost hidden px-4 sm:inline-flex">Entrar</Link>
               <Link href="/register" className="btn-primary px-3 sm:px-4">Criar conta</Link>
             </>
           )}
+          <MobileMenu loggedIn={!!user} />
         </div>
       </nav>
-      <div className="border-t border-mist/70 py-1.5 sm:hidden"><NavTabs variant="mobile" /></div>
     </header>
   );
 }
