@@ -14,13 +14,15 @@ function chain(error: unknown): Shape[] {
   return out;
 }
 
-export type AssistantFailure = "credits" | "auth" | "rate" | "unavailable" | "generic";
+export type AssistantFailure = "credits" | "billing" | "auth" | "rate" | "unavailable" | "generic";
 
 export function classifyAssistantError(error: unknown): AssistantFailure {
   for (const e of chain(error)) {
     const status = Number(e.statusCode ?? e.status);
     const type = String(e.type ?? "");
     const text = `${String(e.name ?? "")} ${String(e.message ?? "")}`.toLowerCase();
+    // conta da Gateway sem cartão verificado, ou modelo fora dos créditos gratuitos
+    if (/credit card|card on file|customer_verification|verify your identity|free credits|free tier|restricted access|no_providers_available/.test(`${type} ${text}`)) return "billing";
     if (status === 402 || /insufficient|credit|crédito|balance|billing|payment required/.test(text)) return "credits";
     if (type === "authentication_error" || status === 401 || /authenticat|oidc|api key/.test(text)) return "auth";
     if (type === "rate_limit_exceeded" || status === 429) return "rate";
@@ -31,6 +33,7 @@ export function classifyAssistantError(error: unknown): AssistantFailure {
 
 export const assistantErrorText: Record<AssistantFailure, string> = {
   credits: "O assistente está sem créditos de IA no momento. Tente mais tarde ou use a busca de vagas em /jobs.",
+  billing: "O assistente ainda não foi liberado no serviço de IA. A busca de vagas em /jobs continua funcionando.",
   auth: "O assistente não está configurado neste ambiente. A busca de vagas em /jobs continua funcionando.",
   rate: "Muitas perguntas ao mesmo tempo. Espere alguns segundos e tente de novo.",
   unavailable: "O serviço de IA não respondeu agora. Tente de novo em instantes.",

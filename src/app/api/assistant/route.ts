@@ -77,7 +77,10 @@ export const POST = handle(async (req: Request) => {
       sendReasoning: false,
       onError: (error) => {
         const kind = classifyAssistantError(error);
-        if (kind === "generic" || kind === "auth") { console.error("[assistente]", error); Sentry.captureException(error); }
+        // a mensagem da Gateway diz a causa exata (cartão, créditos, modelo) e não traz dados pessoais
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error(`[assistente] ${kind}: ${detail.slice(0, 500)}`);
+        if (kind !== "rate") Sentry.captureException(error, { tags: { area: "assistente", falha: kind } });
         return assistantErrorText[kind];
       },
       headers: { "Cache-Control": "no-store" },

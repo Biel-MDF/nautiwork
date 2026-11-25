@@ -10,6 +10,8 @@ describe("erros do assistente", () => {
     expect(classifyAssistantError({ statusCode: 402, message: "Payment Required" })).toBe("credits");
     expect(classifyAssistantError({ name: "AI_RetryError", lastError: { message: "Insufficient funds. Add credits." } })).toBe("credits");
     expect(classifyAssistantError({ type: "authentication_error", statusCode: 401 })).toBe("auth");
+    expect(classifyAssistantError({ statusCode: 403, message: "AI Gateway requires a valid credit card on file to service requests." })).toBe("billing");
+    expect(classifyAssistantError({ statusCode: 403, message: "Free credits temporarily have restricted access due to abuse." })).toBe("billing");
     expect(classifyAssistantError(new Error("x", { cause: { type: "rate_limit_exceeded", statusCode: 429 } }))).toBe("rate");
     expect(classifyAssistantError({ type: "model_not_found" })).toBe("unavailable");
     expect(classifyAssistantError(new Error("algo inesperado"))).toBe("generic");

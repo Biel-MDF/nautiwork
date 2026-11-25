@@ -83,7 +83,6 @@ export function createAssistantAgent(opts: { viewer: Viewer; name?: string | nul
     // poucas voltas bastam (buscar, detalhar, responder) e limitam o custo de cada pergunta
     stopWhen: isStepCount(5),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
-    temperature: 0.3,
     providerOptions: {
       gateway: {
         models: FALLBACK_MODELS,
