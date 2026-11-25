@@ -36,7 +36,7 @@ export function MobileMenu({ loggedIn }: { loggedIn: boolean }) {
           <ul className="divide-y divide-mist/60">
             {tabs.map((t) => (
               <li key={t.href}>
-                <Link href={t.href} aria-current={isActive(t.href) ? "page" : undefined}
+                <Link href={t.href} prefetch aria-current={isActive(t.href) ? "page" : undefined}
                   className={`flex min-h-[56px] flex-col justify-center py-2 ${isActive(t.href) ? "text-abyss" : "text-abyss/80"}`}>
                   <span className="flex items-center gap-2 font-medium">{isActive(t.href) && <span className="h-1.5 w-1.5 rounded-full bg-tide" aria-hidden="true" />}{t.label}</span>
                   <span className="text-xs text-abyss/55">{t.hint}</span>

@@ -12,7 +12,7 @@ export function ShellNav({ items }: { items: readonly (readonly [string, string]
       {items.map(([label, href]) => {
         const on = href === active;
         return (
-          <Link key={href} href={href} aria-current={on ? "page" : undefined}
+          <Link key={href} href={href} prefetch aria-current={on ? "page" : undefined}
             className={`relative flex min-h-[44px] shrink-0 items-center rounded-control px-3.5 text-sm font-medium transition-colors md:w-full
               ${on ? "bg-foam text-abyss md:before:absolute md:before:inset-y-2.5 md:before:left-0 md:before:w-[3px] md:before:rounded-full md:before:bg-tide border border-tide/40 md:border-transparent"
                    : "border border-mist text-abyss/75 hover:bg-casco hover:text-abyss md:border-transparent"}`}>

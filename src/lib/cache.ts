@@ -7,7 +7,8 @@ export const PUBLIC_TAG = "public";
 
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 /** O cache guarda JSON: datas voltam como texto. Isto as transforma de novo em Date. */
-function revive<T>(v: T): T {
+export function revive<T>(v: T): T {
+  if (v instanceof Date) return v;
   if (typeof v === "string" && ISO.test(v)) return new Date(v) as T;
   if (Array.isArray(v)) return v.map(revive) as T;
   if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, revive(x)])) as T;

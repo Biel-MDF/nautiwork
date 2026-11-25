@@ -437,6 +437,19 @@ if (!OUTBOX) {
   check("cookie forjado por não admin é ignorado", r.status >= 300 && r.status < 400, `status ${r.status}`);
 }
 
+// 16. Páginas públicas em cache: a segunda visita (vinda do cache) precisa renderizar igual à primeira
+{
+  for (const path of ["/", "/jobs", "/companies"]) {
+    for (const round of ["primeira", "segunda"]) {
+      r = await anon.req("GET", path);
+      const broken = r.text.includes("Algo deu errado") || r.text.includes("O Nautiwork teve um problema");
+      check(`${path} (${round} visita, cache) renderiza sem erro`, r.status === 200 && !broken, `status ${r.status}`);
+    }
+  }
+  r = await anon.req("GET", "/jobs");
+  check("cartões de vaga mostram há quanto tempo foram publicadas", /<time[^>]*dateTime=/i.test(r.text), "sem <time>");
+}
+
 // Limpeza: desativa as contas criadas pelo teste (somem das páginas públicas).
 if (process.env.SMOKE_CLEANUP === "1") {
   const cleaner = new Client("10.9.0.1");

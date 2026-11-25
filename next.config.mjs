@@ -6,6 +6,11 @@ const nextConfig = {
   // O projeto não usa next/image. Com o otimizador desligado, /_next/image responde 404,
   // o que fecha falhas do Next 14 nesse endpoint que só foram corrigidas na linha 15.5.x.
   images: { unoptimized: true },
+  experimental: {
+    // Páginas visitadas há menos de 30 s (e as pré-carregadas pelo menu) abrem sem ir ao servidor.
+    // Toda ação que muda dados chama router.refresh(), que descarta esse cache.
+    staleTimes: { dynamic: 30, static: 180 },
+  },
 };
 
 // Monitoramento de erros (Sentry). Sem NEXT_PUBLIC_SENTRY_DSN o SDK fica desligado.

@@ -19,7 +19,7 @@ export function NavTabs({ variant }: { variant: "desktop" | "mobile" }) {
         const on = isActive(t.href);
         return (
           <li key={t.href}>
-            <Link href={t.href} title={t.hint} aria-current={on ? "page" : undefined} aria-description={t.hint}
+            <Link href={t.href} prefetch title={t.hint} aria-current={on ? "page" : undefined} aria-description={t.hint}
               className={`relative inline-flex min-h-[40px] items-center rounded-control px-3 text-sm font-medium transition-colors
                 ${on ? "text-abyss" : "text-abyss/70 hover:bg-casco hover:text-abyss"}
                 after:absolute after:inset-x-3 after:-bottom-[7px] after:h-[2px] after:rounded-full ${on ? "after:bg-tide" : "after:bg-transparent"}`}>
