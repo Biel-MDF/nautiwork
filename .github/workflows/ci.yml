@@ -1,0 +1,85 @@
+# Roda a verificação completa em todo push e pull request.
+# Se algum passo falhar, o GitHub marca o commit com um X vermelho.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Tipos, lint e testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nautiwork?schema=public
+      DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/nautiwork?schema=public
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nautiwork_test?schema=public
+      AUTH_SECRET: ci-somente-para-testes-nao-usar-em-producao
+      AUTH_TRUST_HOST: "true"
+      APP_URL: http://localhost:3000
+      MAIL_DEV_OUTBOX: /tmp/outbox.jsonl
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar o cliente do Prisma
+        run: npx prisma generate
+
+      - name: Checar tipos
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Testes unitários
+        run: npm test
+
+      - name: Testes de integração
+        run: npm run test:integration
+
+      - name: Preparar banco e build
+        run: |
+          npx prisma migrate deploy
+          npm run db:seed
+          npx next build
+
+      - name: Smoke test ponta a ponta
+        run: |
+          npm start > /tmp/server.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:3000 > /dev/null && break; sleep 1; done
+          npm run test:smoke
+
+      - name: Log do servidor (se falhar)
+        if: failure()
+        run: tail -n 200 /tmp/server.log || true

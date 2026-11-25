@@ -47,3 +47,9 @@
   .hint-error { @apply mt-1 text-sm text-coral; }
   .chip { @apply rounded-[6px] border border-mist/70 bg-foam px-2 py-0.5 text-xs text-abyss/90; }
 }
+
+/* Texto das páginas legais */
+.legal ul { list-style: disc; padding-left: 1.25rem; }
+.legal ul > li + li { margin-top: 0.5rem; }
+.legal strong { color: #E3EDFB; font-weight: 600; }
+.legal a { color: #5CB8FF; text-decoration: underline; text-underline-offset: 2px; }

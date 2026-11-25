@@ -19,7 +19,8 @@ Next.js 15.5.29 (App Router), React 19, TypeScript, Tailwind CSS 3, PostgreSQL, 
 - **Compatibilidade por regras** (`src/modules/compatibility.ts`): habilidades 50, área 20, modalidade 10, cidade 10, experiência 10; critérios sem dado são ignorados e os pesos renormalizados. Sem IA.
 - **Imagens:** foto e logotipo em PNG, JPEG ou WebP, até 1 MB, gravados no próprio PostgreSQL (tabela `UserImage`). O formato é conferido pelos bytes do arquivo, não pela extensão. Logotipo de empresa é público; foto de candidato só aparece para o próprio candidato, para administradores e para empresas que receberam candidatura dele.
 - Notificações gravadas no banco (não são em tempo real) e, para quem deixa ligado nas Configurações, também enviadas por e-mail.
-- **Menu da conta:** avatar no canto superior direito (foto ou inicial colorida) com Meu painel, Configurações de perfil, Configurações (janela com Conta, Foto, Segurança e Notificações, cada uma com Salvar), Suporte e Sair.
+- **Menu da conta:** avatar no canto superior direito (foto ou inicial colorida) com Meu painel, Configurações de perfil, Configurações (janela com Conta, Foto, Segurança, Notificações e Privacidade), Suporte e Sair.
+- **LGPD:** páginas de Política de Privacidade (`/privacidade`) e Termos de Uso (`/termos`); aceite obrigatório no cadastro, com data e versão gravadas (`termsAcceptedAt`, `termsVersion`; versão em `src/lib/legal.ts`); em Configurações, Privacidade: baixar os próprios dados em JSON e excluir a conta (senha + palavra EXCLUIR). A exclusão apaga tudo em cascata; se for empresa, os candidatos com processo em andamento são avisados. Administrador não se exclui por ali.
 - **Suporte:** pedidos com categoria e conversa entre usuário e equipe, fila para o administrador com filtros por status, aviso no site e por e-mail a cada resposta, limite de 5 pedidos abertos por pessoa.
 
 ## Visual
@@ -58,6 +59,8 @@ Ao mudar o `schema.prisma`, crie uma nova migration com `npx prisma migrate dev 
 | `npm test` | Unitários: compatibilidade, validações, checagem de imagem, limite de tentativas, envio de e-mail | nada |
 | `npm run test:integration` | Serviços contra um PostgreSQL real: candidatura duplicada (inclusive simultânea), permissões entre empresas, status e histórico, currículo, notificações, senha, imagens, tokens de e-mail (uso único, expiração, uso simultâneo) | `TEST_DATABASE_URL` no `.env` |
 | `npm run test:smoke` | Fluxo HTTP completo contra o servidor rodando (cadastro, login, vagas, filtros, candidatura, 401/403/404/409, páginas por papel, upload, confirmação de e-mail, recuperação de senha, queda de sessão) | servidor em `localhost:3000` e seed aplicado |
+
+**Integração contínua:** `.github/workflows/ci.yml` roda tipos, lint, testes unitários, de integração (PostgreSQL em container) e o smoke test completo contra um build de produção, em todo push na `main` e em todo pull request. O resultado aparece na aba Actions do GitHub e como um sinal verde ou vermelho em cada commit.
 
 O teste de integração **apaga e recria** o banco de `TEST_DATABASE_URL`. Por segurança, ele se recusa a rodar se a URL for igual a `DATABASE_URL` ou se o nome do banco não tiver "test".
 
@@ -100,7 +103,9 @@ O banco de produção não aceita conexão direta de fora da Vercel a partir de 
 Teste de fluxo contra a produção: `BASE_URL=https://nautiwork.vercel.app SEED_PASSWORD=... SEED_ADMIN_PASSWORD=... SMOKE_CLEANUP=1 npm run test:smoke`. Com `SMOKE_CLEANUP=1`, as contas criadas pelo teste são desativadas no final.
 
 ## Limitações conhecidas
-- E-mail e Redis não foram testados contra os serviços reais (não há chaves configuradas). O formato das chamadas está coberto por testes com respostas simuladas. Em produção, sem a chave do Resend, a confirmação de e-mail e a recuperação de senha não enviam mensagem; o botão "Reenviar link" responde que o envio não está disponível.
+- O e-mail usa o remetente de teste do Resend (`onboarding@resend.dev`), que só entrega para o dono da conta do Resend. Para enviar a qualquer usuário é preciso verificar um domínio próprio. O Redis (Upstash) ainda não está configurado.
+- Contas criadas antes do aceite dos termos (24/11/2026) não têm `termsAcceptedAt`; não há tela pedindo o aceite a elas.
+- Os textos de Privacidade e Termos foram escritos para o projeto, mas não passaram por revisão jurídica.
 - Com o Next 15, quando a sessão é derrubada (senha trocada) e a pessoa abre uma página protegida, o redirecionamento para o login é feito por `<meta refresh>` e não por um 307, porque a página já começou a ser enviada (`loading.tsx`). Nenhum dado da página é enviado; o teste de fluxo confere isso.
 - O "esqueci a senha" responde igual para e-mail existente ou não, mas o tempo de resposta pode diferir (quando a conta existe, há envio de e-mail).
 - Confirmar o e-mail não é obrigatório para usar a plataforma; o painel mostra um aviso até a confirmação.

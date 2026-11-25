@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { api } from "@/lib/client";
+import Link from "next/link";
 
 export function Msg({ error, ok }: { error?: string; ok?: string }) {
   if (error) return <p role="alert" className="hint-error">{error}</p>;
@@ -39,7 +40,7 @@ export function RegisterForm() {
     <form className="space-y-4" onSubmit={async (e) => {
       e.preventDefault(); setBusy(true); setErr({});
       const f = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
-      const r = await api("POST", "/api/register", { ...f, role });
+      const r = await api("POST", "/api/register", { ...f, role, acceptTerms: f.acceptTerms === "on" });
       if (!r.ok) { setBusy(false); return setErr(r.data); }
       await signIn("credentials", { email: f.email, password: f.password, redirect: false });
       router.push(role === "CANDIDATE" ? "/candidate/profile" : "/company/jobs/new"); router.refresh();
@@ -55,6 +56,13 @@ export function RegisterForm() {
       {role === "COMPANY" && <div><label className="label" htmlFor="companyName">Nome da empresa</label><input id="companyName" name="companyName" required className="input" /><Msg error={err.fields?.companyName?.[0]} /></div>}
       <div><label className="label" htmlFor="email">E-mail</label><input id="email" name="email" type="email" required autoComplete="email" className="input" /><Msg error={err.fields?.email?.[0]} /></div>
       <div><label className="label" htmlFor="password">Senha</label><input id="password" name="password" type="password" required minLength={8} autoComplete="new-password" className="input" /><p className="mt-1 text-xs text-abyss/60">Mínimo de 8 caracteres, com letras e números.</p><Msg error={err.fields?.password?.[0]} /></div>
+      <div>
+        <label className="flex cursor-pointer items-start gap-3 text-sm text-abyss/80">
+          <input type="checkbox" name="acceptTerms" required className="mt-0.5 h-5 w-5 shrink-0 accent-tide" />
+          <span>Li e aceito os <Link href="/termos" target="_blank" className="font-semibold text-tide hover:underline">Termos de Uso</Link> e a <Link href="/privacidade" target="_blank" className="font-semibold text-tide hover:underline">Política de Privacidade</Link>.</span>
+        </label>
+        <Msg error={err.fields?.acceptTerms?.[0]} />
+      </div>
       <Msg error={err.error && !err.fields ? err.error : undefined} />
       <button className="btn-primary w-full" disabled={busy}>{busy ? "Criando conta..." : "Criar conta"}</button>
     </form>

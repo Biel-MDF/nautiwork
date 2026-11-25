@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { registerSchema } from "@/lib/validators";
 import { appUrl } from "@/lib/app-url";
 import { sendVerificationEmail } from "@/modules/auth-tokens.service";
+import { TERMS_VERSION } from "@/lib/legal";
 
 export const POST = handle(async (req: Request) => {
   const ip = req.headers.get("x-forwarded-for") ?? "local";
@@ -15,7 +16,7 @@ export const POST = handle(async (req: Request) => {
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await db.user.create({
     data: {
-      name, email, passwordHash, role,
+      name, email, passwordHash, role, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION,
       ...(role === "CANDIDATE" ? { candidate: { create: {} } } : { company: { create: { name: companyName! } } }),
     },
   });

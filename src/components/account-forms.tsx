@@ -285,3 +285,64 @@ export function NotificationList({ items }: { items: NotificationItem[] }) {
     </div>
   );
 }
+
+/* ---------- Privacidade (LGPD): exportar e excluir ---------- */
+
+export function DataExport() {
+  const [s, setS] = useState<State>({});
+  return (
+    <div className="rounded-control border border-mist bg-fossa/50 p-4">
+      <p className="font-medium">Baixar meus dados</p>
+      <p className="mt-1 text-sm text-abyss/65">Um arquivo JSON com sua conta, perfil, candidaturas ou vagas, notificações e pedidos de suporte.</p>
+      <button type="button" className="btn-ghost mt-3" disabled={s.busy} onClick={async () => {
+        setS({ busy: true });
+        const res = await fetch("/api/account/export");
+        if (!res.ok) { const d = await res.json().catch(() => ({})); return setS({ error: d.error ?? "Não foi possível gerar o arquivo." }); }
+        const name = /filename="([^"]+)"/.exec(res.headers.get("content-disposition") ?? "")?.[1] ?? "nautiwork-meus-dados.json";
+        const url = URL.createObjectURL(await res.blob());
+        const a = Object.assign(document.createElement("a"), { href: url, download: name });
+        document.body.append(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        setS({ ok: "Arquivo baixado." });
+      }}>{s.busy ? "Gerando arquivo..." : "Baixar meus dados"}</button>
+      <Msg error={s.error} ok={s.ok} />
+    </div>
+  );
+}
+
+export function DeleteAccountForm({ role }: { role: "CANDIDATE" | "COMPANY" | "ADMIN" }) {
+  const [open, setOpen] = useState(false);
+  const [s, setS] = useState<State>({});
+  if (role === "ADMIN") return (
+    <div className="rounded-control border border-mist bg-fossa/50 p-4 text-sm text-abyss/70">
+      Contas de administrador não podem ser excluídas por aqui. Peça a outra pessoa da equipe, para que o sistema nunca fique sem administrador.
+    </div>
+  );
+  const what = role === "COMPANY"
+    ? "o perfil da empresa, todas as vagas e as candidaturas recebidas. Os candidatos com processo em andamento serão avisados de que as vagas foram encerradas."
+    : "seu perfil, foto, candidaturas, vagas salvas, notificações e pedidos de suporte. As empresas deixam de ver suas candidaturas.";
+  return (
+    <div className="rounded-control border border-coral/40 bg-coral/5 p-4">
+      <p className="font-medium text-coral">Excluir conta</p>
+      <p className="mt-1 text-sm text-abyss/75">Apaga na hora {what} Não dá para desfazer.</p>
+      {!open ? (
+        <button type="button" className="btn-danger mt-3" onClick={() => setOpen(true)}>Quero excluir minha conta</button>
+      ) : (
+        <form className="mt-4 space-y-3" onSubmit={async (e) => {
+          e.preventDefault(); setS({ busy: true });
+          const r = await api("DELETE", "/api/account", formData(e));
+          if (!r.ok) return setS({ error: r.data.fields ? undefined : r.data.error, fields: r.data.fields });
+          setS({ ok: "Conta excluída. Saindo..." });
+          setTimeout(() => signOut({ redirectTo: "/?aviso=conta-excluida" }), 1200);
+        }}>
+          <div><label className="label" htmlFor="del-password">Sua senha</label><input id="del-password" name="password" type="password" required autoComplete="current-password" className="input" /><Msg error={s.fields?.password?.[0]} /></div>
+          <div><label className="label" htmlFor="del-confirm">Digite EXCLUIR para confirmar</label><input id="del-confirm" name="confirm" required autoComplete="off" className="input" /><Msg error={s.fields?.confirm?.[0]} /></div>
+          <Msg error={s.error} ok={s.ok} />
+          <div className="flex flex-wrap gap-2">
+            <button className="btn-danger" disabled={s.busy || !!s.ok}>{s.busy ? "Excluindo..." : "Excluir conta definitivamente"}</button>
+            <button type="button" className="btn-ghost" onClick={() => { setOpen(false); setS({}); }}>Cancelar</button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}

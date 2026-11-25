@@ -53,15 +53,15 @@ const anon = new Client(`10.0.0.${Math.floor(Math.random() * 200)}`);
 // 1. Cadastro
 const candEmail = `cand-${run}@teste.local`;
 const compEmail = `emp-${run}@teste.local`;
-let r = await anon.req("POST", "/api/register", { name: "Candidato Teste", email: candEmail, password: "Senha1234", role: "CANDIDATE" });
+let r = await anon.req("POST", "/api/register", { acceptTerms: true, name: "Candidato Teste", email: candEmail, password: "Senha1234", role: "CANDIDATE" });
 check("cadastro de candidato retorna 201", r.status === 201, JSON.stringify(r.json));
-r = await anon.req("POST", "/api/register", { name: "Empresa Teste", email: compEmail, password: "Senha1234", role: "COMPANY", companyName: `Empresa ${run}` });
+r = await anon.req("POST", "/api/register", { acceptTerms: true, name: "Empresa Teste", email: compEmail, password: "Senha1234", role: "COMPANY", companyName: `Empresa ${run}` });
 check("cadastro de empresa retorna 201", r.status === 201, JSON.stringify(r.json));
-r = await anon.req("POST", "/api/register", { name: "Dup", email: candEmail, password: "Senha1234", role: "CANDIDATE" });
+r = await anon.req("POST", "/api/register", { acceptTerms: true, name: "Dup", email: candEmail, password: "Senha1234", role: "CANDIDATE" });
 check("e-mail duplicado retorna 409", r.status === 409, `status ${r.status}`);
-r = await anon.req("POST", "/api/register", { name: "X", email: "invalido", password: "123", role: "CANDIDATE" });
+r = await anon.req("POST", "/api/register", { acceptTerms: true, name: "X", email: "invalido", password: "123", role: "CANDIDATE" });
 check("cadastro inválido retorna 400 com campos", r.status === 400 && !!r.json?.fields, `status ${r.status}`);
-r = await anon.req("POST", "/api/register", { name: "Empresa sem nome", email: `x-${run}@teste.local`, password: "Senha1234", role: "COMPANY" });
+r = await anon.req("POST", "/api/register", { acceptTerms: true, name: "Empresa sem nome", email: `x-${run}@teste.local`, password: "Senha1234", role: "COMPANY" });
 check("empresa sem companyName retorna 400", r.status === 400, `status ${r.status}`);
 
 // 2. Login
@@ -193,7 +193,7 @@ check("empresa chamando API de currículo retorna 403", r.status === 403, `statu
 const cand2 = new Client("10.1.0.5");
 const cand2Email = `cand2-${run}@teste.local`;
 // IP diferente: o cadastro aceita 5 tentativas por IP a cada 10 minutos.
-await new Client("10.2.0.1").req("POST", "/api/register", { name: "Outra Pessoa", email: cand2Email, password: "Senha1234", role: "CANDIDATE" });
+await new Client("10.2.0.1").req("POST", "/api/register", { acceptTerms: true, name: "Outra Pessoa", email: cand2Email, password: "Senha1234", role: "CANDIDATE" });
 const l3 = await cand2.login(cand2Email, "Senha1234");
 if (l3.session?.user?.id) createdUsers.push(l3.session.user.id);
 r = await cand2.req("DELETE", `/api/profile/educations/${eduId}`);
@@ -279,7 +279,7 @@ if (!OUTBOX) {
 
   const mailUser = new Client("10.3.0.1");
   const mailEmail = `mail-${run}@teste.local`;
-  r = await mailUser.req("POST", "/api/register", { name: "Pessoa E-mail", email: mailEmail, password: "Senha1234", role: "CANDIDATE" });
+  r = await mailUser.req("POST", "/api/register", { acceptTerms: true, name: "Pessoa E-mail", email: mailEmail, password: "Senha1234", role: "CANDIDATE" });
   check("cadastro envia e-mail de confirmação", r.status === 201 && mailsTo(mailEmail).length === 1, `status ${r.status}, e-mails ${mailsTo(mailEmail).length}`);
   const lm = await mailUser.login(mailEmail, "Senha1234");
   if (lm.session?.user?.id) createdUsers.push(lm.session.user.id);
@@ -333,7 +333,7 @@ if (!OUTBOX) {
 {
   const sup = new Client("10.4.0.1");
   const supEmail = `sup-${run}@teste.local`;
-  await new Client("10.4.0.2").req("POST", "/api/register", { name: "Pessoa Suporte", email: supEmail, password: "Senha1234", role: "CANDIDATE" });
+  await new Client("10.4.0.2").req("POST", "/api/register", { acceptTerms: true, name: "Pessoa Suporte", email: supEmail, password: "Senha1234", role: "CANDIDATE" });
   const ls = await sup.login(supEmail, "Senha1234");
   if (ls.session?.user?.id) createdUsers.push(ls.session.user.id);
   r = await anon.req("POST", "/api/support", { subject: "Teste anônimo", category: "OTHER", message: "Não deveria passar." });
@@ -370,6 +370,35 @@ if (!OUTBOX) {
   for (const p of ["/support", "/support/new"]) { r = await sup.req("GET", p); check(`página ${p} responde 200 para quem está logado`, r.status === 200, `status ${r.status}`); }
   r = await anon.req("GET", "/support");
   check("visitante em /support vai para o login", (r.status >= 300 && r.status < 400) || /url=\/login/.test(r.text), `status ${r.status}`);
+}
+
+// 14. LGPD: aceite dos termos, páginas legais, exportação e exclusão da conta
+{
+  for (const p of ["/privacidade", "/termos"]) { r = await anon.req("GET", p); check(`página ${p} responde 200`, r.status === 200, `status ${r.status}`); }
+  r = await anon.req("GET", "/register");
+  check("cadastro mostra o aceite com links para termos e privacidade", r.text.includes('href="/termos"') && r.text.includes('href="/privacidade"'), "links ausentes");
+  r = await new Client("10.5.0.9").req("POST", "/api/register", { name: "Sem Aceite", email: `semaceite-${run}@teste.local`, password: "Senha1234", role: "CANDIDATE" });
+  check("cadastro sem aceite dos termos retorna 400", r.status === 400 && !!r.json?.fields?.acceptTerms, `status ${r.status}`);
+
+  const lg = new Client("10.5.0.1");
+  const lgEmail = `lgpd-${run}@teste.local`;
+  await new Client("10.5.0.2").req("POST", "/api/register", { acceptTerms: true, name: "Pessoa LGPD", email: lgEmail, password: "Senha1234", role: "CANDIDATE" });
+  await lg.login(lgEmail, "Senha1234");
+  r = await anon.req("GET", "/api/account/export");
+  check("visitante não exporta dados (401)", r.status === 401, `status ${r.status}`);
+  r = await lg.req("GET", "/api/account/export");
+  check("exportação baixa um JSON com o e-mail e o aceite dos termos", r.status === 200 && r.json?.conta?.email === lgEmail && !!r.json?.conta?.termsAcceptedAt, `status ${r.status}`);
+  check("exportação não inclui hash de senha", !r.text.includes("passwordHash"), "vazou passwordHash");
+  r = await lg.req("DELETE", "/api/account", { password: "errada123", confirm: "EXCLUIR" });
+  check("exclusão com senha errada retorna 400", r.status === 400, `status ${r.status}`);
+  r = await lg.req("DELETE", "/api/account", { password: "Senha1234", confirm: "talvez" });
+  check("exclusão sem a palavra EXCLUIR retorna 400", r.status === 400, `status ${r.status}`);
+  r = await lg.req("DELETE", "/api/account", { password: "Senha1234", confirm: "EXCLUIR" });
+  check("exclusão confirmada retorna 200", r.status === 200, JSON.stringify(r.json));
+  r = await lg.req("GET", "/api/auth/session");
+  check("sessão da conta excluída deixa de valer", !r.json?.user || (await lg.req("GET", "/api/account/export")).status === 401, "sessão ainda ativa");
+  const again = await new Client("10.5.0.3").login(lgEmail, "Senha1234");
+  check("conta excluída não consegue entrar de novo", !again.session?.user, "login funcionou");
 }
 
 // Limpeza: desativa as contas criadas pelo teste (somem das páginas públicas).

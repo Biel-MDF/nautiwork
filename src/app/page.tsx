@@ -14,7 +14,8 @@ const faqs = [
   ["Os dados da demonstração são reais?", "Não. Empresas, vagas e pessoas do ambiente de demonstração são fictícias."],
 ];
 
-export default async function Home() {
+export default async function Home(props: { searchParams: Promise<{ aviso?: string }> }) {
+  const { aviso } = await props.searchParams;
   const publicJob = { status: "ACTIVE" as const, flagged: false, company: { user: { active: true } } };
   const [jobs, companies, contacts, openCount] = await Promise.all([
     db.job.findMany({ where: publicJob, orderBy: { publishedAt: "desc" }, take: 6,
@@ -28,6 +29,9 @@ export default async function Home() {
   return (
     <>
       <Navbar />
+      {aviso === "conta-excluida" && (
+        <p role="status" className="border-b border-reef/30 bg-reef/10 px-4 py-3 text-center text-sm text-reef">Sua conta e seus dados foram excluídos. Obrigado por ter usado o Nautiwork.</p>
+      )}
       <main>
         <section className="relative overflow-hidden border-b border-mist/60">
           {/* linhas de profundidade do fundo do mar, bem discretas */}

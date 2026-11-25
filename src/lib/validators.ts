@@ -10,6 +10,7 @@ export const registerSchema = z.object({
   password,
   role: z.enum(["CANDIDATE", "COMPANY"]),
   companyName: z.string().trim().min(2).max(120).optional(),
+  acceptTerms: z.literal(true, { error: "Aceite os Termos de Uso e a Política de Privacidade para continuar" }),
 }).refine((d) => d.role !== "COMPANY" || !!d.companyName, {
   path: ["companyName"], message: "Informe o nome da empresa",
 });
@@ -136,3 +137,9 @@ export const supportTicketSchema = z.object({
 export const supportMessageSchema = z.object({ body: z.string().trim().min(2, "Escreva a mensagem").max(4000) });
 export const supportStatusSchema = z.object({ status: z.enum(["OPEN", "ANSWERED", "CLOSED"]) });
 export const preferencesSchema = z.object({ emailNotifications: z.boolean() });
+
+// Exclusão de conta: senha atual e a palavra EXCLUIR, para evitar clique acidental.
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, "Informe sua senha"),
+  confirm: z.string().trim().refine((v) => v.toUpperCase() === "EXCLUIR", "Digite EXCLUIR para confirmar"),
+});

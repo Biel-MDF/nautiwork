@@ -74,6 +74,9 @@ model User {
   emailNotifications Boolean           @default(true)
   supportTickets     SupportTicket[]
   supportMessages    SupportMessage[]
+  // Aceite dos Termos de Uso e da Política de Privacidade (LGPD): quando e qual versão.
+  termsAcceptedAt    DateTime?
+  termsVersion       String?
 }
 
 enum AuthTokenType {

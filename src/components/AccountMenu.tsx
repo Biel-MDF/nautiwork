@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client";
-import { AccountNameForm, ImageUpload, PasswordForm } from "./account-forms";
+import { AccountNameForm, DataExport, DeleteAccountForm, ImageUpload, PasswordForm } from "./account-forms";
 import { Msg } from "./forms";
 import { UserAvatar } from "./UserAvatar";
 
@@ -99,12 +99,13 @@ export function AccountMenu({ user, signOutAction }: { user: MenuUser; signOutAc
 
 /* ---------- Janela de Configurações ---------- */
 
-type SettingsTab = "conta" | "foto" | "seguranca" | "notificacoes";
+type SettingsTab = "conta" | "foto" | "seguranca" | "notificacoes" | "privacidade";
 const settingsTabs: { id: SettingsTab; label: string; hint: string }[] = [
   { id: "conta", label: "Conta", hint: "Nome e e-mail de acesso" },
   { id: "foto", label: "Foto", hint: "Imagem que aparece no menu e para empresas" },
   { id: "seguranca", label: "Segurança", hint: "Troca de senha" },
   { id: "notificacoes", label: "Notificações", hint: "Avisos por e-mail" },
+  { id: "privacidade", label: "Privacidade", hint: "Seus dados e exclusão da conta" },
 ];
 
 function SettingsDialog({ user, initialTab, onClose }: { user: MenuUser; initialTab: SettingsTab; onClose: () => void }) {
@@ -187,6 +188,13 @@ function SettingsDialog({ user, initialTab, onClose }: { user: MenuUser; initial
               <section className="space-y-5">
                 <div><h3 className="text-lg font-semibold">Notificações</h3><p className="mt-1 text-sm text-abyss/65">Os avisos sempre aparecem no seu painel. Aqui você escolhe se também quer recebê-los por e-mail.</p></div>
                 <PreferencesForm initial={user.emailNotifications} role={user.role} />
+              </section>
+            )}
+            {tab === "privacidade" && (
+              <section className="space-y-5">
+                <div><h3 className="text-lg font-semibold">Privacidade</h3><p className="mt-1 text-sm text-abyss/65">Seus direitos pela LGPD, sem precisar pedir a ninguém. Detalhes na <Link href="/privacidade" className="text-tide hover:underline" onClick={onClose}>Política de Privacidade</Link>.</p></div>
+                <DataExport />
+                <DeleteAccountForm role={user.role} />
               </section>
             )}
           </div>

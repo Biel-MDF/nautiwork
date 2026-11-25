@@ -1,0 +1,94 @@
+import { LegalPage, type LegalSection } from "@/components/LegalPage";
+import { privacyContact } from "@/lib/legal";
+
+export const metadata = { title: "Política de Privacidade — Nautiwork" };
+
+export default function Privacidade() {
+  const contato = privacyContact();
+  const mail = <a href={`mailto:${contato}`}>{contato}</a>;
+
+  const sections: LegalSection[] = [
+    {
+      id: "quem-somos", title: "Quem trata os seus dados",
+      body: <>
+        <p>O Nautiwork é uma plataforma de empregabilidade desenvolvida como Trabalho de Conclusão de Curso do Curso Técnico em Desenvolvimento de Sistemas. O responsável pelo tratamento dos dados (controlador, nos termos da Lei nº 13.709/2018, a LGPD) é o autor do projeto.</p>
+        <p>Para qualquer assunto sobre seus dados, inclusive para exercer os direitos descritos abaixo, escreva para {mail} ou abra um pedido na área de Suporte. Esse contato também atua como encarregado (DPO).</p>
+      </>,
+    },
+    {
+      id: "dados", title: "Quais dados coletamos",
+      body: <>
+        <ul>
+          <li><strong>Conta:</strong> nome, e-mail, senha (guardada apenas como hash, nunca em texto), tipo de conta e data de aceite destes termos.</li>
+          <li><strong>Perfil do candidato:</strong> título profissional, resumo, cidade, área de interesse, modalidade preferida, objetivo, anos de experiência, habilidades, formação, experiências e link do LinkedIn, todos informados por você.</li>
+          <li><strong>Perfil da empresa:</strong> nome, descrição, setor, site, cidade e as vagas publicadas.</li>
+          <li><strong>Foto ou logotipo,</strong> se você enviar.</li>
+          <li><strong>Uso da plataforma:</strong> candidaturas e suas etapas, vagas salvas, notificações e pedidos de suporte com as mensagens trocadas.</li>
+          <li><strong>Dados técnicos:</strong> cookie de sessão para manter você conectado e endereço IP, usado apenas de forma temporária para limitar tentativas de login e cadastro.</li>
+        </ul>
+        <p>Não pedimos dados sensíveis, como origem racial, religião, saúde ou orientação sexual. Evite incluí-los nos campos de texto livre.</p>
+      </>,
+    },
+    {
+      id: "finalidades", title: "Para que usamos e com qual base legal",
+      body: <ul>
+        <li><strong>Criar e manter sua conta e conectar candidatos a vagas</strong>, incluindo o cálculo de compatibilidade e o envio da candidatura à empresa escolhida. Base legal: execução de contrato e procedimentos preliminares a pedido do titular (art. 7º, V).</li>
+        <li><strong>Enviar e-mails de confirmação, recuperação de senha e respostas do suporte.</strong> Base legal: execução de contrato (art. 7º, V).</li>
+        <li><strong>Enviar avisos por e-mail sobre candidaturas e vagas.</strong> Você pode desligar a qualquer momento em Configurações, Notificações.</li>
+        <li><strong>Proteger a plataforma contra fraudes e abusos</strong>, como excesso de tentativas de login. Base legal: legítimo interesse (art. 7º, IX).</li>
+        <li><strong>Cumprir obrigações legais</strong> e atender pedidos de autoridades. Base legal: art. 7º, II.</li>
+      </ul>,
+    },
+    {
+      id: "compartilhamento", title: "Com quem compartilhamos",
+      body: <>
+        <ul>
+          <li><strong>Empresas para as quais você se candidata:</strong> recebem seu nome, e-mail, perfil, foto e a nota de compatibilidade com a vaga. Elas não veem candidaturas feitas para outras empresas.</li>
+          <li><strong>Provedores que operam a plataforma:</strong> hospedagem (Vercel), banco de dados (Neon) e envio de e-mails (Resend). Eles tratam os dados apenas para prestar o serviço.</li>
+          <li><strong>Autoridades públicas,</strong> quando houver obrigação legal ou ordem judicial.</li>
+        </ul>
+        <p>Não vendemos dados pessoais e não os usamos para publicidade.</p>
+        <p>Alguns desses provedores armazenam dados em servidores fora do Brasil, principalmente nos Estados Unidos. Essa transferência internacional segue o art. 33 da LGPD e as garantias contratuais oferecidas por esses provedores.</p>
+      </>,
+    },
+    {
+      id: "retencao", title: "Por quanto tempo guardamos",
+      body: <>
+        <p>Os dados ficam guardados enquanto sua conta existir. Ao excluir a conta, apagamos na hora o perfil, a foto, as candidaturas, as vagas salvas, as notificações e os pedidos de suporte.</p>
+        <p>Cópias de segurança mantidas pelo provedor do banco de dados são sobrescritas automaticamente em até 30 dias. Registros técnicos de acesso, quando existirem, são guardados pelo prazo de 6 meses previsto no Marco Civil da Internet (Lei nº 12.965/2014) e depois descartados.</p>
+      </>,
+    },
+    {
+      id: "direitos", title: "Seus direitos",
+      body: <>
+        <p>A LGPD (art. 18) garante a você, a qualquer momento:</p>
+        <ul>
+          <li>confirmar se tratamos seus dados e acessá-los;</li>
+          <li>corrigir dados incompletos ou desatualizados;</li>
+          <li>pedir a eliminação dos dados e a portabilidade para outro serviço;</li>
+          <li>saber com quem compartilhamos;</li>
+          <li>revogar o consentimento, como o de receber avisos por e-mail;</li>
+          <li>pedir revisão de decisões tomadas apenas por tratamento automatizado (art. 20).</li>
+        </ul>
+        <p>Boa parte disso você faz sozinho em <strong>Configurações, Privacidade</strong>: baixar uma cópia dos seus dados e excluir a conta. Para o resto, escreva para {mail}. Respondemos em até 15 dias. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).</p>
+        <p>Sobre decisões automatizadas: a nota de compatibilidade é apenas uma indicação. Ela não elimina candidatos, e a decisão sobre cada candidatura é sempre de uma pessoa da empresa.</p>
+      </>,
+    },
+    {
+      id: "seguranca", title: "Como protegemos os dados",
+      body: <ul>
+        <li>Senhas guardadas com hash bcrypt e links de e-mail de uso único, com validade curta.</li>
+        <li>Conexões sempre criptografadas (HTTPS).</li>
+        <li>Cada pessoa só acessa os próprios dados, e a permissão é conferida no servidor a cada ação.</li>
+        <li>Trocar a senha encerra todas as sessões abertas.</li>
+      </ul>,
+    },
+    {
+      id: "mudancas", title: "Mudanças nesta política",
+      body: <p>Se esta política mudar de forma relevante, avisaremos no site e por e-mail antes de a mudança valer. A data e a versão no topo da página mostram a edição em vigor.</p>,
+    },
+  ];
+
+  return <LegalPage title="Política de Privacidade" sections={sections} other={{ href: "/termos", label: "Ler os Termos de Uso" }}
+    intro={<p>Explicamos aqui, em linguagem direta, quais dados o Nautiwork coleta, para que servem, com quem são compartilhados e como você controla tudo isso.</p>} />;
+}
