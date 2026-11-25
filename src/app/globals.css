@@ -13,6 +13,19 @@
     display: flex;
     flex-direction: column;
   }
+  /* brilhos de cor nos cantos e ondas de luz: seguem a paleta (accent, accent2) e são mais fortes no modo claro */
+  body::before, body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+  body::before {
+    background:
+      radial-gradient(60vw 55vh at 100% 0%, rgb(var(--c-accent) / var(--corner-a)), transparent 70%),
+      radial-gradient(55vw 55vh at 0% 100%, rgb(var(--c-accent2) / var(--corner2-a)), transparent 70%);
+  }
+  body::after {
+    background: linear-gradient(115deg, rgb(var(--c-accent)), rgb(var(--c-accent2)));
+    opacity: var(--wave-a);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900' preserveAspectRatio='xMaxYMid slice'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M820 -60 C1080 120 1180 430 1500 360'/%3E%3Cpath d='M820 -44 C1080 141 1180 444 1500 389'/%3E%3Cpath d='M820 -28 C1080 162 1180 459 1500 418'/%3E%3Cpath d='M820 -12 C1080 182 1180 473 1500 446'/%3E%3Cpath d='M820 4 C1080 203 1180 488 1500 475'/%3E%3Cpath d='M820 20 C1080 224 1180 502 1500 504'/%3E%3Cpath d='M820 36 C1080 245 1180 516 1500 533'/%3E%3Cpath d='M820 52 C1080 266 1180 531 1500 562'/%3E%3Cpath d='M820 68 C1080 286 1180 545 1500 590'/%3E%3C/g%3E%3Cpath d='M980 -40 C1180 160 1240 420 1480 420 L1480 -40Z' fill='%23000' fill-opacity='.26'/%3E%3C/svg%3E") center / cover no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900' preserveAspectRatio='xMaxYMid slice'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M820 -60 C1080 120 1180 430 1500 360'/%3E%3Cpath d='M820 -44 C1080 141 1180 444 1500 389'/%3E%3Cpath d='M820 -28 C1080 162 1180 459 1500 418'/%3E%3Cpath d='M820 -12 C1080 182 1180 473 1500 446'/%3E%3Cpath d='M820 4 C1080 203 1180 488 1500 475'/%3E%3Cpath d='M820 20 C1080 224 1180 502 1500 504'/%3E%3Cpath d='M820 36 C1080 245 1180 516 1500 533'/%3E%3Cpath d='M820 52 C1080 266 1180 531 1500 562'/%3E%3Cpath d='M820 68 C1080 286 1180 545 1500 590'/%3E%3C/g%3E%3Cpath d='M980 -40 C1180 160 1240 420 1480 420 L1480 -40Z' fill='%23000' fill-opacity='.26'/%3E%3C/svg%3E") center / cover no-repeat;
+  }
   /* corpo em coluna: o rodapé fica no fim da tela mesmo em páginas curtas */
   body > * { width: 100%; }
   h1, h2, h3 { @apply font-display tracking-tight; }
@@ -31,7 +44,10 @@
 
 @layer components {
   .btn { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-control px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
-  .btn-primary { @apply btn bg-tide text-fossa hover:bg-deep; }
+  /* botão principal: cor sólida no escuro, degradê entre as duas cores da paleta no claro */
+  .btn-primary { @apply btn bg-accent text-onaccent hover:brightness-110; }
+  :root[data-mode="light"] .btn-primary { background-image: linear-gradient(120deg, rgb(var(--c-accent)), rgb(var(--c-accentb))); box-shadow: 0 8px 20px -10px rgb(var(--c-accent) / 0.7); }
+  :root[data-mode="light"] .btn-primary:hover { filter: brightness(0.94); }
   .btn-ghost { @apply btn border border-mist bg-transparent text-abyss hover:border-tide/60 hover:bg-casco; }
   .btn-danger { @apply btn border border-coral/50 bg-transparent text-coral hover:bg-coral/10; }
   .input {
@@ -44,6 +60,9 @@
   .label { @apply mb-1.5 block text-sm font-medium text-abyss/90; }
   /* painel: borda fina e um fio de luz no topo, como a borda de um vidro */
   .card { @apply rounded-panel border border-mist bg-casco p-5; box-shadow: inset 0 1px 0 rgb(var(--c-deep) / 0.06); }
+  /* modo claro: cartões de vidro sobre o fundo colorido, com sombra na cor da paleta */
+  :root[data-mode="light"] .card { background-color: rgb(var(--c-casco) / 0.82); backdrop-filter: blur(8px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), 0 12px 32px -20px rgb(var(--c-accent) / 0.55); }
+  :root[data-mode="light"] .chip { border-color: rgb(var(--c-tide) / 0.28); background-color: rgb(var(--c-casco) / 0.85); }
   .hint-error { @apply mt-1 text-sm text-coral; }
   .chip { @apply rounded-[6px] border border-mist/70 bg-foam px-2 py-0.5 text-xs text-abyss/90; }
 }

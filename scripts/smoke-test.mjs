@@ -453,9 +453,12 @@ if (!OUTBOX) {
 // 17. Temas: variáveis de todas as paletas e o script que aplica a escolha antes da pintura
 {
   r = await anon.req("GET", "/");
-  check("página traz as variáveis de cor dos temas", r.text.includes("--c-tide:") && r.text.includes('[data-palette="coral"][data-mode="light"]'), "sem CSS de temas");
+  check("página traz as variáveis de cor dos temas", r.text.includes("--c-tide:") && r.text.includes('[data-palette="anemona"][data-mode="light"]'), "sem CSS de temas");
   check("página traz o script que aplica o tema salvo", r.text.includes("nw-theme") && r.text.includes("prefers-color-scheme"), "sem script de tema");
   check("botão de aparência aparece no topo", r.text.includes("Aparência: tema e modo claro ou escuro"), "sem botão");
+  check("script de início sabe montar o tema personalizado", r.text.includes("nw-custom"), "sem suporte a tema personalizado");
+  r = await anon.req("GET", "/aparencia");
+  check("página Aparência abre com a tabela do tema personalizado", r.status === 200 && r.text.includes("Criar meu tema"), `status ${r.status}`);
   r = await anon.req("GET", "/login");
   check("botão de aparência aparece na tela de login", r.text.includes("Aparência: tema e modo claro ou escuro"), "sem botão no login");
 }

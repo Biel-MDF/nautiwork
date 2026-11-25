@@ -9,7 +9,7 @@ export default {
     extend: {
       // As cores vêm de variáveis CSS definidas em src/lib/themes.ts (paleta + modo claro/escuro).
       colors: Object.fromEntries(
-        ["fossa", "casco", "abyss", "foam", "mist", "tide", "deep", "reef", "coral", "field", "line"]
+        ["fossa", "casco", "abyss", "foam", "mist", "tide", "deep", "reef", "coral", "field", "line", "accent", "accentb", "onaccent", "accent2"]
           .map((r) => [r, `rgb(var(--c-${r}) / <alpha-value>)`]),
       ),
       fontFamily: { display: ["var(--font-display)"], sans: ["var(--font-body)"] },

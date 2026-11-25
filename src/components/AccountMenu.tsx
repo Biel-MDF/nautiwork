@@ -209,7 +209,7 @@ function SettingsDialog({ user, initialTab, onClose }: { user: MenuUser; initial
             {tab === "aparencia" && (
               <section className="space-y-5" aria-label="Aparência">
                 <div><h3 className="text-lg font-semibold">Aparência</h3><p className="mt-1 text-sm text-abyss/65">Escolha a paleta de cores e se o site fica claro, escuro ou igual ao seu aparelho.</p></div>
-                <AppearancePanel />
+                <AppearancePanel onNavigate={onClose} />
               </section>
             )}
             {tab === "privacidade" && (

@@ -39,7 +39,7 @@ export function ViewModeBar({ mode, as }: { mode: ViewMode; as: string | null })
             {viewModes.map((m) => <option key={m} value={m} className="bg-fossa text-abyss">{viewModeLabel[m]}</option>)}
           </select>
           <button type="button" onClick={() => go("admin")} disabled={!!busy}
-            className="min-h-[40px] rounded-control bg-[#FFCF70] px-4 font-semibold text-fossa hover:bg-[#FFE2A3] disabled:opacity-70">
+            className="min-h-[40px] rounded-control bg-[#FFCF70] px-4 font-semibold text-[#1D1A0F] hover:bg-[#FFE2A3] disabled:opacity-70">
             {busy === "admin" ? "Voltando..." : "Voltar ao modo admin"}
           </button>
         </div>

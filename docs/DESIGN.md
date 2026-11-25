@@ -4,11 +4,14 @@ O Nautiwork tem nome e logo náuticos. O visual trata a plataforma como o painel
 
 ## Temas
 
-O site tem cinco paletas (Oceano, Lagoa, Coral, Abissal e Alga), cada uma em modo escuro e claro, mais a opção "Sistema", que segue o aparelho. A pessoa escolhe pelo botão de aparência no topo (também na tela de login) ou em Configurações > Aparência. A escolha fica no `localStorage` do aparelho; o padrão é Oceano escuro.
+O site tem sete paletas (Oceano, Lagoa, Alga, Farol, Âmbar, Anêmona e Abissal), cada uma em modo escuro e claro, mais a opção "Sistema", que segue o aparelho, e um tema personalizado ("Meu tema"). A pessoa escolhe pelo botão de aparência no topo (também na tela de login), em Configurações > Aparência ou na página `/aparencia`. A escolha fica no `localStorage` do aparelho; o padrão é Oceano escuro.
 
-- **Fonte única:** `src/lib/themes.ts` guarda os valores de cada papel por paleta e modo, gera o CSS das variáveis (`--c-<papel>`, em canais RGB) e o script que aplica a escolha no `<html>` antes da primeira pintura, sem piscar o tema errado.
-- **Tailwind:** as cores (`fossa`, `tide` etc.) leem as variáveis, com suporte a opacidade (`bg-tide/10`). Nenhum componente usa cor fixa do tema; as exceções são as iniciais sobre cores de avatar e o aviso amarelo do modo "ver como", que valem para todos os temas.
-- **Contraste:** `src/tests/themes.test.ts` confere as 10 combinações (texto 7:1 sobre fundo e cartão, texto secundário a 60% com 4,5:1, links e botões com 4,5:1, borda de campo com 3:1). A menor opacidade de texto usada no site é 60%.
+- **Escuro:** mantém a base original (fundo quase preto com o tom da paleta), com brilhos e ondas de luz discretos.
+- **Claro:** fundo em tom pastel da paleta, brilhos coloridos nos cantos, ondas de luz à direita, cartões translúcidos e botão principal em degradê.
+- **Meu tema:** uma tabela com quatro linhas (Fundo e texto, Destaque, Brilho, Sucesso) e uma coluna por paleta; cada linha escolhe de qual paleta vem aquele grupo de cores. Os grupos foram separados de modo que qualquer combinação mantenha o contraste.
+- **Fonte única:** `src/lib/themes.ts` guarda os valores de cada papel por paleta e modo, gera o CSS das variáveis (`--c-<papel>`, em canais RGB), o CSS do tema personalizado e o script que aplica a escolha no `<html>` antes da primeira pintura, sem piscar o tema errado.
+- **Papéis novos:** `accent` e `accentb` (início e fim do degradê do botão principal), `onaccent` (texto sobre ele) e `accent2` (cor dos brilhos decorativos). `tide` continua sendo a cor de links e destaques em texto.
+- **Contraste:** `src/tests/themes.test.ts` confere as 14 combinações prontas e as 2.401 combinações do tema personalizado nos dois modos (texto 7:1 sobre fundo e cartão, texto secundário a 60% com 4,5:1, links e texto do botão com 4,5:1, borda de campo com 3:1). A menor opacidade de texto usada no site é 60%.
 
 ## Paleta (Oceano escuro, o tema original)
 

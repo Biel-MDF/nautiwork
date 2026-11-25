@@ -4,7 +4,7 @@ import { Logo } from "./Logo";
 const cols: [string, [string, string][]][] = [
   ["Plataforma", [["Vagas", "/jobs"], ["Empresas", "/companies"], ["Sobre o projeto", "/about"]]],
   ["Para empresas", [["Publicar vaga", "/register?tipo=empresa"], ["Entrar como empresa", "/login"]]],
-  ["Ajuda", [["Suporte", "/support"], ["Política de Privacidade", "/privacidade"], ["Termos de Uso", "/termos"]]],
+  ["Ajuda", [["Suporte", "/support"], ["Aparência e temas", "/aparencia"], ["Política de Privacidade", "/privacidade"], ["Termos de Uso", "/termos"]]],
 ];
 
 export function Footer() {
