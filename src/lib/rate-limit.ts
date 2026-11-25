@@ -45,3 +45,14 @@ export async function rateLimit(key: string, max = 10, windowMs = 60_000): Promi
   }
   return memoryLimit(key, max, windowMs);
 }
+
+/** Qual contador está em uso e se ele responde (para a rota de saúde). */
+export async function rateLimitBackend(): Promise<"redis" | "redis-indisponivel" | "memoria"> {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  if (!(url && token)) return "memoria";
+  try {
+    const res = await fetch(`${url.replace(/\/+$/, "")}/ping`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(2_000) });
+    return res.ok ? "redis" : "redis-indisponivel";
+  } catch { return "redis-indisponivel"; }
+}
