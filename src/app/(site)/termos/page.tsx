@@ -54,7 +54,12 @@ export default function Termos() {
         <li>Enviar conteúdo ofensivo, discriminatório, enganoso ou que viole direitos de outras pessoas.</li>
         <li>Tentar acessar dados ou áreas de outros usuários, burlar limites de segurança ou sobrecarregar o sistema.</li>
         <li>Coletar dados da plataforma de forma automatizada (robôs, raspagem).</li>
+        <li>Usar o assistente para fins alheios à plataforma, tentar contornar suas regras ou fazer perguntas em volume para sobrecarregá-lo.</li>
       </ul>,
+    },
+    {
+      id: "assistente", title: "Assistente com inteligência artificial",
+      body: <p>O assistente de conversa é um recurso de apoio, oferecido sem garantia de disponibilidade. As respostas são geradas automaticamente e podem ter erros; as informações que valem são as das páginas de cada vaga e do seu painel. Há um limite de perguntas por período. Como os dados da conversa são tratados está na Política de Privacidade.</p>,
     },
     {
       id: "moderacao", title: "Moderação e suspensão",

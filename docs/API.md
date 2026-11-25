@@ -29,5 +29,7 @@
 | POST | /api/email/resend | usuário logado | Reenvia o link de confirmação (3 a cada 15 minutos) |
 | PATCH | /api/admin/users/:id | admin | `{active}` |
 | PATCH | /api/admin/jobs/:id | admin | `{flagged}` |
+| GET | /api/assistant | público | `{available, role, firstName}`: se o assistente está ativo e quem está conversando (para a tela escolher as sugestões) |
+| POST | /api/assistant | público | `{messages: UIMessage[]}` (até 40; as 16 mais recentes vão ao modelo; pergunta de até 1000 caracteres). Resposta em streaming (Server-Sent Events do AI SDK) com texto e resultados das ferramentas. Limite: visitante 8 a cada 5 min e 40 por dia por IP; pessoa logada 20 a cada 5 min e 150 por dia. Aceito no modo de visualização do admin, por ser só leitura |
 
-Erros: JSON `{error, fields?}` com 400, 401, 403, 404, 409, 413 (imagem grande), 415 (formato não aceito), 422, 429, 500 ou 503 (e-mail indisponível no reenvio).
+Erros: JSON `{error, fields?}` com 400, 401, 403, 404, 409, 413 (imagem grande), 415 (formato não aceito), 422, 429, 500 ou 503 (e-mail indisponível no reenvio ou assistente sem configuração). Falhas da IA durante a resposta chegam no próprio streaming, já traduzidas (sem créditos, limite, indisponível).

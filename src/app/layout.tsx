@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, Sora } from "next/font/google";
 import "./globals.css";
 import { currentUser, viewMode } from "@/lib/rbac";
 import { ViewModeBar } from "@/components/ViewMode";
+import { Assistant } from "@/components/assistant/Assistant";
 import { splitDemo } from "@/lib/display";
 import { themeBootScript, themeCss } from "@/lib/themes";
 
@@ -38,6 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className={mode ? "pb-28" : undefined}>
         {children}
+        <Assistant raised={!!mode} />
         {mode && <ViewModeBar mode={mode} as={as ? `${splitDemo(as.name).name}, conta de demonstração` : null} />}
       </body>
     </html>

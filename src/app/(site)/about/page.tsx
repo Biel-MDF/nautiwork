@@ -23,7 +23,7 @@ export default function About() {
 
         <section className="mt-14" aria-labelledby="calc">
           <h2 id="calc" className="text-2xl font-semibold sm:text-[28px]">Como a compatibilidade é calculada</h2>
-          <p className="mt-3 max-w-[64ch] leading-relaxed text-abyss/80">Cada critério tem um peso fixo, somando 100. A porcentagem de uma vaga é a soma do quanto você atende cada critério, multiplicado pelo peso dele. Quando falta um dado no perfil ou na vaga, o critério sai da conta e os outros são ajustados. Nenhuma inteligência artificial é usada nesta versão.</p>
+          <p className="mt-3 max-w-[64ch] leading-relaxed text-abyss/80">Cada critério tem um peso fixo, somando 100. A porcentagem de uma vaga é a soma do quanto você atende cada critério, multiplicado pelo peso dele. Quando falta um dado no perfil ou na vaga, o critério sai da conta e os outros são ajustados. Esse cálculo não usa inteligência artificial. O assistente de conversa do site usa IA só para responder perguntas: ele lê a mesma nota, não a altera.</p>
           <div className="mt-8 flex h-3 overflow-hidden rounded-full" role="img" aria-label="Divisão dos pesos: habilidades 50, área 20, modalidade 10, cidade 10, experiência 10">
             {weights.map(([k, w], i) => <span key={k} className={`${shades[i]} h-full border-r-2 border-fossa last:border-r-0`} style={{ width: `${w}%` }} />)}
           </div>

@@ -40,8 +40,16 @@ Mudanças de código da migração: `params` e `searchParams` passaram a ser ass
   - Resposta com `nosniff` e CSP restritiva.
 - **Links externos do perfil da empresa:** só `http://` e `https://`, com `rel="noopener noreferrer nofollow"`.
 - **HTML dos e-mails:** os dados do usuário são escapados (testado com `<script>` no nome).
+- **Assistente com IA:**
+  - Ferramentas só de leitura, executadas no servidor com a permissão de quem pergunta; o modelo nunca escolhe de quem são os dados. Ferramentas de conta nem são oferecidas a quem não tem aquele perfil (testado com o modelo tentando chamá-las).
+  - Dados mínimos ao provedor de IA: nada de e-mail, foto, telefone ou senha; candidatos aparecem para a empresa só pelo primeiro nome.
+  - Texto de vagas e empresas pode trazer instruções escondidas (injeção de prompt). Como as ferramentas não alteram nada e só enxergam os dados da própria pessoa, o pior efeito é uma resposta enganosa, não um vazamento.
+  - Respostas renderizadas sem HTML: o Markdown é interpretado por um leitor próprio, e só caminhos internos (`/jobs/...`) viram links.
+  - Custo controlado: limite de perguntas por IP e por conta, histórico cortado nas 16 últimas mensagens, até 5 etapas e 900 tokens por resposta. O modelo de roteiro dos testes (`ASSISTANT_MOCK`) não liga em produção.
 
 ## Pontos em aberto
+
+- O assistente não tem orçamento próprio no código: o teto de gasto deve ser definido na Vercel AI Gateway (budget). Sem Upstash, o limite de perguntas também é por instância.
 
 - O "esqueci a senha" pode responder em tempos diferentes quando a conta existe, porque há envio de e-mail. Isso dá margem para descobrir se um e-mail está cadastrado. Uma fila de envio resolveria.
 - Sem Upstash configurado, o limite de tentativas é por instância e se baseia em `x-forwarded-for`, que só é confiável atrás de um proxy que reescreva o cabeçalho (a Vercel faz isso).

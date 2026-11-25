@@ -49,7 +49,7 @@ export function Sonar({ companies }: { companies: SonarCompany[] }) {
     const radius = n === 1 ? 26 : 15 + (i / (n - 1)) * 25; // % do raio útil, em ordem de recência
     const rad = ((angle - 90) * Math.PI) / 180;
     const size = 30 + Math.min(c.jobs.length, 5) * 3; // 33 a 45 px
-    return { c, angle, size, x: 50 + radius * Math.cos(rad), y: 50 + radius * Math.sin(rad) };
+    return { c, angle, size, x: Math.round((50 + radius * Math.cos(rad)) * 100) / 100, y: Math.round((50 + radius * Math.sin(rad)) * 100) / 100 };
   });
 
   return (
@@ -70,7 +70,9 @@ export function Sonar({ companies }: { companies: SonarCompany[] }) {
             const long = i % 9 === 0;
             const a = (i * 5 * Math.PI) / 180;
             const r1 = long ? 182 : 188;
-            return <line key={i} x1={200 + r1 * Math.sin(a)} y1={200 - r1 * Math.cos(a)} x2={200 + 194 * Math.sin(a)} y2={200 - 194 * Math.cos(a)}
+            // arredondado: servidor e navegador calculam seno e cosseno com diferenças na última casa
+            const q = (v: number) => Math.round(v * 100) / 100;
+            return <line key={i} x1={q(200 + r1 * Math.sin(a))} y1={q(200 - r1 * Math.cos(a))} x2={q(200 + 194 * Math.sin(a))} y2={q(200 - 194 * Math.cos(a))}
               stroke="rgb(var(--c-tide))" strokeOpacity={long ? 0.5 : 0.2} strokeWidth={long ? 1.5 : 1} />;
           })}
           <circle cx="200" cy="200" r="4" fill="rgb(var(--c-tide))" />

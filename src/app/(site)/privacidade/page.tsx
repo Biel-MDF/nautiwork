@@ -24,7 +24,7 @@ export default function Privacidade() {
           <li><strong>Perfil da empresa:</strong> nome, descrição, setor, site, cidade e as vagas publicadas.</li>
           <li><strong>Foto ou logotipo,</strong> se você enviar.</li>
           <li><strong>Uso da plataforma:</strong> candidaturas e suas etapas, vagas salvas, notificações e pedidos de suporte com as mensagens trocadas.</li>
-          <li><strong>Dados técnicos:</strong> cookie de sessão para manter você conectado e endereço IP, usado apenas de forma temporária para limitar tentativas de login e cadastro.</li>
+          <li><strong>Dados técnicos:</strong> cookie de sessão para manter você conectado e endereço IP, usado apenas de forma temporária para limitar tentativas de login, cadastro e perguntas ao assistente.</li>
         </ul>
         <p>Não pedimos dados sensíveis, como origem racial, religião, saúde ou orientação sexual. Evite incluí-los nos campos de texto livre.</p>
       </>,
@@ -49,6 +49,19 @@ export default function Privacidade() {
         </ul>
         <p>Não vendemos dados pessoais e não os usamos para publicidade.</p>
         <p>Alguns desses provedores armazenam dados em servidores fora do Brasil, principalmente nos Estados Unidos. Essa transferência internacional segue o art. 33 da LGPD e as garantias contratuais oferecidas por esses provedores.</p>
+      </>,
+    },
+    {
+      id: "assistente", title: "Assistente com inteligência artificial",
+      body: <>
+        <p>O site tem um assistente de conversa, opcional, que ajuda a buscar vagas e tirar dúvidas. Ele só é usado quando você escreve, e só consulta: não se candidata, não salva, não publica e não altera nada.</p>
+        <ul>
+          <li><strong>O que é enviado:</strong> sua pergunta, as mensagens anteriores da mesma conversa e os dados que o assistente consulta para responder. Para visitantes, só vagas e empresas públicas. Para candidatos, também o perfil (título, cidade, área, modalidade, anos de experiência e habilidades) e as candidaturas. Para empresas, também as próprias vagas, a contagem de candidaturas e o primeiro nome dos candidatos mais compatíveis. E-mail, foto, telefone e senha nunca são enviados.</li>
+          <li><strong>Para quem:</strong> a Vercel AI Gateway, que repassa a conversa ao provedor do modelo de linguagem (Anthropic e, se ele estiver indisponível, OpenAI ou Google). Esses provedores ficam fora do Brasil (art. 33 da LGPD) e tratam os dados apenas para gerar a resposta, conforme seus termos.</li>
+          <li><strong>Base legal:</strong> execução do serviço que você pediu (art. 7º, V). O primeiro nome de candidatos mostrado à empresa segue a mesma base do processo seletivo para o qual a pessoa se candidatou.</li>
+          <li><strong>Guarda:</strong> o Nautiwork não grava as conversas no banco de dados. Elas ficam só no seu navegador, nesta aba, até você fechá-la ou clicar em Nova conversa. Os provedores podem manter registros técnicos por tempo limitado, segundo as políticas deles.</li>
+        </ul>
+        <p>As respostas são geradas automaticamente e podem conter erros: confira sempre na página da vaga. O assistente não decide nada sobre candidaturas e não muda a nota de compatibilidade. Não escreva dados sensíveis, documentos ou senhas na conversa.</p>
       </>,
     },
     {

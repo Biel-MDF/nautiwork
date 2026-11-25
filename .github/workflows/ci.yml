@@ -41,6 +41,9 @@ jobs:
       APP_URL: http://localhost:3000
       MAIL_DEV_OUTBOX: /tmp/outbox.jsonl
       NEXT_TELEMETRY_DISABLED: "1"
+      # assistente com modelo de roteiro: testa o fluxo inteiro sem chamar IA de verdade
+      ASSISTANT_MOCK: "1"
+      SMOKE_ASSISTANT_STREAM: "1"
 
     steps:
       - uses: actions/checkout@v5

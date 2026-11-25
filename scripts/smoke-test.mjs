@@ -463,6 +463,43 @@ if (!OUTBOX) {
   check("botão de aparência aparece na tela de login", r.text.includes("Aparência: tema e modo claro ou escuro"), "sem botão no login");
 }
 
+// 18. Assistente: perfil, validação e, com o modelo de roteiro (ASSISTANT_MOCK=1 no servidor
+// e SMOKE_ASSISTANT_STREAM=1 aqui), a resposta em streaming e o limite de perguntas.
+// Sem SMOKE_ASSISTANT_STREAM nada chama o modelo de verdade (não gasta créditos em produção).
+{
+  const ask = (text, role = "user") => ({ messages: [{ id: "m1", role, parts: [{ type: "text", text }] }] });
+  r = await anon.req("GET", "/");
+  check("botão do assistente aparece na página", r.text.includes('aria-haspopup="dialog"') && r.text.includes("Assistente"), "sem botão");
+  const va = new Client(`10.7.${Math.floor(Math.random() * 200)}.1`);
+  r = await va.req("GET", "/api/assistant");
+  check("assistente responde o perfil do visitante", r.status === 200 && r.json?.role === "VISITOR" && typeof r.json?.available === "boolean", JSON.stringify(r.json));
+  const live = r.json?.available;
+  if (!live) console.log("  (assistente indisponível neste servidor: só a validação é testada)");
+  r = await va.req("POST", "/api/assistant", { messages: [] });
+  check("assistente recusa conversa vazia", r.status === 400 || (!live && r.status === 503), `status ${r.status}`);
+  if (live) {
+    r = await va.req("POST", "/api/assistant", ask("oi", "assistant"));
+    check("assistente exige que a última mensagem seja da pessoa", r.status === 400, `status ${r.status}`);
+    r = await va.req("POST", "/api/assistant", ask("x".repeat(1001)));
+    check("assistente recusa pergunta longa demais", r.status === 400 && /1000/.test(r.json?.error ?? ""), `status ${r.status}`);
+  }
+  const ca = new Client(`10.7.${Math.floor(Math.random() * 200)}.2`);
+  await ca.login("ana@demo.nautiwork.test", DEMO_PASSWORD);
+  r = await ca.req("GET", "/api/assistant");
+  check("assistente reconhece o candidato logado", r.json?.role === "CANDIDATE" && r.json?.firstName === "Ana", JSON.stringify(r.json));
+
+  if (live && process.env.SMOKE_ASSISTANT_STREAM === "1") {
+    r = await va.req("POST", "/api/assistant", ask("Quero vagas de tecnologia"));
+    check("assistente busca vagas e responde em streaming", r.status === 200 && r.text.includes('"toolName":"buscar_vagas"') && r.text.includes("tool-output-available") && r.text.includes("text-delta"), `status ${r.status} ${r.text.slice(0, 200)}`);
+    check("visitante não recebe compatibilidade", !r.text.includes('"compatibilidade":'), "veio compatibilidade");
+    r = await ca.req("POST", "/api/assistant", ask("Quero vagas de tecnologia"));
+    check("candidato recebe a compatibilidade nas vagas", r.status === 200 && r.text.includes('"compatibilidade":'), `status ${r.status}`);
+    let last = 0;
+    for (let i = 0; i < 9; i++) last = (await va.req("POST", "/api/assistant", ask("oi"))).status;
+    check("assistente limita perguntas de visitante (429)", last === 429, `último status ${last}`);
+  }
+}
+
 // Limpeza: desativa as contas criadas pelo teste (somem das páginas públicas).
 if (process.env.SMOKE_CLEANUP === "1") {
   const cleaner = new Client("10.9.0.1");

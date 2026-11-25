@@ -15,9 +15,9 @@ export default auth((req) => {
   const mode = role === "ADMIN" ? parseViewMode(req.cookies.get(VIEW_COOKIE)?.value) : null;
 
   // Modo de visualização: só olhar. Qualquer ação que muda dados é recusada,
-  // menos trocar/sair do modo e o próprio login/logout.
+  // menos trocar/sair do modo, o próprio login/logout e o assistente (que só consulta).
   if (path.startsWith("/api/")) {
-    if (mode && !SAFE.has(req.method) && !path.startsWith("/api/admin/view") && !path.startsWith("/api/auth")) {
+    if (mode && !SAFE.has(req.method) && !path.startsWith("/api/admin/view") && !path.startsWith("/api/auth") && path !== "/api/assistant") {
       return NextResponse.json({ error: "Você está no modo de visualização: as ações ficam desativadas. Volte ao modo admin para alterar dados." }, { status: 403 });
     }
     return;
