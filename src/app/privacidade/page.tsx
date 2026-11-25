@@ -44,7 +44,7 @@ export default function Privacidade() {
       body: <>
         <ul>
           <li><strong>Empresas para as quais você se candidata:</strong> recebem seu nome, e-mail, perfil, foto e a nota de compatibilidade com a vaga. Elas não veem candidaturas feitas para outras empresas.</li>
-          <li><strong>Provedores que operam a plataforma:</strong> hospedagem (Vercel), banco de dados (Neon) e envio de e-mails (Resend). Eles tratam os dados apenas para prestar o serviço.</li>
+          <li><strong>Provedores que operam a plataforma:</strong> hospedagem (Vercel), banco de dados (Neon), envio de e-mails (Resend) e monitoramento de erros (Sentry). O Sentry recebe apenas detalhes técnicos de falhas, sem IP, cookies ou conteúdo de formulários. Eles tratam os dados apenas para prestar o serviço.</li>
           <li><strong>Autoridades públicas,</strong> quando houver obrigação legal ou ordem judicial.</li>
         </ul>
         <p>Não vendemos dados pessoais e não os usamos para publicidade.</p>

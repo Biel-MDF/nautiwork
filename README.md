@@ -21,6 +21,7 @@ Next.js 15.5.29 (App Router), React 19, TypeScript, Tailwind CSS 3, PostgreSQL, 
 - Notificações gravadas no banco (não são em tempo real) e, para quem deixa ligado nas Configurações, também enviadas por e-mail.
 - **Menu da conta:** avatar no canto superior direito (foto ou inicial colorida) com Meu painel, Configurações de perfil, Configurações (janela com Conta, Foto, Segurança, Notificações e Privacidade), Suporte e Sair.
 - **LGPD:** páginas de Política de Privacidade (`/privacidade`) e Termos de Uso (`/termos`); aceite obrigatório no cadastro, com data e versão gravadas (`termsAcceptedAt`, `termsVersion`; versão em `src/lib/legal.ts`); em Configurações, Privacidade: baixar os próprios dados em JSON e excluir a conta (senha + palavra EXCLUIR). A exclusão apaga tudo em cascata; se for empresa, os candidatos com processo em andamento são avisados. Administrador não se exclui por ali.
+- **Monitoramento de erros (Sentry):** erros do servidor, das rotas de API e das telas vão para o Sentry quando `NEXT_PUBLIC_SENTRY_DSN` existe; sem ele o SDK fica desligado. Sem gravação de sessão e sem dados pessoais (`sendDefaultPii: false`). Um admin confere a instalação abrindo `/api/admin/sentry-test`.
 - **Suporte:** pedidos com categoria e conversa entre usuário e equipe, fila para o administrador com filtros por status, aviso no site e por e-mail a cada resposta, limite de 5 pedidos abertos por pessoa.
 
 ## Visual
