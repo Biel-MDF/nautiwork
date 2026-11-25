@@ -5,6 +5,7 @@ import { Logo } from "./Logo";
 import { NavTabs } from "./NavTabs";
 import { AccountMenu } from "./AccountMenu";
 import { MobileMenu } from "./MobileMenu";
+import { ThemeButton } from "./ThemePicker";
 
 const home = { CANDIDATE: "/candidate/dashboard", COMPANY: "/company/dashboard", ADMIN: "/admin/dashboard" } as const;
 
@@ -17,7 +18,8 @@ export async function Navbar() {
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3" aria-label="Principal">
         <Link href="/" aria-label="Nautiwork, página inicial"><Logo compact /></Link>
         <NavTabs variant="desktop" />
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <ThemeButton />
           {user ? (
             <>
               <Link href={home[user.role]} className="btn-ghost hidden px-4 sm:inline-flex">Meu painel</Link>

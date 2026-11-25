@@ -31,9 +31,9 @@ export default async function Applications() {
               return (
                 <li key={h.id} className="relative flex gap-3 pb-4 last:pb-0">
                   {!last && <span className="absolute left-[5px] top-3.5 h-full w-px bg-mist" aria-hidden="true" />}
-                  <span className={`relative mt-1 h-[11px] w-[11px] shrink-0 rounded-full border-2 ${last ? "border-tide bg-tide shadow-[0_0_0_4px_rgba(92,184,255,0.15)]" : "border-mist bg-fossa"}`} aria-hidden="true" />
+                  <span className={`relative mt-1 h-[11px] w-[11px] shrink-0 rounded-full border-2 ${last ? "border-tide bg-tide shadow-[0_0_0_4px_rgb(var(--c-tide)/0.15)]" : "border-mist bg-fossa"}`} aria-hidden="true" />
                   <span className={last ? "font-medium text-abyss" : "text-abyss/75"}>{appStatusLabel[h.status]}</span>
-                  <time className="tabular ml-auto text-abyss/55" dateTime={h.createdAt.toISOString()}>{h.createdAt.toLocaleDateString("pt-BR")}</time>
+                  <time className="tabular ml-auto text-abyss/60" dateTime={h.createdAt.toISOString()}>{h.createdAt.toLocaleDateString("pt-BR")}</time>
                 </li>);
             })}</ol>
             {!["APPROVED", "REJECTED", "WITHDRAWN"].includes(a.status) && <div className="mt-5 border-t border-mist pt-4"><WithdrawButton id={a.id} /></div>}

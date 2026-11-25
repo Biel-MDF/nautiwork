@@ -3,11 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  html { scroll-behavior: smooth; color-scheme: dark; }
+  html { scroll-behavior: smooth; }
   body {
     @apply bg-fossa font-sans text-abyss antialiased;
     /* brilho difuso vindo da superfície, como luz que atravessa a água */
-    background-image: radial-gradient(1200px 520px at 50% -180px, rgba(39, 104, 196, 0.22), transparent 70%);
+    background-image: radial-gradient(1200px 520px at 50% -180px, rgb(var(--c-tide) / var(--glow-a)), transparent 70%);
     background-repeat: no-repeat;
     min-height: 100vh;
     display: flex;
@@ -17,7 +17,7 @@
   body > * { width: 100%; }
   h1, h2, h3 { @apply font-display tracking-tight; }
   h1 { letter-spacing: -0.025em; }
-  ::selection { background: rgba(92, 184, 255, 0.35); color: #fff; }
+  ::selection { background: rgb(var(--c-tide) / 0.35); color: rgb(var(--c-abyss)); }
   :focus-visible { @apply rounded-[6px] outline-2 outline-offset-2 outline-tide; outline-style: solid; }
   a { text-underline-offset: 3px; }
   summary { list-style: none; }
@@ -35,15 +35,15 @@
   .btn-ghost { @apply btn border border-mist bg-transparent text-abyss hover:border-tide/60 hover:bg-casco; }
   .btn-danger { @apply btn border border-coral/50 bg-transparent text-coral hover:bg-coral/10; }
   .input {
-    /* borda #4269A1: contraste de 3:1 ou mais contra todos os fundos (WCAG 1.4.11) */
-    @apply min-h-[44px] w-full rounded-control border border-[#4269A1] bg-[#050F23] px-3 text-sm text-abyss transition-colors
-      placeholder:text-abyss/55 hover:border-[#6A91C9] focus:border-tide focus:outline-none focus:ring-2 focus:ring-tide/25;
+    /* borda "line": contraste de 3:1 ou mais contra o fundo do campo em todos os temas (WCAG 1.4.11) */
+    @apply min-h-[44px] w-full rounded-control border border-line bg-field px-3 text-sm text-abyss transition-colors
+      placeholder:text-abyss/60 hover:border-tide/70 focus:border-tide focus:outline-none focus:ring-2 focus:ring-tide/25;
   }
   textarea.input { @apply py-2; }
   select.input { @apply pr-8; }
   .label { @apply mb-1.5 block text-sm font-medium text-abyss/90; }
   /* painel: borda fina e um fio de luz no topo, como a borda de um vidro */
-  .card { @apply rounded-panel border border-mist bg-casco p-5; box-shadow: inset 0 1px 0 rgba(156, 211, 255, 0.06); }
+  .card { @apply rounded-panel border border-mist bg-casco p-5; box-shadow: inset 0 1px 0 rgb(var(--c-deep) / 0.06); }
   .hint-error { @apply mt-1 text-sm text-coral; }
   .chip { @apply rounded-[6px] border border-mist/70 bg-foam px-2 py-0.5 text-xs text-abyss/90; }
 }
@@ -51,5 +51,5 @@
 /* Texto das páginas legais */
 .legal ul { list-style: disc; padding-left: 1.25rem; }
 .legal ul > li + li { margin-top: 0.5rem; }
-.legal strong { color: #E3EDFB; font-weight: 600; }
-.legal a { color: #5CB8FF; text-decoration: underline; text-underline-offset: 2px; }
+.legal strong { color: rgb(var(--c-abyss)); font-weight: 600; }
+.legal a { color: rgb(var(--c-tide)); text-decoration: underline; text-underline-offset: 2px; }

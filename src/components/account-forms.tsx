@@ -206,7 +206,7 @@ export function ImageUpload({ userId, version, label }: { userId: string; versio
   const [fileName, setFileName] = useState("");
   return (
     <div className="flex flex-wrap items-center gap-4">
-      <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-dashed border-[#4269A1] bg-foam text-center text-xs leading-tight text-abyss/60">
+      <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-dashed border-line bg-foam text-center text-xs leading-tight text-abyss/60">
         {/* eslint-disable-next-line @next/next/no-img-element -- next/image exige o otimizador, que fica sem uso no projeto */}
         {version ? <img src={`/api/images/${userId}?v=${version}`} alt={label} className="h-full w-full object-cover" /> : "Sem imagem"}
       </div>

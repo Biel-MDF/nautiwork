@@ -27,7 +27,7 @@ export function Footer() {
         ))}
       </div>
       <div className="border-t border-mist/60">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-xs text-abyss/55 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-xs text-abyss/60 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} TCC NautiWork, Técnico em Desenvolvimento de Sistemas.</p>
           <p>Empresas e vagas com o selo Demo são fictícias. <a href="https://github.com/Biel-MDF/nautiwork" className="underline underline-offset-2 hover:text-tide">Código no GitHub</a></p>
         </div>

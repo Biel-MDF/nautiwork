@@ -26,7 +26,7 @@ export function CompatibilityPreview({ job }: { job: PreviewJob }) {
       <div className="flex items-start gap-4 border-b border-mist p-5">
         <ScoreRing score={r.score} size={64} />
         <div className="min-w-0">
-          <p className="text-xs text-abyss/55">Exemplo: perfil fictício comparado com uma vaga publicada</p>
+          <p className="text-xs text-abyss/60">Exemplo: perfil fictício comparado com uma vaga publicada</p>
           <p className="mt-1 font-semibold leading-snug"><Link href={`/jobs/${job.id}`} className="hover:text-tide">{job.title}</Link></p>
           <p className="text-sm text-abyss/65"><CompanyName name={job.company.name} /></p>
         </div>
@@ -53,7 +53,7 @@ export function CompatibilityPreview({ job }: { job: PreviewJob }) {
         <p className="text-sm font-medium text-abyss/80">Depois de se candidatar, cada etapa aparece assim</p>
         <ol className="mt-3 grid grid-cols-2 gap-1.5 text-xs sm:grid-cols-4" aria-label="Etapas de uma candidatura">
           {STEPS.map((s, i) => (
-            <li key={s} className={`rounded-full border px-2 py-1 text-center ${i < 2 ? "border-tide/40 bg-tide/10 text-deep" : i === 2 ? "border-reef/50 bg-reef/10 text-reef" : "border-mist text-abyss/50"}`}>
+            <li key={s} className={`rounded-full border px-2 py-1 text-center ${i < 2 ? "border-tide/40 bg-tide/10 text-deep" : i === 2 ? "border-reef/50 bg-reef/10 text-reef" : "border-mist text-abyss/60"}`}>
               <span className="sr-only">{i + 1}. </span>{s}
             </li>
           ))}

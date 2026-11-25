@@ -4,6 +4,7 @@ import "./globals.css";
 import { currentUser, viewMode } from "@/lib/rbac";
 import { ViewModeBar } from "@/components/ViewMode";
 import { splitDemo } from "@/lib/display";
+import { themeBootScript, themeCss } from "@/lib/themes";
 
 const display = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display" });
 const body = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-body" });
@@ -19,14 +20,22 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: "Nautiwork — ache a vaga que combina com o seu rumo", description },
 };
 
-export const viewport = { themeColor: "#030A1A", colorScheme: "dark" };
+export const viewport = { themeColor: "#030A1A" };
+
+const css = themeCss();
+const boot = themeBootScript();
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Modo de visualização do admin: barra fixa avisando e permitindo voltar.
   const mode = await viewMode();
   const as = mode && mode !== "visitor" ? await currentUser() : null;
   return (
-    <html lang="pt-BR" className={`${display.variable} ${body.variable}`}>
+    // suppressHydrationWarning: o script abaixo marca paleta e modo no <html> antes do React assumir.
+    <html lang="pt-BR" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: css }} />
+        <script dangerouslySetInnerHTML={{ __html: boot }} />
+      </head>
       <body className={mode ? "pb-28" : undefined}>
         {children}
         {mode && <ViewModeBar mode={mode} as={as ? `${splitDemo(as.name).name}, conta de demonstração` : null} />}

@@ -32,14 +32,14 @@ export function MobileMenu({ loggedIn }: { loggedIn: boolean }) {
         </svg>
       </button>
       {open && (
-        <div ref={panel} id={id} className="absolute inset-x-0 top-full border-b border-mist/70 bg-fossa px-4 pb-4 pt-2 shadow-[0_24px_48px_rgba(0,0,0,0.6)] motion-safe:animate-menu">
+        <div ref={panel} id={id} className="absolute inset-x-0 top-full border-b border-mist/70 bg-fossa px-4 pb-4 pt-2 shadow-[0_24px_48px_rgb(0_0_0/var(--shade-a))] motion-safe:animate-menu">
           <ul className="divide-y divide-mist/60">
             {tabs.map((t) => (
               <li key={t.href}>
                 <Link href={t.href} prefetch aria-current={isActive(t.href) ? "page" : undefined}
                   className={`flex min-h-[56px] flex-col justify-center py-2 ${isActive(t.href) ? "text-abyss" : "text-abyss/80"}`}>
                   <span className="flex items-center gap-2 font-medium">{isActive(t.href) && <span className="h-1.5 w-1.5 rounded-full bg-tide" aria-hidden="true" />}{t.label}</span>
-                  <span className="text-xs text-abyss/55">{t.hint}</span>
+                  <span className="text-xs text-abyss/60">{t.hint}</span>
                 </Link>
               </li>
             ))}

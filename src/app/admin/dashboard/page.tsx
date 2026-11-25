@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
 
 const order = ["SUBMITTED", "IN_REVIEW", "IN_PROCESS", "INTERVIEW", "APPROVED", "REJECTED", "WITHDRAWN"] as const;
 const tone: Record<(typeof order)[number], string> = {
-  SUBMITTED: "bg-[#A9BCD8]", IN_REVIEW: "bg-tide/60", IN_PROCESS: "bg-tide", INTERVIEW: "bg-reef/70",
-  APPROVED: "bg-reef", REJECTED: "bg-coral", WITHDRAWN: "bg-[#5B6F92]",
+  SUBMITTED: "bg-abyss/45", IN_REVIEW: "bg-tide/60", IN_PROCESS: "bg-tide", INTERVIEW: "bg-reef/70",
+  APPROVED: "bg-reef", REJECTED: "bg-coral", WITHDRAWN: "bg-abyss/25",
 };
 const roleLabel = { CANDIDATE: "Candidato", COMPANY: "Empresa", ADMIN: "Admin" } as const;
 

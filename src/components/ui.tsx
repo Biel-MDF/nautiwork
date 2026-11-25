@@ -91,7 +91,7 @@ export function JobCard({ job, score, save }: { job: JobCardJob; score?: number;
         {job.skills.length > 0 ? <div className="flex flex-wrap gap-1.5">
           {job.skills.slice(0, 4).map((s) => <span key={s.skill.name} className="chip">{s.skill.name}</span>)}
         </div> : <span />}
-        {job.publishedAt && <time dateTime={job.publishedAt.toISOString()} className="shrink-0 text-xs text-abyss/55">{timeAgo(job.publishedAt)}</time>}
+        {job.publishedAt && <time dateTime={job.publishedAt.toISOString()} className="shrink-0 text-xs text-abyss/60">{timeAgo(job.publishedAt)}</time>}
       </div>
     </article>
   );

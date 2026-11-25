@@ -58,7 +58,7 @@ export function RegisterForm({ initialRole = "CANDIDATE" }: { initialRole?: "CAN
       <div className="grid grid-cols-2 gap-1 rounded-control border border-mist bg-fossa p-1" role="radiogroup" aria-label="Tipo de conta">
         {(["CANDIDATE", "COMPANY"] as const).map((r) => (
           <button type="button" key={r} role="radio" aria-checked={role === r} onClick={() => setRole(r)}
-            className={`min-h-[40px] rounded-[7px] text-sm font-semibold transition-colors ${role === r ? "bg-foam text-abyss shadow-[inset_0_0_0_1px_rgba(92,184,255,0.45)]" : "text-abyss/65 hover:text-abyss"}`}>
+            className={`min-h-[40px] rounded-[7px] text-sm font-semibold transition-colors ${role === r ? "bg-foam text-abyss shadow-[inset_0_0_0_1px_rgb(var(--c-tide)/0.45)]" : "text-abyss/65 hover:text-abyss"}`}>
             {r === "CANDIDATE" ? "Procuro vaga" : "Sou empresa"}</button>
         ))}
       </div>

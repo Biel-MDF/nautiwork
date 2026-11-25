@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
+import { ThemeButton } from "./ThemePicker";
 import { SonarConsole } from "./SonarConsole";
 
 /**
@@ -16,22 +17,23 @@ export function AuthShell({ title, subtitle, notice, children }: {
       <svg className="pointer-events-none absolute inset-0 -z-10 h-full w-full" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
           <radialGradient id="access-glow" cx="80%" cy="82%" r="55%">
-            <stop offset="0" stopColor="#1B4F96" stopOpacity=".28" />
-            <stop offset="1" stopColor="#030A1A" stopOpacity="0" />
+            <stop offset="0" stopColor="rgb(var(--c-tide))" stopOpacity=".28" />
+            <stop offset="1" stopColor="rgb(var(--c-fossa))" stopOpacity="0" />
           </radialGradient>
         </defs>
         <rect width="1440" height="900" fill="url(#access-glow)" />
         {Array.from({ length: 9 }).map((_, i) => (
           <path key={i} d={`M0 ${420 + i * 58} C 260 ${360 + i * 58}, 520 ${520 + i * 52}, 780 ${450 + i * 54} S 1200 ${380 + i * 58}, 1440 ${470 + i * 56}`}
-            fill="none" stroke="#5CB8FF" strokeOpacity={0.075 - i * 0.006} />
+            fill="none" stroke="rgb(var(--c-tide))" strokeOpacity={0.075 - i * 0.006} />
         ))}
         {[140, 260, 380, 500, 620].map((r, i) => (
-          <circle key={r} cx="1170" cy="740" r={r} fill="none" stroke="#5CB8FF" strokeOpacity={0.11 - i * 0.018} strokeDasharray={i % 2 ? "2 7" : undefined} />
+          <circle key={r} cx="1170" cy="740" r={r} fill="none" stroke="rgb(var(--c-tide))" strokeOpacity={0.11 - i * 0.018} strokeDasharray={i % 2 ? "2 7" : undefined} />
         ))}
       </svg>
 
-      <header className="px-5 pt-5 sm:px-10 sm:pt-8">
+      <header className="relative z-10 flex items-center justify-between px-5 pt-5 sm:px-10 sm:pt-8">
         <Link href="/" aria-label="Nautiwork, voltar à página inicial" className="inline-flex"><Logo /></Link>
+        <ThemeButton />
       </header>
 
       <main className="flex flex-1 flex-col items-center px-5 pb-10 pt-12 sm:pt-16 lg:pt-14">
@@ -62,7 +64,7 @@ export function AuthShell({ title, subtitle, notice, children }: {
 export function AuthAlternative({ href, label, hint }: { href: string; label: string; hint?: string }) {
   return (
     <>
-      <div className="my-7 flex items-center gap-4 text-sm text-abyss/55" aria-hidden="true">
+      <div className="my-7 flex items-center gap-4 text-sm text-abyss/60" aria-hidden="true">
         <span className="h-px flex-1 bg-mist" />ou<span className="h-px flex-1 bg-mist" />
       </div>
       <Link href={href} className="btn-ghost min-h-[52px] w-full text-base">{label}</Link>

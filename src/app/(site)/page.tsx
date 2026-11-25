@@ -68,7 +68,7 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
             style={{ maskImage: "linear-gradient(to bottom, black 30%, transparent)" }}>
             {Array.from({ length: 11 }).map((_, i) => (
               <path key={i} d={`M0 ${90 + i * 46} C 220 ${40 + i * 46}, 420 ${170 + i * 46}, 640 ${100 + i * 46} S 1020 ${30 + i * 46}, 1200 ${110 + i * 46}`}
-                fill="none" stroke="#5CB8FF" strokeOpacity={0.07 - i * 0.004} strokeWidth="1" />
+                fill="none" stroke="rgb(var(--c-tide))" strokeOpacity={0.07 - i * 0.004} strokeWidth="1" />
             ))}
           </svg>
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:pb-20 sm:pt-14 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-8">
@@ -89,7 +89,7 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
                 </>
               )}
 
-              <form action="/jobs" className="mt-8 grid max-w-xl gap-2 rounded-panel border border-[#4269A1] bg-casco/80 p-2 backdrop-blur focus-within:border-tide sm:grid-cols-[1.3fr_1fr_auto]" role="search">
+              <form action="/jobs" className="mt-8 grid max-w-xl gap-2 rounded-panel border border-line bg-casco/80 p-2 backdrop-blur focus-within:border-tide sm:grid-cols-[1.3fr_1fr_auto]" role="search">
                 <label className="sr-only" htmlFor="q">Cargo, empresa ou habilidade</label>
                 <input id="q" name="q" list="home-q" autoComplete="off" placeholder="Cargo, empresa ou habilidade" className="input rounded-none border-transparent border-b-mist bg-transparent hover:border-transparent hover:border-b-mist sm:border-b-transparent sm:hover:border-b-transparent" />
                 <datalist id="home-q">{suggestions.map((s) => <option key={s} value={s} />)}</datalist>
@@ -101,7 +101,7 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
               <nav aria-label="Buscas rápidas" className="mt-4 flex flex-wrap items-center gap-2">
                 {shortcuts.filter(([, , n]) => n > 0).map(([label, qs, n]) => (
                   <Link key={label} href={`/jobs?${qs}`} className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-mist bg-casco/50 px-4 text-sm text-abyss/80 transition-colors hover:border-tide/50 hover:text-abyss">
-                    {label}<span className="tabular text-abyss/50">{n}</span>
+                    {label}<span className="tabular text-abyss/60">{n}</span>
                   </Link>
                 ))}
               </nav>

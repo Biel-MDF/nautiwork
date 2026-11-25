@@ -10,7 +10,7 @@ const weights: [string, number, string][] = [
   ["Cidade", 10, "Se a vaga é na sua cidade, ou remota."],
   ["Experiência", 10, "Seus anos de experiência diante do mínimo pedido."],
 ];
-const shades = ["bg-tide", "bg-reef", "bg-deep", "bg-[#3C7BD6]", "bg-[#2BA996]"];
+const shades = ["bg-tide", "bg-reef", "bg-deep", "bg-tide/70", "bg-reef/70"];
 
 export default function About() {
   return (

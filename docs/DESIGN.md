@@ -2,7 +2,15 @@
 
 O Nautiwork tem nome e logo náuticos. O visual trata a plataforma como o painel de um instrumento de navegação no fundo do mar: escuro, preciso e luminoso, sem neon decorativo.
 
-## Paleta
+## Temas
+
+O site tem cinco paletas (Oceano, Lagoa, Coral, Abissal e Alga), cada uma em modo escuro e claro, mais a opção "Sistema", que segue o aparelho. A pessoa escolhe pelo botão de aparência no topo (também na tela de login) ou em Configurações > Aparência. A escolha fica no `localStorage` do aparelho; o padrão é Oceano escuro.
+
+- **Fonte única:** `src/lib/themes.ts` guarda os valores de cada papel por paleta e modo, gera o CSS das variáveis (`--c-<papel>`, em canais RGB) e o script que aplica a escolha no `<html>` antes da primeira pintura, sem piscar o tema errado.
+- **Tailwind:** as cores (`fossa`, `tide` etc.) leem as variáveis, com suporte a opacidade (`bg-tide/10`). Nenhum componente usa cor fixa do tema; as exceções são as iniciais sobre cores de avatar e o aviso amarelo do modo "ver como", que valem para todos os temas.
+- **Contraste:** `src/tests/themes.test.ts` confere as 10 combinações (texto 7:1 sobre fundo e cartão, texto secundário a 60% com 4,5:1, links e botões com 4,5:1, borda de campo com 3:1). A menor opacidade de texto usada no site é 60%.
+
+## Paleta (Oceano escuro, o tema original)
 
 | Papel | Token Tailwind | Cor | Uso |
 |---|---|---|---|
@@ -10,8 +18,8 @@ O Nautiwork tem nome e logo náuticos. O visual trata a plataforma como o painel
 | Casco | `casco` | `#071631` | painéis e cartões |
 | Superfície elevada | `foam` | `#0D2347` | etiquetas, item de menu ativo |
 | Corrente | `mist` | `#1A3866` | bordas de painéis e divisórias |
-| Borda de campo | `#4269A1` | — | bordas de campos de formulário (3:1 contra todos os fundos) |
-| Texto | `abyss` | `#E3EDFB` | texto principal; secundário com 55% a 85% de opacidade |
+| Borda de campo | `line` | `#4269A1` | bordas de campos de formulário (3:1 contra todos os fundos) |
+| Texto | `abyss` | `#E3EDFB` | texto principal; secundário com 60% a 90% de opacidade |
 | Sonar | `tide` | `#5CB8FF` | ações, links, foco |
 | Sonar claro | `deep` | `#9CD3FF` | hover, iniciais |
 | Bioluz | `reef` | `#3DE3C3` | compatibilidade alta, sucesso |

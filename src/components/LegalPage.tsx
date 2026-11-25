@@ -23,7 +23,7 @@ export function LegalPage({ title, intro, sections, other }: {
               {sections.map((s, i) => (
                 <li key={s.id}>
                   <a href={`#${s.id}`} className="-ml-px block border-l border-transparent py-1 pl-3 text-abyss/70 hover:border-tide hover:text-abyss">
-                    <span className="tabular mr-2 text-abyss/45">{i + 1}.</span>{s.title}
+                    <span className="tabular mr-2 text-abyss/60">{i + 1}.</span>{s.title}
                   </a>
                 </li>
               ))}
@@ -34,7 +34,7 @@ export function LegalPage({ title, intro, sections, other }: {
           <div className="max-w-[68ch] space-y-12">
             {sections.map((s, i) => (
               <section key={s.id} id={s.id} aria-labelledby={`${s.id}-t`} className="scroll-mt-24">
-                <h2 id={`${s.id}-t`} className="text-2xl font-semibold"><span className="tabular mr-3 text-abyss/40">{i + 1}</span>{s.title}</h2>
+                <h2 id={`${s.id}-t`} className="text-2xl font-semibold"><span className="tabular mr-3 text-abyss/60">{i + 1}</span>{s.title}</h2>
                 <div className="legal mt-4 space-y-4 leading-relaxed text-abyss/80">{s.body}</div>
               </section>
             ))}

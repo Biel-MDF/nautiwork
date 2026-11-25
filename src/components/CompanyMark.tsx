@@ -14,7 +14,7 @@ export function CompanyMark({ userId, name, imageVersion, size = 40 }: { userId:
   const c = colorOf(userId);
   return (
     <span aria-hidden="true" style={{ ...box, background: `linear-gradient(135deg, ${c}, ${c}B3)`, fontSize: Math.round(size * 0.36) }}
-      className="inline-flex shrink-0 select-none items-center justify-center font-display font-bold tracking-tight text-fossa shadow-[inset_0_-2px_0_rgba(3,10,26,0.18)]">
+      className="inline-flex shrink-0 select-none items-center justify-center font-display font-bold tracking-tight text-[#030A1A] shadow-[inset_0_-2px_0_rgba(3,10,26,0.18)]">
       {monogram(name)}
     </span>
   );

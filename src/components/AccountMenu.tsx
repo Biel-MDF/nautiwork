@@ -1,4 +1,5 @@
 "use client";
+import { AppearancePanel } from "./ThemePicker";
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -70,7 +71,7 @@ export function AccountMenu({ user, signOutAction }: { user: MenuUser; signOutAc
 
       {open && (
         <div id={menuId} role="menu" aria-label="Menu da conta"
-          className="absolute right-0 top-[calc(100%+10px)] z-40 w-[min(300px,calc(100vw-2rem))] origin-top-right rounded-panel border border-mist bg-casco p-2 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.65)] motion-safe:animate-menu">
+          className="absolute right-0 top-[calc(100%+10px)] z-40 w-[min(300px,calc(100vw-2rem))] origin-top-right rounded-panel border border-mist bg-casco p-2 shadow-[0_24px_60px_-12px_rgb(0_0_0/var(--shade-a))] motion-safe:animate-menu">
           <div className="flex items-center gap-3 px-3 pb-3 pt-2">
             <UserAvatar userId={user.id} name={user.name} imageVersion={user.imageVersion} size={44} />
             <div className="min-w-0">
@@ -85,16 +86,16 @@ export function AccountMenu({ user, signOutAction }: { user: MenuUser; signOutAc
           {profile && (
             <Link role="menuitem" href={profile} className={`${item} py-2`} onClick={() => setOpen(false)}>
               <Icon d={icons.perfil} />
-              <span><span className="block">Configurações de perfil</span><span className="block text-xs text-abyss/55">{user.role === "COMPANY" ? "O que os candidatos veem da empresa" : "O que as empresas veem de você"}</span></span>
+              <span><span className="block">Configurações de perfil</span><span className="block text-xs text-abyss/60">{user.role === "COMPANY" ? "O que os candidatos veem da empresa" : "O que as empresas veem de você"}</span></span>
             </Link>
           )}
           <button role="menuitem" type="button" className={`${item} py-2`} onClick={() => openSettings("conta")}>
             <Icon d={icons.config} />
-            <span><span className="block">Configurações</span><span className="block text-xs text-abyss/55">Conta, foto, senha, avisos e privacidade</span></span>
+            <span><span className="block">Configurações</span><span className="block text-xs text-abyss/60">Conta, foto, senha, avisos, aparência e privacidade</span></span>
           </button>
           {user.role === "ADMIN" && (
             <div className="my-1 border-y border-mist/70 py-1" role="group" aria-label="Ver o site como">
-              <p className="px-3 pb-1 pt-1.5 text-xs text-abyss/55">Ver o site como</p>
+              <p className="px-3 pb-1 pt-1.5 text-xs text-abyss/60">Ver o site como</p>
               <ViewAsMenuItems />
             </div>
           )}
@@ -113,12 +114,13 @@ export function AccountMenu({ user, signOutAction }: { user: MenuUser; signOutAc
 
 /* ---------- Janela de Configurações ---------- */
 
-type SettingsTab = "conta" | "foto" | "seguranca" | "notificacoes" | "privacidade";
+type SettingsTab = "conta" | "foto" | "seguranca" | "notificacoes" | "aparencia" | "privacidade";
 const settingsTabs: { id: SettingsTab; label: string; hint: string }[] = [
   { id: "conta", label: "Conta", hint: "Nome e e-mail de acesso" },
   { id: "foto", label: "Foto", hint: "Imagem que aparece no menu e para empresas" },
   { id: "seguranca", label: "Segurança", hint: "Troca de senha" },
   { id: "notificacoes", label: "Notificações", hint: "Avisos por e-mail" },
+  { id: "aparencia", label: "Aparência", hint: "Tema, cores e modo claro ou escuro" },
   { id: "privacidade", label: "Privacidade", hint: "Seus dados e exclusão da conta" },
 ];
 
@@ -151,8 +153,8 @@ function SettingsDialog({ user, initialTab, onClose }: { user: MenuUser; initial
   return (
     <dialog ref={ref} aria-labelledby={titleId}
       onClick={(e) => { if (e.target === ref.current) onClose(); }}
-      className="m-0 h-full max-h-none w-full max-w-none bg-transparent p-0 text-abyss backdrop:bg-[#010510]/75 backdrop:backdrop-blur-sm sm:m-auto sm:h-[min(540px,calc(100vh-4rem))] sm:w-[min(760px,calc(100vw-2rem))]">
-      <div className="flex h-full flex-col overflow-hidden border-mist bg-casco sm:rounded-panel sm:border sm:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)]">
+      className="m-0 h-full max-h-none w-full max-w-none bg-transparent p-0 text-abyss backdrop:bg-[rgb(var(--scrim)/var(--scrim-a))] backdrop:backdrop-blur-sm sm:m-auto sm:h-[min(540px,calc(100vh-4rem))] sm:w-[min(760px,calc(100vw-2rem))]">
+      <div className="flex h-full flex-col overflow-hidden border-mist bg-casco sm:rounded-panel sm:border sm:shadow-[0_40px_100px_-20px_rgb(0_0_0/var(--shade-a))]">
         <header className="flex items-center justify-between gap-4 border-b border-mist px-5 py-4 sm:px-7">
           <div>
             <h2 id={titleId} className="text-xl font-semibold">Configurações</h2>
@@ -168,9 +170,9 @@ function SettingsDialog({ user, initialTab, onClose }: { user: MenuUser; initial
             {settingsTabs.map((t) => (
               <button key={t.id} id={`tab-${t.id}`} role="tab" type="button" aria-selected={tab === t.id} aria-controls={`panel-${t.id}`}
                 tabIndex={tab === t.id ? 0 : -1} onClick={() => setTab(t.id)}
-                className={`shrink-0 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${tab === t.id ? "bg-foam text-abyss shadow-[inset_2px_0_0_#5CB8FF]" : "text-abyss/70 hover:bg-foam/60 hover:text-abyss"}`}>
+                className={`shrink-0 rounded-control px-3 py-2.5 text-left text-sm transition-colors ${tab === t.id ? "bg-foam text-abyss shadow-[inset_2px_0_0_rgb(var(--c-tide))]" : "text-abyss/70 hover:bg-foam/60 hover:text-abyss"}`}>
                 <span className="block font-medium">{t.label}</span>
-                <span className="hidden text-xs text-abyss/55 sm:block">{t.hint}</span>
+                <span className="hidden text-xs text-abyss/60 sm:block">{t.hint}</span>
               </button>
             ))}
           </div>
@@ -204,6 +206,12 @@ function SettingsDialog({ user, initialTab, onClose }: { user: MenuUser; initial
                 <PreferencesForm initial={user.emailNotifications} role={user.role} />
               </section>
             )}
+            {tab === "aparencia" && (
+              <section className="space-y-5" aria-label="Aparência">
+                <div><h3 className="text-lg font-semibold">Aparência</h3><p className="mt-1 text-sm text-abyss/65">Escolha a paleta de cores e se o site fica claro, escuro ou igual ao seu aparelho.</p></div>
+                <AppearancePanel />
+              </section>
+            )}
             {tab === "privacidade" && (
               <section className="space-y-5">
                 <div><h3 className="text-lg font-semibold">Privacidade</h3><p className="mt-1 text-sm text-abyss/65">Seus direitos pela LGPD, sem precisar pedir a ninguém. Detalhes na <Link href="/privacidade" className="text-tide hover:underline" onClick={onClose}>Política de Privacidade</Link>.</p></div>
@@ -234,7 +242,7 @@ function PreferencesForm({ initial, role }: { initial: boolean; role: Role }) {
         <span><span className="block font-medium">Receber notificações por e-mail</span><span className="mt-1 block text-sm text-abyss/65">Inclui {examples}.</span></span>
         <span className="relative mt-0.5 inline-flex shrink-0">
           <input type="checkbox" role="switch" checked={on} onChange={(e) => { setOn(e.target.checked); setS({}); }} className="peer sr-only" />
-          <span aria-hidden="true" className="h-7 w-12 rounded-full border border-[#4269A1] bg-fossa transition-colors peer-checked:border-tide peer-checked:bg-tide peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-tide" />
+          <span aria-hidden="true" className="h-7 w-12 rounded-full border border-line bg-fossa transition-colors peer-checked:border-tide peer-checked:bg-tide peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-tide" />
           <span aria-hidden="true" className="absolute left-1 top-1 h-5 w-5 rounded-full bg-abyss transition-transform peer-checked:translate-x-5 peer-checked:bg-fossa" />
         </span>
       </label>

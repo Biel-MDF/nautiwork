@@ -24,7 +24,7 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
             const on = Object.entries(params).every(([k, v]) => clean[k] === v);
             return <Link key={label} href={`/jobs?${new URLSearchParams(params)}`} aria-current={on ? "true" : undefined}
               className={`inline-flex min-h-[40px] items-center gap-2 rounded-full border px-4 text-sm transition-colors ${on ? "border-tide/60 bg-foam text-abyss" : "border-mist text-abyss/75 hover:border-tide/50 hover:text-abyss"}`}>
-              {label}{n >= 0 && <span className="tabular text-abyss/55">{n}</span>}</Link>;
+              {label}{n >= 0 && <span className="tabular text-abyss/60">{n}</span>}</Link>;
           })}
         </nav>
       </PageHeader>

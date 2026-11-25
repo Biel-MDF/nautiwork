@@ -95,7 +95,7 @@ export default async function JobPage(props: { params: Promise<{ id: string }> }
               </div>
               <ul className="mt-5 space-y-3.5 text-sm">{compat.criteria.map((c) => (
                 <li key={c.key}>
-                  <div className="flex items-baseline justify-between gap-3"><span className="font-medium">{c.label}</span><span className="tabular text-xs text-abyss/55">peso {c.weight}</span></div>
+                  <div className="flex items-baseline justify-between gap-3"><span className="font-medium">{c.label}</span><span className="tabular text-xs text-abyss/60">peso {c.weight}</span></div>
                   <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-foam" aria-hidden="true"><div className={`h-full rounded-full ${c.ratio >= 1 ? "bg-reef" : c.ratio > 0 ? "bg-tide" : "bg-transparent"}`} style={{ width: `${Math.round(c.ratio * 100)}%` }} /></div>
                   <p className="mt-1 text-abyss/70">{c.detail}</p>
                 </li>))}</ul>

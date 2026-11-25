@@ -20,7 +20,7 @@ export function UserAvatar({ userId, name, imageVersion, size = 36 }: { userId: 
   }
   return (
     <span aria-hidden="true" style={{ ...box, background: colorOf(userId), fontSize: Math.round(size * 0.44) }}
-      className="inline-flex shrink-0 select-none items-center justify-center rounded-full font-display font-semibold text-fossa">
+      className="inline-flex shrink-0 select-none items-center justify-center rounded-full font-display font-semibold text-[#030A1A]">
       {initialOf(name)}
     </span>
   );
