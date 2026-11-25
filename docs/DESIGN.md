@@ -6,7 +6,7 @@ O Nautiwork tem nome e logo náuticos. O visual trata a plataforma como o painel
 
 O site tem sete paletas (Oceano, Lagoa, Alga, Farol, Âmbar, Anêmona e Abissal), cada uma em modo escuro e claro, mais a opção "Sistema", que segue o aparelho, e um tema personalizado ("Meu tema"). A pessoa escolhe pelo botão de aparência no topo (também na tela de login), em Configurações > Aparência ou na página `/aparencia`. A escolha fica no `localStorage` do aparelho; o padrão é Oceano escuro.
 
-- **Escuro:** mantém a base original (fundo quase preto com o tom da paleta), com brilhos e ondas de luz discretos.
+- **Escuro:** mantém a base original (fundo quase preto com o tom da paleta), com brilhos e ondas de luz discretos e botão principal em degradê.
 - **Claro:** fundo em tom pastel da paleta, brilhos coloridos nos cantos, ondas de luz à direita, cartões translúcidos e botão principal em degradê.
 - **Meu tema:** uma tabela com quatro linhas (Fundo e texto, Destaque, Brilho, Sucesso) e uma coluna por paleta; cada linha escolhe de qual paleta vem aquele grupo de cores. Os grupos foram separados de modo que qualquer combinação mantenha o contraste.
 - **Fonte única:** `src/lib/themes.ts` guarda os valores de cada papel por paleta e modo, gera o CSS das variáveis (`--c-<papel>`, em canais RGB), o CSS do tema personalizado e o script que aplica a escolha no `<html>` antes da primeira pintura, sem piscar o tema errado.

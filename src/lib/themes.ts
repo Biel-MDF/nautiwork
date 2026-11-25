@@ -20,37 +20,37 @@ export type Tokens = Record<Role, string>;
 export const PALETTES = {
   oceano: {
     name: "Oceano", description: "Azul sonar, o tema original",
-    dark: { fossa: "#030A1A", casco: "#071631", foam: "#0D2347", mist: "#1A3866", abyss: "#E3EDFB", tide: "#5CB8FF", deep: "#9CD3FF", reef: "#3DE3C3", coral: "#FF8270", field: "#050F23", line: "#4269A1", accent: "#5CB8FF", accentb: "#5CB8FF", onaccent: "#030A1A", accent2: "#6EE7FF" },
+    dark: { fossa: "#030A1A", casco: "#071631", foam: "#0D2347", mist: "#1A3866", abyss: "#E3EDFB", tide: "#5CB8FF", deep: "#9CD3FF", reef: "#3DE3C3", coral: "#FF8270", field: "#050F23", line: "#4269A1", accent: "#5CB8FF", accentb: "#6EE7FF", onaccent: "#030A1A", accent2: "#6EE7FF" },
     light: { fossa: "#EDF4FF", casco: "#FFFFFF", foam: "#E0EBFD", mist: "#C2D4F2", abyss: "#050D1A", tide: "#0A5CBD", deep: "#084A8F", reef: "#04795F", coral: "#B93A26", field: "#FFFFFF", line: "#7A8FB0", accent: "#1260D6", accentb: "#0A6FB0", onaccent: "#FFFFFF", accent2: "#22D3EE" },
   },
   lagoa: {
     name: "Lagoa", description: "Ciano e verde-água",
-    dark: { fossa: "#021413", casco: "#062320", foam: "#0B322E", mist: "#174D47", abyss: "#DFF5F1", tide: "#3FD9C2", deep: "#97EDE0", reef: "#A6E36F", coral: "#FF8270", field: "#03191A", line: "#3B7F77", accent: "#3FD9C2", accentb: "#3FD9C2", onaccent: "#021413", accent2: "#5CB8FF" },
+    dark: { fossa: "#021413", casco: "#062320", foam: "#0B322E", mist: "#174D47", abyss: "#DFF5F1", tide: "#3FD9C2", deep: "#97EDE0", reef: "#A6E36F", coral: "#FF8270", field: "#03191A", line: "#3B7F77", accent: "#3FD9C2", accentb: "#5CB8FF", onaccent: "#021413", accent2: "#5CB8FF" },
     light: { fossa: "#EBFAF8", casco: "#FFFFFF", foam: "#D8F3EF", mist: "#B4E0D9", abyss: "#03110F", tide: "#076E63", deep: "#065A50", reef: "#3F7A12", coral: "#B93A26", field: "#FFFFFF", line: "#6E9A93", accent: "#0A7D70", accentb: "#0B6E9C", onaccent: "#FFFFFF", accent2: "#3B82F6" },
   },
   alga: {
     name: "Alga", description: "Verde vivo",
-    dark: { fossa: "#06120A", casco: "#0C1F12", foam: "#132E1B", mist: "#21472B", abyss: "#E5F4E7", tide: "#72E683", deep: "#B7F0C0", reef: "#5CD9E6", coral: "#FF8270", field: "#081A0E", line: "#45784F", accent: "#72E683", accentb: "#72E683", onaccent: "#06120A", accent2: "#C8F25C" },
+    dark: { fossa: "#06120A", casco: "#0C1F12", foam: "#132E1B", mist: "#21472B", abyss: "#E5F4E7", tide: "#72E683", deep: "#B7F0C0", reef: "#5CD9E6", coral: "#FF8270", field: "#081A0E", line: "#45784F", accent: "#72E683", accentb: "#C8F25C", onaccent: "#06120A", accent2: "#C8F25C" },
     light: { fossa: "#EEFAEF", casco: "#FFFFFF", foam: "#DCF3DF", mist: "#BAE0C0", abyss: "#06120A", tide: "#1A7029", deep: "#165F22", reef: "#0B6E80", coral: "#B93A26", field: "#FFFFFF", line: "#779C7E", accent: "#178032", accentb: "#0E7A5A", onaccent: "#FFFFFF", accent2: "#A3E635" },
   },
   farol: {
     name: "Farol", description: "Laranja quente",
-    dark: { fossa: "#160C05", casco: "#24140A", foam: "#331D0F", mist: "#553218", abyss: "#FCEFE4", tide: "#FFA94D", deep: "#FFCB94", reef: "#3DE3C3", coral: "#FF6B88", field: "#1B0F07", line: "#9A6640", accent: "#FFA94D", accentb: "#FFA94D", onaccent: "#160C05", accent2: "#FF6BAE" },
+    dark: { fossa: "#160C05", casco: "#24140A", foam: "#331D0F", mist: "#553218", abyss: "#FCEFE4", tide: "#FFA94D", deep: "#FFCB94", reef: "#3DE3C3", coral: "#FF6B88", field: "#1B0F07", line: "#9A6640", accent: "#FFA94D", accentb: "#FF7AAE", onaccent: "#160C05", accent2: "#FF6BAE" },
     light: { fossa: "#FFF3E8", casco: "#FFFFFF", foam: "#FFE6D1", mist: "#F3CBAA", abyss: "#1A0B03", tide: "#A84308", deep: "#8F3A07", reef: "#04795F", coral: "#B4123D", field: "#FFFFFF", line: "#B08A6E", accent: "#BF4E0A", accentb: "#B8285F", onaccent: "#FFFFFF", accent2: "#FF6BAE" },
   },
   ambar: {
     name: "Âmbar", description: "Amarelo dourado",
-    dark: { fossa: "#141005", casco: "#221B0A", foam: "#30270F", mist: "#50421A", abyss: "#FBF5E3", tide: "#FFD54A", deep: "#FFE69A", reef: "#3DE3C3", coral: "#FF8270", field: "#19140A", line: "#8F7A3A", accent: "#FFD54A", accentb: "#FFD54A", onaccent: "#141005", accent2: "#FF8A3D" },
+    dark: { fossa: "#141005", casco: "#221B0A", foam: "#30270F", mist: "#50421A", abyss: "#FBF5E3", tide: "#FFD54A", deep: "#FFE69A", reef: "#3DE3C3", coral: "#FF8270", field: "#19140A", line: "#8F7A3A", accent: "#FFD54A", accentb: "#FFA94D", onaccent: "#141005", accent2: "#FF8A3D" },
     light: { fossa: "#FFF9E5", casco: "#FFFFFF", foam: "#FFF1C4", mist: "#EFDB97", abyss: "#151002", tide: "#805A00", deep: "#664700", reef: "#04795F", coral: "#B93A26", field: "#FFFFFF", line: "#A8935A", accent: "#FFC727", accentb: "#FFA51F", onaccent: "#1A1300", accent2: "#FF8A3D" },
   },
   anemona: {
     name: "Anêmona", description: "Rosa e magenta",
-    dark: { fossa: "#14060F", casco: "#220C1B", foam: "#301228", mist: "#511F43", abyss: "#FBE8F4", tide: "#FF6EC7", deep: "#FFADDF", reef: "#3DE3C3", coral: "#FF8A70", field: "#1A0814", line: "#9A4D84", accent: "#FF6EC7", accentb: "#FF6EC7", onaccent: "#14060F", accent2: "#B57BFF" },
+    dark: { fossa: "#14060F", casco: "#220C1B", foam: "#301228", mist: "#511F43", abyss: "#FBE8F4", tide: "#FF6EC7", deep: "#FFADDF", reef: "#3DE3C3", coral: "#FF8A70", field: "#1A0814", line: "#9A4D84", accent: "#FF6EC7", accentb: "#B98CFF", onaccent: "#14060F", accent2: "#B57BFF" },
     light: { fossa: "#FFF0FA", casco: "#FFFFFF", foam: "#FCE0F2", mist: "#F1C0E2", abyss: "#17061A", tide: "#AD1277", deep: "#8C0F61", reef: "#04795F", coral: "#B93A26", field: "#FFFFFF", line: "#B07FA3", accent: "#C2188A", accentb: "#8E2BC2", onaccent: "#FFFFFF", accent2: "#B57BFF" },
   },
   abissal: {
     name: "Abissal", description: "Violeta profundo",
-    dark: { fossa: "#0B0820", casco: "#150F32", foam: "#1E1744", mist: "#33285F", abyss: "#ECE8FB", tide: "#AE95FF", deep: "#D3C6FF", reef: "#3DE3C3", coral: "#FF8270", field: "#0E0A26", line: "#6E5FAD", accent: "#AE95FF", accentb: "#AE95FF", onaccent: "#0B0820", accent2: "#5CE1FF" },
+    dark: { fossa: "#0B0820", casco: "#150F32", foam: "#1E1744", mist: "#33285F", abyss: "#ECE8FB", tide: "#AE95FF", deep: "#D3C6FF", reef: "#3DE3C3", coral: "#FF8270", field: "#0E0A26", line: "#6E5FAD", accent: "#AE95FF", accentb: "#7CC8FF", onaccent: "#0B0820", accent2: "#5CE1FF" },
     light: { fossa: "#F3EFFF", casco: "#FFFFFF", foam: "#E9E2FF", mist: "#D2C6F5", abyss: "#0D0820", tide: "#6431D4", deep: "#4E22AC", reef: "#04795F", coral: "#B93A26", field: "#FFFFFF", line: "#8C80B3", accent: "#6B33DD", accentb: "#B5237F", onaccent: "#FFFFFF", accent2: "#22D3EE" },
   },
 } satisfies Record<string, { name: string; description: string; dark: Tokens; light: Tokens }>;
