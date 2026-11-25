@@ -14,9 +14,9 @@ const csv = (v: string) => v.split(",").map((s) => s.trim()).filter(Boolean);
 
 export function LoginForm() {
   const router = useRouter();
-  const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(""); const [busy, setBusy] = useState(false); const [show, setShow] = useState(false);
   return (
-    <form className="space-y-4" onSubmit={async (e) => {
+    <form className="space-y-3" onSubmit={async (e) => {
       e.preventDefault(); setBusy(true); setError("");
       const f = new FormData(e.currentTarget);
       const res = await signIn("credentials", { email: f.get("email"), password: f.get("password"), redirect: false });
@@ -24,10 +24,20 @@ export function LoginForm() {
       if (res?.error) return setError("E-mail ou senha incorretos, ou conta desativada.");
       router.push("/"); router.refresh();
     }}>
-      <div><label className="label" htmlFor="email">E-mail</label><input id="email" name="email" type="email" required autoComplete="email" className="input" /></div>
-      <div><label className="label" htmlFor="password">Senha</label><input id="password" name="password" type="password" required autoComplete="current-password" className="input" /></div>
+      <label className="sr-only" htmlFor="email">E-mail</label>
+      <input id="email" name="email" type="email" required autoComplete="email" placeholder="E-mail" className="input min-h-[52px] px-4 text-base" />
+      <div className="relative">
+        <label className="sr-only" htmlFor="password">Senha</label>
+        <input id="password" name="password" type={show ? "text" : "password"} required autoComplete="current-password" placeholder="Senha"
+          className="input min-h-[52px] px-4 pr-24 text-base" />
+        <button type="button" onClick={() => setShow((v) => !v)} aria-pressed={show} aria-controls="password"
+          className="absolute right-1 top-1/2 min-h-[44px] -translate-y-1/2 rounded-[7px] px-3 text-sm font-medium text-abyss/70 hover:bg-foam hover:text-abyss">
+          {show ? "Ocultar" : "Mostrar"}
+        </button>
+      </div>
+      <div className="pt-1"><Link className="text-sm text-abyss/70 hover:text-tide hover:underline" href="/forgot-password">Esqueceu sua senha?</Link></div>
       <Msg error={error} />
-      <button className="btn-primary w-full" disabled={busy}>{busy ? "Entrando..." : "Entrar"}</button>
+      <button className="btn-primary min-h-[52px] w-full text-base" disabled={busy}>{busy ? "Entrando..." : "Entrar"}</button>
     </form>
   );
 }

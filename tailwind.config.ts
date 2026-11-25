@@ -24,11 +24,17 @@ export default {
         sweep: { from: { transform: "rotate(0deg)" }, to: { transform: "rotate(360deg)" } },
         contact: { "0%": { opacity: "0", transform: "scale(.4)" }, "60%": { opacity: "1", transform: "scale(1.35)" }, "100%": { opacity: "1", transform: "scale(1)" } },
         menu: { from: { opacity: "0", transform: "translateY(-4px) scale(.98)" }, to: { opacity: "1", transform: "none" } },
+        radar: { from: { transform: "rotate(0deg)" }, to: { transform: "rotate(-360deg)" } },
+        blink: { "0%, 100%": { opacity: ".35" }, "12%": { opacity: "1" }, "40%": { opacity: ".7" } },
+        "ping-wave": { "0%": { strokeOpacity: "0", transform: "translateY(8px)" }, "30%": { strokeOpacity: "1" }, "100%": { strokeOpacity: "0", transform: "translateY(-10px)" } },
       },
       animation: {
         sweep: "sweep 2600ms linear 1 both", // linear: cada ponto acende quando o feixe passa por ele
         contact: "contact 600ms ease-out both",
         menu: "menu 140ms ease-out",
+        radar: "radar 6s linear infinite",
+        blink: "blink 3.3s ease-in-out infinite",
+        "ping-wave": "ping-wave 2.4s ease-out infinite",
       },
     },
   },
