@@ -1,3 +1,4 @@
+import { CompanyName } from "@/components/CompanyName";
 import { jobCardCompany } from "@/lib/queries";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -39,7 +40,7 @@ export default async function CandidateDashboard() {
         : <div className="grid gap-4 md:grid-cols-2">{recommended.map(({ j, score }) => <JobCard key={j.id} job={j} score={score} />)}</div>}
       <h2 className="mb-3 mt-8 text-lg font-bold">Candidaturas recentes</h2>
       {profile.applications.length === 0 ? <Empty title="Você ainda não se candidatou" hint="Encontre uma vaga e envie sua primeira candidatura." href="/jobs" cta="Buscar vagas" /> :
-        <ul className="space-y-2">{profile.applications.map((a) => <li key={a.id} className="card flex items-center justify-between gap-3"><Link href={`/jobs/${a.jobId}`} className="font-semibold hover:text-tide">{a.job.title} <span className="font-normal text-abyss/70">• {a.job.company.name}</span></Link><StatusBadge status={a.status} /></li>)}</ul>}
+        <ul className="space-y-2">{profile.applications.map((a) => <li key={a.id} className="card flex items-center justify-between gap-3"><Link href={`/jobs/${a.jobId}`} className="font-semibold hover:text-tide">{a.job.title} <span className="font-normal text-abyss/70">• <CompanyName name={a.job.company.name} /></span></Link><StatusBadge status={a.status} /></li>)}</ul>}
       <h2 className="mb-3 mt-8 text-lg font-bold">Notificações</h2>
       <NotificationList items={notes.map((n) => ({ id: n.id, title: n.title, body: n.body, read: n.read, createdAt: n.createdAt.toISOString() }))} />
     </Shell>

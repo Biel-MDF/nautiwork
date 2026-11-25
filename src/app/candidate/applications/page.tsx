@@ -1,3 +1,4 @@
+import { CompanyName } from "@/components/CompanyName";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requirePageRole } from "@/lib/rbac";
@@ -19,7 +20,7 @@ export default async function Applications() {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <Link href={`/jobs/${a.jobId}`} className="font-display text-[17px] font-semibold hover:text-deep">{a.job.title}</Link>
-                <p className="mt-0.5 text-sm text-abyss/70">{a.job.company.name}</p>
+                <p className="mt-0.5 text-sm text-abyss/70"><CompanyName name={a.job.company.name} /></p>
               </div>
               {a.compatibility !== null && <ScoreRing score={a.compatibility} />}
             </div>

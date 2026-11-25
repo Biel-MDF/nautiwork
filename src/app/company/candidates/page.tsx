@@ -1,3 +1,4 @@
+import { CompanyName } from "@/components/CompanyName";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requirePageRole } from "@/lib/rbac";
@@ -48,7 +49,7 @@ export default async function CompanyCandidates(props: { searchParams: Promise<{
             <div className="flex items-start gap-3">
               <Avatar userId={c.user.id} name={c.user.name} version={c.user.image?.updatedAt} />
               <div className="min-w-0 break-words">
-                <p className="font-semibold">{c.user.name}</p>
+                <p className="font-semibold"><CompanyName name={c.user.name} person /></p>
                 <p className="text-sm text-abyss/70">{c.headline ?? "Sem título profissional"} • {c.location ?? "Cidade não informada"} • {c.yearsExperience} {c.yearsExperience === 1 ? "ano" : "anos"} de experiência</p>
                 <p className="text-sm"><a className="text-tide hover:underline" href={`mailto:${c.user.email}`}>{c.user.email}</a></p>
               </div>

@@ -1,3 +1,4 @@
+import { CompanyName } from "@/components/CompanyName";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requirePageRole } from "@/lib/rbac";
@@ -27,7 +28,7 @@ export default async function CompanyApplications(props: { searchParams: Promise
               <div className="flex min-w-0 items-start gap-3">
                 <Avatar userId={a.candidate.user.id} name={a.candidate.user.name} version={a.candidate.user.image?.updatedAt} size={44} />
                 <div className="min-w-0 break-words">
-                  <p className="font-display font-semibold">{a.candidate.user.name}</p>
+                  <p className="font-display font-semibold"><CompanyName name={a.candidate.user.name} person /></p>
                   <p className="text-sm text-abyss/70">{a.candidate.headline ?? "Sem título profissional"}, {a.candidate.location ?? "cidade não informada"}</p>
                   <p className="mt-1 text-sm">Para <Link href={`/jobs/${a.job.id}`} className="font-medium text-tide hover:underline">{a.job.title}</Link></p>
                 </div>
