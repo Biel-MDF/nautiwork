@@ -12,3 +12,8 @@ export function appUrl(req: Request) {
   if (process.env.NODE_ENV === "production") throw new HttpError(500, "APP_URL não configurada no servidor.");
   return new URL(req.url).origin;
 }
+
+/** Endereço público para sitemap, robots e dados estruturados (sem requisição em mãos). */
+export function siteUrl() {
+  return (process.env.APP_URL ?? "https://nautiwork.vercel.app").replace(/\/+$/, "");
+}

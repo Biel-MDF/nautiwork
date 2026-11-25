@@ -5,7 +5,7 @@ import { jobViewer } from "@/modules/viewer";
 import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Vagas — Nautiwork" };
+export const metadata = { title: "Vagas — Nautiwork", description: "Vagas por cargo, cidade, modalidade, contratação, nível e salário. Veja o quanto cada uma combina com o seu perfil.", alternates: { canonical: "/jobs" } };
 
 export default async function Jobs(props: { searchParams: Promise<Record<string, string>> }) {
   const searchParams = await props.searchParams;

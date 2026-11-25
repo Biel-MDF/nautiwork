@@ -8,8 +8,26 @@ import { ScoreRing } from "@/components/ui";
 import { contractLabel, salaryRange, seniorityLabel, workModeLabel } from "@/lib/labels";
 import { computeCompatibility } from "@/modules/compatibility";
 import { CompanyName } from "@/components/CompanyName";
+import type { Metadata } from "next";
+import { splitDemo } from "@/lib/display";
+import { jobPostingJsonLd, jsonLdScript, snippet } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const job = await jobPublic((await props.params).id);
+  if (!job || job.flagged || job.status === "CLOSED") return { title: "Vaga não encontrada — Nautiwork", robots: { index: false } };
+  const company = splitDemo(job.company.name);
+  const title = `${job.title} — ${company.name}`;
+  const description = snippet(`${job.location}, ${workModeLabel[job.workMode]}, ${contractLabel[job.contractType]}. ${job.description}`);
+  return {
+    title: `${title} | Nautiwork`, description,
+    alternates: { canonical: `/jobs/${job.id}` },
+    openGraph: { title, description, type: "website", url: `/jobs/${job.id}` },
+    // vagas fictícias da demonstração não devem ser indexadas
+    robots: company.demo ? { index: false, follow: true } : undefined,
+  };
+}
 
 export default async function JobPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -34,6 +52,7 @@ export default async function JobPage(props: { params: Promise<{ id: string }> }
     }
   }
   const salary = salaryRange(job.salaryMin, job.salaryMax);
+  const jsonLd = job.status === "ACTIVE" && !job.flagged ? jobPostingJsonLd(job) : null;
   const block = (t: string, c?: string | null) => c ? <section className="mt-8"><h2 className="text-lg font-semibold">{t}</h2><p className="mt-2 max-w-[68ch] whitespace-pre-line leading-relaxed text-abyss/85">{c}</p></section> : null;
   const facts: [string, string][] = [
     ["Modalidade", workModeLabel[job.workMode]], ["Contratação", contractLabel[job.contractType]],
@@ -41,6 +60,7 @@ export default async function JobPage(props: { params: Promise<{ id: string }> }
   ];
   return (
     <>
+      {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(jsonLd)} />}
       <main className="mx-auto grid max-w-6xl gap-10 px-4 pb-32 pt-10 lg:grid-cols-[1fr_340px] lg:pb-10">
         <article className="min-w-0">
           {job.status !== "ACTIVE" && <p role="status" className="mb-5 rounded-control border border-coral/40 bg-coral/10 p-3 text-sm text-coral">Esta vaga está {job.status === "PAUSED" ? "pausada" : "encerrada"} e não recebe candidaturas.</p>}

@@ -29,6 +29,19 @@ describe("limite de tentativas", () => {
     expect(JSON.parse(String(init.body))).toEqual([["SET", "rl:k", "0", "PX", "1000", "NX"], ["INCR", "rl:k"]]);
   });
 
+  it("aceita os nomes de variável que a integração da Vercel cria (KV_REST_API_*)", async () => {
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "");
+    vi.stubEnv("KV_REST_API_URL", "https://kv.upstash.io");
+    vi.stubEnv("KV_REST_API_TOKEN", "kvtkn");
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify([{ result: "OK" }, { result: 1 }])));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await rateLimit("kv", 5, 1000)).toBe(true);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://kv.upstash.io/pipeline");
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer kvtkn");
+  });
+
   it("com Upstash fora do ar: cai para a memória em vez de bloquear todo mundo", async () => {
     vi.stubEnv("UPSTASH_REDIS_REST_URL", "https://exemplo.upstash.io");
     vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "tkn");

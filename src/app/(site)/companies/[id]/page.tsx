@@ -4,8 +4,20 @@ import { Empty, JobCard } from "@/components/ui";
 import { CompanyMark } from "@/components/CompanyMark";
 import { CompanyName } from "@/components/CompanyName";
 import { jobViewer } from "@/modules/viewer";
+import type { Metadata } from "next";
+import { splitDemo } from "@/lib/display";
+import { snippet } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const c = await companyPublic((await props.params).id);
+  if (!c || !c.user.active) return { title: "Empresa não encontrada — Nautiwork", robots: { index: false } };
+  const { name, demo } = splitDemo(c.name);
+  const description = snippet(`${c.jobs.length} ${c.jobs.length === 1 ? "vaga aberta" : "vagas abertas"}${c.location ? ` em ${c.location}` : ""}. ${c.description ?? ""}`);
+  return { title: `${name}: vagas abertas | Nautiwork`, description, alternates: { canonical: `/companies/${c.id}` },
+    openGraph: { title: `${name} no Nautiwork`, description, url: `/companies/${c.id}` }, robots: demo ? { index: false, follow: true } : undefined };
+}
 export default async function CompanyPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const c = await companyPublic(params.id);
