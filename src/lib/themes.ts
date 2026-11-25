@@ -20,13 +20,13 @@ export type Tokens = Record<Role, string>;
 export const PALETTES = {
   oceano: {
     name: "Oceano", description: "Azul sonar, o tema original",
-    dark: { fossa: "#030A1A", casco: "#071631", foam: "#0D2347", mist: "#1A3866", abyss: "#E3EDFB", tide: "#5CB8FF", deep: "#9CD3FF", reef: "#3DE3C3", coral: "#FF8270", field: "#050F23", line: "#4269A1", accent: "#5CB8FF", accentb: "#6EE7FF", onaccent: "#030A1A", accent2: "#6EE7FF" },
-    light: { fossa: "#EDF4FF", casco: "#FFFFFF", foam: "#E0EBFD", mist: "#C2D4F2", abyss: "#050D1A", tide: "#0A5CBD", deep: "#084A8F", reef: "#04795F", coral: "#B93A26", field: "#FFFFFF", line: "#7A8FB0", accent: "#1260D6", accentb: "#0A6FB0", onaccent: "#FFFFFF", accent2: "#22D3EE" },
+    dark: { fossa: "#030A1A", casco: "#071631", foam: "#0D2347", mist: "#1A3866", abyss: "#E3EDFB", tide: "#5CB8FF", deep: "#9CD3FF", reef: "#3DE3C3", coral: "#FF8270", field: "#050F23", line: "#4269A1", accent: "#5CB8FF", accentb: "#5FF0DC", onaccent: "#030A1A", accent2: "#6EE7FF" },
+    light: { fossa: "#EDF4FF", casco: "#FFFFFF", foam: "#E0EBFD", mist: "#C2D4F2", abyss: "#050D1A", tide: "#0A5CBD", deep: "#084A8F", reef: "#04795F", coral: "#B93A26", field: "#FFFFFF", line: "#7A8FB0", accent: "#1260D6", accentb: "#0B7A8C", onaccent: "#FFFFFF", accent2: "#22D3EE" },
   },
   lagoa: {
     name: "Lagoa", description: "Ciano e verde-água",
-    dark: { fossa: "#021413", casco: "#062320", foam: "#0B322E", mist: "#174D47", abyss: "#DFF5F1", tide: "#3FD9C2", deep: "#97EDE0", reef: "#A6E36F", coral: "#FF8270", field: "#03191A", line: "#3B7F77", accent: "#3FD9C2", accentb: "#5CB8FF", onaccent: "#021413", accent2: "#5CB8FF" },
-    light: { fossa: "#EBFAF8", casco: "#FFFFFF", foam: "#D8F3EF", mist: "#B4E0D9", abyss: "#03110F", tide: "#076E63", deep: "#065A50", reef: "#3F7A12", coral: "#B93A26", field: "#FFFFFF", line: "#6E9A93", accent: "#0A7D70", accentb: "#0B6E9C", onaccent: "#FFFFFF", accent2: "#3B82F6" },
+    dark: { fossa: "#021413", casco: "#062320", foam: "#0B322E", mist: "#174D47", abyss: "#DFF5F1", tide: "#3FD9C2", deep: "#97EDE0", reef: "#A6E36F", coral: "#FF8270", field: "#03191A", line: "#3B7F77", accent: "#3FD9C2", accentb: "#7C9CFF", onaccent: "#021413", accent2: "#5CB8FF" },
+    light: { fossa: "#EBFAF8", casco: "#FFFFFF", foam: "#D8F3EF", mist: "#B4E0D9", abyss: "#03110F", tide: "#076E63", deep: "#065A50", reef: "#3F7A12", coral: "#B93A26", field: "#FFFFFF", line: "#6E9A93", accent: "#0A7D70", accentb: "#2F5BC0", onaccent: "#FFFFFF", accent2: "#3B82F6" },
   },
   alga: {
     name: "Alga", description: "Verde vivo",
