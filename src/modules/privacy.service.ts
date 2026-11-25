@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
 import { deleteAccountSchema } from "@/lib/validators";
 import { emailNotify } from "./notify";
+import { invalidatePublic } from "@/lib/cache";
 
 const ACTIVE_APPLICATION = ["SUBMITTED", "IN_REVIEW", "IN_PROCESS", "INTERVIEW"] as const;
 
@@ -106,5 +107,6 @@ export async function deleteAccount(userId: string, raw: unknown) {
   } else {
     await db.user.delete({ where: { id: userId } });
   }
+  invalidatePublic();
   return { ok: true, candidatesNotified: new Set(affected).size };
 }

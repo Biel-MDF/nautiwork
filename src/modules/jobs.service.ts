@@ -6,6 +6,7 @@ import { HttpError } from "@/lib/errors";
 import { emailNotify } from "./notify";
 import { jobSchema, jobSearchSchema } from "@/lib/validators";
 import { connectSkills } from "./skills";
+import { invalidatePublic } from "@/lib/cache";
 
 export const PAGE_SIZE = 12;
 
@@ -45,8 +46,10 @@ export async function getCompanyOf(userId: string) {
 export async function createJob(userId: string, raw: unknown) {
   const { skills, ...data } = jobSchema.parse(raw);
   const company = await getCompanyOf(userId);
-  return db.$transaction(async (tx) =>
+  const job = await db.$transaction(async (tx) =>
     tx.job.create({ data: { ...data, companyId: company.id, skills: { create: await connectSkills(tx, skills) } } }));
+  invalidatePublic();
+  return job;
 }
 
 async function ownedJob(userId: string, jobId: string) {
@@ -59,16 +62,19 @@ async function ownedJob(userId: string, jobId: string) {
 export async function updateJob(userId: string, jobId: string, raw: unknown) {
   await ownedJob(userId, jobId);
   const { skills, ...data } = jobSchema.parse(raw);
-  return db.$transaction(async (tx) => {
+  const job = await db.$transaction(async (tx) => {
     await tx.jobSkill.deleteMany({ where: { jobId } });
     return tx.job.update({ where: { id: jobId }, data: { ...data, skills: { create: await connectSkills(tx, skills) } } });
   });
+  invalidatePublic();
+  return job;
 }
 
 export async function setJobStatus(userId: string, jobId: string, status: "ACTIVE" | "PAUSED" | "CLOSED") {
   const job = await ownedJob(userId, jobId);
   if (job.status === "CLOSED") throw new HttpError(409, "Vagas encerradas não podem ser reabertas.");
   const updated = await db.job.update({ where: { id: jobId }, data: { status } });
+  invalidatePublic();
   if (status === "CLOSED") {
     const apps = await db.jobApplication.findMany({
       where: { jobId, status: { in: ["SUBMITTED", "IN_REVIEW", "IN_PROCESS", "INTERVIEW"] } },

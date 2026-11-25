@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 
 export const metadata = { title: "Sobre — Nautiwork" };
 
@@ -17,7 +15,6 @@ const shades = ["bg-tide", "bg-reef", "bg-deep", "bg-[#3C7BD6]", "bg-[#2BA996]"]
 export default function About() {
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-6xl px-4 py-14">
         <div className="max-w-[64ch]">
           <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">Sobre o Nautiwork</h1>
@@ -46,7 +43,6 @@ export default function About() {
         </section>
         <div className="mt-10 flex flex-wrap gap-3"><Link href="/register" className="btn-primary">Criar perfil</Link><Link href="/jobs" className="btn-ghost">Ver vagas</Link></div>
       </main>
-      <Footer />
     </>
   );
 }

@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
 import { TERMS_UPDATED_LABEL, TERMS_VERSION } from "@/lib/legal";
 
 export type LegalSection = { id: string; title: string; body: React.ReactNode };
@@ -11,7 +9,6 @@ export function LegalPage({ title, intro, sections, other }: {
 }) {
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-6xl px-4 py-14">
         <header className="max-w-[68ch]">
           <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">{title}</h1>
@@ -44,7 +41,6 @@ export function LegalPage({ title, intro, sections, other }: {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

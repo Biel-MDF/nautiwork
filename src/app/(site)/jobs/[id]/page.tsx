@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { currentUser } from "@/lib/rbac";
 import { db } from "@/lib/db";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { jobPublic } from "@/modules/public-data";
 import { ApplyButton, SaveButton } from "@/components/forms";
 import { ScoreRing } from "@/components/ui";
 import { contractLabel, salaryRange, seniorityLabel, workModeLabel } from "@/lib/labels";
@@ -14,8 +13,9 @@ export const dynamic = "force-dynamic";
 
 export default async function JobPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const job = await db.job.findUnique({ where: { id: params.id }, include: { company: true, skills: { include: { skill: true } } } });
-  const session = await auth();
+  const [job, me] = await Promise.all([jobPublic(params.id), currentUser()]);
+  // mesmo formato de antes; currentUser respeita o modo de visualização do admin
+  const session = me ? { user: { id: me.id, role: me.role } } : null;
   const isOwner = job && session?.user.id === job.company.userId;
   if (!job || (!isOwner && session?.user.role !== "ADMIN" && (job.flagged || job.status === "CLOSED"))) notFound();
 
@@ -26,8 +26,11 @@ export default async function JobPage(props: { params: Promise<{ id: string }> }
       compat = computeCompatibility(
         { skills: p.skills.map((s) => s.skill.name), interestArea: p.interestArea, workMode: p.workMode, location: p.location, yearsExperience: p.yearsExperience },
         { skills: job.skills.map((s) => s.skill.name), area: job.area, workMode: job.workMode, location: job.location, minYears: job.minYears });
-      applied = !!(await db.jobApplication.findUnique({ where: { jobId_candidateId: { jobId: job.id, candidateId: p.id } } }));
-      saved = !!(await db.savedJob.findUnique({ where: { candidateId_jobId: { candidateId: p.id, jobId: job.id } } }));
+      const [a, s] = await Promise.all([
+        db.jobApplication.findUnique({ where: { jobId_candidateId: { jobId: job.id, candidateId: p.id } }, select: { id: true } }),
+        db.savedJob.findUnique({ where: { candidateId_jobId: { candidateId: p.id, jobId: job.id } }, select: { jobId: true } }),
+      ]);
+      applied = !!a; saved = !!s;
     }
   }
   const salary = salaryRange(job.salaryMin, job.salaryMax);
@@ -38,7 +41,6 @@ export default async function JobPage(props: { params: Promise<{ id: string }> }
   ];
   return (
     <>
-      <Navbar />
       <main className="mx-auto grid max-w-6xl gap-10 px-4 pb-32 pt-10 lg:grid-cols-[1fr_340px] lg:pb-10">
         <article className="min-w-0">
           {job.status !== "ACTIVE" && <p role="status" className="mb-5 rounded-control border border-coral/40 bg-coral/10 p-3 text-sm text-coral">Esta vaga está {job.status === "PAUSED" ? "pausada" : "encerrada"} e não recebe candidaturas.</p>}
@@ -84,7 +86,6 @@ export default async function JobPage(props: { params: Promise<{ id: string }> }
           {session?.user.role === "CANDIDATE" && !compat && <p className="card text-sm">Complete seu perfil para ver a compatibilidade. <Link className="font-semibold text-tide hover:underline" href="/candidate/profile">Ir para o perfil</Link></p>}
         </aside>
       </main>
-      <Footer />
     </>
   );
 }

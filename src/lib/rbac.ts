@@ -29,9 +29,11 @@ export const realUser = cache(async () => {
  * então ninguém ganha acesso por ele (o admin só pode "descer" para uma visão com menos poder).
  */
 export const viewMode = cache(async () => {
+  // sem o cookie (o caso de quase todo mundo), nenhuma consulta ao banco
+  const mode = parseViewMode((await cookies()).get(VIEW_COOKIE)?.value);
+  if (!mode) return null;
   const real = await realUser();
-  if (real?.role !== "ADMIN") return null;
-  return parseViewMode((await cookies()).get(VIEW_COOKIE)?.value);
+  return real?.role === "ADMIN" ? mode : null;
 });
 
 /**

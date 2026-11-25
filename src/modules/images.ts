@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
+import { invalidatePublic } from "@/lib/cache";
 
 export const MAX_IMAGE_BYTES = 1024 * 1024; // 1 MB
 export const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
@@ -36,11 +37,13 @@ export async function saveUserImage(userId: string, bytes: Uint8Array) {
     create: { userId, data, mimeType, size: bytes.length },
     update: { data, mimeType, size: bytes.length },
   });
+  invalidatePublic(); // logotipos aparecem nas páginas públicas
   return { ok: true, mimeType, size: bytes.length };
 }
 
 export async function deleteUserImage(userId: string) {
   await db.userImage.deleteMany({ where: { userId } });
+  invalidatePublic();
   return { ok: true };
 }
 

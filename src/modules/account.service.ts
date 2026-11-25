@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
 import { accountSchema, companyProfileSchema, notificationsReadSchema, passwordChangeSchema, preferencesSchema } from "@/lib/validators";
+import { invalidatePublic } from "@/lib/cache";
 
 export async function updateAccount(userId: string, raw: unknown) {
   const { name } = accountSchema.parse(raw);
@@ -23,7 +24,9 @@ export async function updateCompanyProfile(userId: string, raw: unknown) {
   const data = companyProfileSchema.parse(raw);
   const company = await db.companyProfile.findUnique({ where: { userId } });
   if (!company) throw new HttpError(400, "Perfil da empresa não encontrado.");
-  return db.companyProfile.update({ where: { userId }, data });
+  const c = await db.companyProfile.update({ where: { userId }, data });
+  invalidatePublic();
+  return c;
 }
 
 /** Marca como lidas apenas notificações do próprio usuário; ids de outros são ignorados. */

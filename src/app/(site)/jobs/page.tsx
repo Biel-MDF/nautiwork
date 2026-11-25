@@ -1,10 +1,7 @@
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { Empty, JobCard } from "@/components/ui";
-import { searchJobs } from "@/modules/jobs.service";
+import { jobsPublic } from "@/modules/public-data";
 import { jobViewer } from "@/modules/viewer";
-import { db } from "@/lib/db";
 import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
@@ -13,20 +10,13 @@ export const metadata = { title: "Vagas — Nautiwork" };
 export default async function Jobs(props: { searchParams: Promise<Record<string, string>> }) {
   const searchParams = await props.searchParams;
   const clean = Object.fromEntries(Object.entries(searchParams).filter(([, v]) => v));
-  const [parsed, viewer] = await Promise.all([searchJobs(clean).catch(() => null), jobViewer()]);
+  const [{ parsed, total, remote, internships, hiring, noExp }, viewer] = await Promise.all([jobsPublic(clean), jobViewer()]);
   const qs = (page: number) => new URLSearchParams({ ...clean, page: String(page) }).toString();
-  const open = { status: "ACTIVE" as const, flagged: false, company: { user: { active: true } } };
-  const [total, remote, internships, hiring, noExp] = await Promise.all([
-    db.job.count({ where: open }), db.job.count({ where: { ...open, workMode: "REMOTE" } }),
-    db.job.count({ where: { ...open, contractType: "INTERNSHIP" } }),
-    db.companyProfile.count({ where: { user: { active: true }, jobs: { some: { status: "ACTIVE", flagged: false } } } }),
-    db.job.count({ where: { ...open, minYears: 0 } }),
-  ]);
+
   // atalhos de busca: cada um aplica um filtro real e mostra quantas vagas ele traz
   const shortcuts: [string, Record<string, string>, number][] = [["Remotas", { workMode: "REMOTE" }, remote], ["Estágio", { contractType: "INTERNSHIP" }, internships], ["Sem experiência", { noExp: "1" }, noExp], ["Publicadas nesta semana", { days: "7" }, -1]];
   return (
     <>
-      <Navbar />
       <PageHeader title="Vagas" description="Busque por cargo, cidade, modalidade, tipo de contratação e salário. Com perfil preenchido, cada vaga mostra o quanto combina com você."
         stats={[["Vagas abertas", total], ["Remotas", remote], ["Empresas contratando", hiring]]}>
         <nav aria-label="Atalhos de busca" className="mt-6 flex flex-wrap gap-2">
@@ -68,7 +58,6 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
           )}
         </section>
       </main>
-      <Footer />
     </>
   );
 }

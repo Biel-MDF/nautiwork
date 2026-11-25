@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { jobCardCompany } from "@/lib/queries";
 import { splitDemo } from "@/lib/display";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { Empty, JobCard } from "@/components/ui";
 import { Sonar } from "@/components/Sonar";
 import { CompatibilityPreview } from "@/components/home/CompatibilityPreview";
 import { jobViewer } from "@/modules/viewer";
+import { homePublic } from "@/modules/public-data";
 
 export const dynamic = "force-dynamic";
 
@@ -25,28 +23,7 @@ const plural = (n: number, one: string, many: string) => `${n.toLocaleString("pt
 
 export default async function Home(props: { searchParams: Promise<{ aviso?: string }> }) {
   const { aviso } = await props.searchParams;
-  const publicJob = { status: "ACTIVE" as const, flagged: false, company: { user: { active: true } } };
-  const [pool, contacts, openCount, applications, quick, areas, cities, viewer] = await Promise.all([
-    db.job.findMany({ where: publicJob, orderBy: { publishedAt: "desc" }, take: 40,
-      include: { company: jobCardCompany, skills: { include: { skill: true } } } }),
-    // radar: empresas ativas com vaga pública, com as vagas para o painel
-    db.companyProfile.findMany({ where: { user: { active: true }, jobs: { some: { status: "ACTIVE", flagged: false } } },
-      select: { id: true, userId: true, name: true, industry: true, location: true, description: true,
-        user: { select: { image: { select: { updatedAt: true } } } },
-        jobs: { where: { status: "ACTIVE", flagged: false }, orderBy: { publishedAt: "desc" },
-          select: { id: true, title: true, area: true, location: true, workMode: true, contractType: true, seniority: true, salaryMin: true, salaryMax: true, publishedAt: true } } } }),
-    db.job.count({ where: publicJob }),
-    db.jobApplication.count(),
-    Promise.all([
-      db.job.count({ where: { ...publicJob, contractType: "INTERNSHIP" } }),
-      db.job.count({ where: { ...publicJob, workMode: "REMOTE" } }),
-      db.job.count({ where: { ...publicJob, minYears: 0 } }),
-      db.job.count({ where: { ...publicJob, seniority: "JUNIOR" } }),
-    ]),
-    db.job.groupBy({ by: ["area"], where: publicJob, _count: { _all: true }, orderBy: { _count: { area: "desc" } }, take: 8 }),
-    db.job.groupBy({ by: ["location"], where: publicJob, _count: { _all: true }, orderBy: { _count: { location: "desc" } }, take: 8 }),
-    jobViewer(),
-  ]);
+  const [{ pool, contacts, openCount, applications, quick, areas, cities }, viewer] = await Promise.all([homePublic(), jobViewer()]);
 
   const personal = viewer.user ? await personalData(viewer.user) : null;
   const recommended = viewer.user?.role === "CANDIDATE"
@@ -81,7 +58,6 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
 
   return (
     <>
-      <Navbar />
       {aviso === "conta-excluida" && (
         <p role="status" className="border-b border-reef/30 bg-reef/10 px-4 py-3 text-center text-sm text-reef">Sua conta e seus dados foram excluídos. Obrigado por ter usado o Nautiwork.</p>
       )}
@@ -241,7 +217,6 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
           </div>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

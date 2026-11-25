@@ -7,6 +7,7 @@ import { registerSchema } from "@/lib/validators";
 import { appUrl } from "@/lib/app-url";
 import { sendVerificationEmail } from "@/modules/auth-tokens.service";
 import { TERMS_VERSION } from "@/lib/legal";
+import { invalidatePublic } from "@/lib/cache";
 
 export const POST = handle(async (req: Request) => {
   const ip = req.headers.get("x-forwarded-for") ?? "local";
@@ -23,5 +24,6 @@ export const POST = handle(async (req: Request) => {
   // O cadastro não depende do e-mail: se o envio falhar, a pessoa pede outro link no painel.
   try { await sendVerificationEmail(user.id, appUrl(req)); }
   catch (e) { console.error("[register] e-mail de confirmação não enviado:", (e as Error).message); }
+  invalidatePublic();
   return NextResponse.json({ ok: true }, { status: 201 });
 });
