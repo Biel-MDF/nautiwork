@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     db.job.findMany({ where: { status: "ACTIVE", flagged: false, company: { user: { active: true } } }, select: { id: true, updatedAt: true, company: { select: { name: true } } } }),
     db.companyProfile.findMany({ where: { user: { active: true } }, select: { id: true, name: true } }),
   ]);
-  const pages = ["", "/jobs", "/companies", "/about", "/privacidade", "/termos", "/register"].map((p) => ({
+  const pages = ["", "/jobs", "/companies", "/mercado", "/about", "/privacidade", "/termos", "/register"].map((p) => ({
     url: `${base}${p}`, changeFrequency: p === "" || p === "/jobs" ? "daily" as const : "monthly" as const, priority: p === "" ? 1 : 0.6,
   }));
   return [

@@ -3,9 +3,12 @@ import { db } from "@/lib/db";
 import { splitDemo } from "@/lib/display";
 import { Empty, JobCard } from "@/components/ui";
 import { Sonar } from "@/components/Sonar";
-import { CompatibilityPreview } from "@/components/home/CompatibilityPreview";
 import { jobViewer } from "@/modules/viewer";
-import { homePublic } from "@/modules/public-data";
+import { homePublic, matchPool } from "@/modules/public-data";
+import { type MatchForm } from "@/components/home/MatchSimulator";
+import { InsightPanel, type Panorama } from "@/components/home/InsightPanel";
+import { marketAreaOfJobArea } from "@/modules/market/areas";
+import { contractLabel, workModeLabel } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +26,14 @@ const plural = (n: number, one: string, many: string) => `${n.toLocaleString("pt
 
 export default async function Home(props: { searchParams: Promise<{ aviso?: string }> }) {
   const { aviso } = await props.searchParams;
-  const [{ pool, contacts, openCount, applications, quick, areas, cities }, viewer] = await Promise.all([homePublic(), jobViewer()]);
+  const [{ pool, contacts, openCount, applications, quick, areas, cities }, viewer, allJobs] = await Promise.all([homePublic(), jobViewer(), matchPool()]);
+  const prefill = viewer.user?.role === "CANDIDATE" ? await profilePrefill(viewer.user.id) : null;
+  const skillOptions = [...new Set(allJobs.flatMap((j) => j.skills))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const areaOptions = [...new Set(allJobs.map((j) => j.area))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const cityOptions = [...new Set(allJobs.map((j) => j.location))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const panorama = buildPanorama(allJobs);
+  const live: Record<string, number> = {};
+  for (const j of allJobs) { const m = marketAreaOfJobArea(j.area); if (m) live[m.id] = (live[m.id] ?? 0) + 1; }
 
   const personal = viewer.user ? await personalData(viewer.user) : null;
   const recommended = viewer.user?.role === "CANDIDATE"
@@ -39,7 +49,6 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
     perCompany.set(j.companyId, n + 1);
     return true;
   }).slice(0, 6);
-  const example = [...pool].sort((a, b) => b.skills.length - a.skills.length)[0];
   const radar = contacts
     .sort((a, b) => b.jobs[0].publishedAt.getTime() - a.jobs[0].publishedAt.getTime()).slice(0, 12)
     .map(({ user, jobs: js, ...c }) => ({ ...c, imageVersion: user.image ? user.image.updatedAt.getTime() : null, jobs: js.map(({ publishedAt: _p, ...j }) => j) }));
@@ -143,9 +152,10 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
 
         <section className="mx-auto max-w-6xl px-4 pt-20" aria-labelledby="como-funciona">
           <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-14 [&>*]:min-w-0">
-            <div>
+            {/* fixa ao rolar: com o resultado da análise, a coluna da direita fica bem mais alta */}
+            <div className="lg:sticky lg:top-24">
               <h2 id="como-funciona" className="text-2xl font-semibold sm:text-[28px]">Saiba o quanto combina antes de se candidatar</h2>
-              <p className="mt-3 max-w-[52ch] leading-relaxed text-abyss/75">A compatibilidade segue regras abertas: habilidades valem metade, e área, modalidade, cidade e experiência completam a conta. Você vê o que falta e decide onde investir.</p>
+              <p className="mt-3 max-w-[52ch] leading-relaxed text-abyss/75">A compatibilidade segue regras abertas: habilidades valem metade, e área, modalidade, cidade e experiência completam a conta. Ao lado, digite seu perfil e veja na hora as vagas e a área que mais combinam, sem precisar de conta. Pelos ícones você também vê o panorama real das vagas abertas e o mercado em 20 áreas.</p>
               <ol className="mt-8 space-y-6">
                 {[["Monte o perfil", "Habilidades, área de interesse, modalidade e cidade. Leva poucos minutos e vale para todas as candidaturas."],
                   ["Compare e candidate-se", "Cada vaga mostra a porcentagem, os critérios que pesaram e as habilidades que faltam."],
@@ -156,8 +166,12 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
                   </li>
                 ))}
               </ol>
+              <Link href="/mercado" className="card mt-8 flex items-center justify-between gap-4 transition-colors hover:border-tide/60">
+                <span><span className="block font-semibold">O que o mercado pede em 2026</span><span className="mt-0.5 block text-sm text-abyss/70">Habilidades, cargos em alta e tendências em 20 áreas, com as fontes.</span></span>
+                <span aria-hidden="true" className="text-xl text-tide">›</span>
+              </Link>
             </div>
-            {example && <CompatibilityPreview job={example} />}
+            <InsightPanel panorama={panorama} live={live} skillOptions={skillOptions} areaOptions={areaOptions} cityOptions={cityOptions} prefill={prefill} />
           </div>
         </section>
 
@@ -219,6 +233,27 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
       </main>
     </>
   );
+}
+
+/** Panorama real das vagas abertas (aba "Panorama das vagas"). */
+function buildPanorama(jobs: { workMode: string; contractType: string; skills: string[]; minYears: number; salaryMin: number | null; salaryMax: number | null }[]): Panorama {
+  const count = (keys: string[]) => { const m = new Map<string, number>(); for (const k of keys) m.set(k, (m.get(k) ?? 0) + 1); return [...m.entries()].sort((a, b) => b[1] - a[1]); };
+  return {
+    total: jobs.length,
+    modes: count(jobs.map((j) => workModeLabel[j.workMode as keyof typeof workModeLabel] ?? j.workMode)).map(([label, n]) => ({ label, n })),
+    contracts: count(jobs.map((j) => contractLabel[j.contractType as keyof typeof contractLabel] ?? j.contractType)).map(([label, n]) => ({ label, n })),
+    skills: count(jobs.flatMap((j) => j.skills)).slice(0, 6).map(([name, n]) => ({ name, n })),
+    noExperience: jobs.filter((j) => j.minYears === 0).length,
+    withSalary: jobs.filter((j) => j.salaryMin !== null || j.salaryMax !== null).length,
+  };
+}
+
+/** Dados do perfil do candidato para o botão "Usar meu perfil" do simulador. */
+async function profilePrefill(userId: string): Promise<MatchForm | null> {
+  const p = await db.candidateProfile.findUnique({ where: { userId }, select: { interestArea: true, workMode: true, location: true, yearsExperience: true,
+    skills: { select: { skill: { select: { name: true } } } } } });
+  if (!p) return null;
+  return { skills: p.skills.map((s) => s.skill.name), interestArea: p.interestArea ?? "", workMode: p.workMode ?? "", location: p.location ?? "", yearsExperience: p.yearsExperience };
 }
 
 /** Saudação e atalhos da página inicial para quem está logado, conforme o papel. */

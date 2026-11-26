@@ -7,7 +7,7 @@ Plataforma de empregabilidade criada como TCC (Ensino Técnico em Desenvolviment
 
 # Páginas
 - Vagas: /jobs (filtros por termo, área, cidade, modalidade, contrato, senioridade, salário, sem experiência, data). Detalhe: /jobs/<id>.
-- Empresas: /companies e /companies/<id>. Sobre e cálculo da compatibilidade: /about. Aparência e temas: /aparencia.
+- Empresas: /companies e /companies/<id>. Sobre e cálculo da compatibilidade: /about. O que o mercado pede em 20 áreas (cargos, habilidades, tendências, gráfico de indicadores, fontes): /mercado e /mercado?area=<id> (ids: ti, dados, medicina, enfermagem, biologia, psicologia, engenharia, arquitetura, direito, financas, marketing, vendas, educacao, letras, jornalismo, design, gestao, logistica, agro, ambiental). Na página inicial, na seção "Saiba o quanto combina", a barra de ícones tem "Sua análise" (perfil digitado, sem conta, recomenda vagas e área), "Mercado" (gráfico por área) e "Como calculamos". Aparência e temas: /aparencia.
 - Conta: /register (candidato ou empresa), /login, /forgot-password. Política de privacidade: /privacidade. Termos: /termos.
 - Candidato: painel /candidate/dashboard, perfil /candidate/profile, currículo /candidate/resume, candidaturas /candidate/applications, vagas salvas /candidate/saved-jobs, configurações /candidate/settings.
 - Empresa: painel /company/dashboard, vagas /company/jobs, nova vaga /company/jobs/new, candidaturas recebidas /company/applications, banco de candidatos /company/candidates, perfil /company/profile.

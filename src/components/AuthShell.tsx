@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { ThemeButton } from "./ThemePicker";
+import { BackButton } from "./BackButton";
 import { SonarConsole } from "./SonarConsole";
 
 /**
@@ -32,7 +33,7 @@ export function AuthShell({ title, subtitle, notice, children }: {
       </svg>
 
       <header className="relative z-10 flex items-center justify-between px-5 pt-5 sm:px-10 sm:pt-8">
-        <Link href="/" aria-label="Nautiwork, voltar à página inicial" className="inline-flex"><Logo /></Link>
+        <div className="flex items-center gap-2"><BackButton /><Link href="/" aria-label="Nautiwork, voltar à página inicial" className="inline-flex"><Logo /></Link></div>
         <ThemeButton />
       </header>
 

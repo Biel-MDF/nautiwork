@@ -67,6 +67,38 @@
   .chip { @apply rounded-[6px] border border-mist/70 bg-foam px-2 py-0.5 text-xs text-abyss/90; }
 }
 
+/* Preferências de interface (src/lib/ui-prefs.ts) */
+/* Largura ampla: o conteúdo usa mais da tela em monitores grandes */
+html[data-ui-width="wide"] .max-w-6xl { max-width: 90rem; }
+html[data-ui-width="wide"] .max-w-7xl { max-width: 100rem; }
+/* Compacto: menos respiro entre seções e dentro dos cartões, mesmo tamanho de letra */
+html[data-ui-density="compact"] .card { padding: 0.875rem 1rem; }
+html[data-ui-density="compact"] main .pt-20 { padding-top: 3rem; }
+html[data-ui-density="compact"] main .pt-16 { padding-top: 2.5rem; }
+html[data-ui-density="compact"] main .mt-20 { margin-top: 3rem; }
+html[data-ui-density="compact"] main .mt-14 { margin-top: 2.25rem; }
+html[data-ui-density="compact"] main.py-10, html[data-ui-density="compact"] main .py-10 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+html[data-ui-density="compact"] .gap-4 { gap: 0.75rem; }
+
+/* Lista de vagas: lista e detalhes lado a lado, grade ou lista (html[data-ui-jobs]) */
+.jobs-list { display: grid; gap: 0.875rem; }
+.jobs-detail { display: none; }
+@media (min-width: 640px) {
+  html[data-ui-jobs="grid"] .jobs-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+}
+@media (min-width: 1024px) {
+  html:not([data-ui-jobs="grid"]):not([data-ui-jobs="list"]) .jobs-board { display: grid; grid-template-columns: minmax(340px, 420px) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+  html:not([data-ui-jobs="grid"]):not([data-ui-jobs="list"]) .jobs-detail { display: block; align-self: stretch; }
+  html:not([data-ui-jobs="grid"]):not([data-ui-jobs="list"]) .jobs-list [data-selected="true"] > article { border-color: rgb(var(--c-tide)); box-shadow: 0 0 0 1px rgb(var(--c-tide)); }
+}
+/* Lista: uma vaga por linha, com as informações espalhadas na largura */
+@media (min-width: 768px) {
+  html[data-ui-jobs="list"] .jobs-list article { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 1.75rem; row-gap: 0.5rem; padding-top: 0.9rem; padding-bottom: 0.9rem; }
+  html[data-ui-jobs="list"] .jobs-list article > * { margin-top: 0; padding-top: 0; }
+  html[data-ui-jobs="list"] .jobs-list article > :first-child { flex: 1 1 300px; }
+  html[data-ui-jobs="list"] .jobs-list article > :last-child { margin-left: auto; }
+}
+
 /* Texto das páginas legais */
 .legal ul { list-style: disc; padding-left: 1.25rem; }
 .legal ul > li + li { margin-top: 0.5rem; }

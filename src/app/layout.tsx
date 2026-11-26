@@ -4,8 +4,10 @@ import "./globals.css";
 import { currentUser, viewMode } from "@/lib/rbac";
 import { ViewModeBar } from "@/components/ViewMode";
 import { Assistant } from "@/components/assistant/Assistant";
+import { NavHistory } from "@/components/BackButton";
 import { splitDemo } from "@/lib/display";
 import { themeBootScript, themeCss } from "@/lib/themes";
+import { uiBootScript } from "@/lib/ui-prefs";
 
 const display = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display" });
 const body = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-body" });
@@ -24,7 +26,7 @@ export const metadata: Metadata = {
 export const viewport = { themeColor: "#030A1A" };
 
 const css = themeCss();
-const boot = themeBootScript();
+const boot = themeBootScript() + uiBootScript();
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Modo de visualização do admin: barra fixa avisando e permitindo voltar.
@@ -38,6 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: boot }} />
       </head>
       <body className={mode ? "pb-28" : undefined}>
+        <NavHistory />
         {children}
         <Assistant raised={!!mode} />
         {mode && <ViewModeBar mode={mode} as={as ? `${splitDemo(as.name).name}, conta de demonstração` : null} />}

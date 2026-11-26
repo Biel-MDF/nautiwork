@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { cachedPublic } from "@/lib/cache";
 import { jobCardCompany } from "@/lib/queries";
 import { searchJobs } from "./jobs.service";
+import { splitDemo } from "@/lib/display";
 
 const publicJob = { status: "ACTIVE" as const, flagged: false, company: { user: { active: true } } };
 
@@ -50,3 +51,30 @@ export const companyPublic = cachedPublic((id: string) => db.companyProfile.find
   jobs: { where: { status: "ACTIVE", flagged: false }, orderBy: { publishedAt: "desc" }, include: { company: jobCardCompany, skills: { include: { skill: true } } } } } }), "company");
 
 export const jobPublic = cachedPublic((id: string) => db.job.findUnique({ where: { id }, include: { company: true, skills: { include: { skill: true } } } }), "job");
+
+/** Todas as vagas abertas no formato da análise de perfil (página inicial e /mercado). */
+export const matchPool = cachedPublic(async () => {
+  const rows = await db.job.findMany({ where: publicJob, orderBy: { publishedAt: "desc" }, take: 500,
+    select: { id: true, title: true, area: true, location: true, workMode: true, contractType: true, minYears: true, salaryMin: true, salaryMax: true,
+      company: { select: { name: true } }, skills: { select: { skill: { select: { name: true } } } } } });
+  return rows.map((j) => {
+    const { name: company, demo } = splitDemo(j.company.name);
+    return { id: j.id, title: j.title, company, demo, area: j.area, location: j.location,
+      workMode: j.workMode as string, contractType: j.contractType as string, minYears: j.minYears, salaryMin: j.salaryMin, salaryMax: j.salaryMax,
+      skills: j.skills.map((s) => s.skill.name) };
+  });
+}, "match-pool");
+
+/** Por área de vaga: quantas vagas abertas e as habilidades mais pedidas (para /mercado). */
+export const areaStats = cachedPublic(async () => {
+  const pool = await matchPool();
+  const map = new Map<string, { count: number; skills: Map<string, number> }>();
+  for (const j of pool) {
+    const cur = map.get(j.area) ?? { count: 0, skills: new Map<string, number>() };
+    cur.count++;
+    for (const s of j.skills) cur.skills.set(s, (cur.skills.get(s) ?? 0) + 1);
+    map.set(j.area, cur);
+  }
+  return [...map.entries()].map(([area, v]) => ({ area, count: v.count,
+    topSkills: [...v.skills.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 6).map(([name, n]) => ({ name, n })) }));
+}, "area-stats");

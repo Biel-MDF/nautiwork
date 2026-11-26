@@ -6,6 +6,7 @@ import {
   backgroundOf, customCss, customTokens, sanitizeCustom,
   type CustomGroup, type CustomTheme, type Mode, type ModeChoice, type PaletteId, type ThemeChoice, type Tokens,
 } from "@/lib/themes";
+import { UI_OPTIONS, applyUi, readUi, type UiKey, type UiPrefs } from "@/lib/ui-prefs";
 
 /* ---------- estado do tema neste aparelho ---------- */
 
@@ -105,6 +106,40 @@ function ModePicker({ choice, update }: { choice: ThemeChoice; update: (p: Parti
   );
 }
 
+/* ---------- interface: largura, espaçamento e lista de vagas ---------- */
+
+function InterfacePicker() {
+  const [prefs, setPrefs] = useState<UiPrefs | null>(null);
+  useEffect(() => {
+    setPrefs(readUi());
+    const on = (e: Event) => setPrefs((e as CustomEvent<UiPrefs>).detail);
+    window.addEventListener("nw-ui", on);
+    return () => window.removeEventListener("nw-ui", on);
+  }, []);
+  if (!prefs) return null;
+  return (
+    <fieldset className="space-y-3">
+      <legend className="mb-2 text-sm font-medium text-abyss/90">Interface</legend>
+      {(Object.keys(UI_OPTIONS) as UiKey[]).map((k) => {
+        const opt = UI_OPTIONS[k];
+        const values = Object.entries(opt.values) as [string, string][];
+        return (
+          <div key={k}>
+            <p className="mb-1 text-xs text-abyss/70">{opt.label}{k === "width" && " (telas grandes)"}{k === "jobs" && " (no celular, sempre uma por vez)"}</p>
+            <div role="radiogroup" aria-label={opt.label} className="grid gap-1 rounded-control border border-mist bg-fossa/60 p-1" style={{ gridTemplateColumns: `repeat(${values.length}, minmax(0, 1fr))` }}>
+              {values.map(([v, label]) => {
+                const on = prefs[k] === v;
+                return <button key={v} type="button" role="radio" aria-checked={on} onClick={() => applyUi({ ...prefs, [k]: v } as UiPrefs)}
+                  className={`min-h-[40px] rounded-[7px] px-1 text-xs font-semibold transition-colors sm:text-sm ${on ? "bg-foam text-abyss shadow-[inset_0_0_0_1px_rgb(var(--c-tide)/0.45)]" : "text-abyss/70 hover:text-abyss"}`}>{label}</button>;
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </fieldset>
+  );
+}
+
 /* ---------- escolha rápida: modo + paletas prontas ---------- */
 
 /** Usado no botão do topo, em Configurações e na página Aparência. */
@@ -139,6 +174,7 @@ export function AppearancePanel({ compact = false, editorLink = true, onNavigate
           </button>
         </div>
       </div>
+      <InterfacePicker />
       {editorLink && <Link href="/aparencia#meu-tema" onClick={onNavigate} className="btn-ghost w-full">Criar ou editar meu tema</Link>}
       <p className="text-xs text-abyss/60">A escolha fica salva neste aparelho e vale para todas as páginas.</p>
     </div>

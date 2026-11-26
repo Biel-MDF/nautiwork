@@ -8,12 +8,12 @@ export function LogoMark({ size = 32 }: { size?: number }) {
     </svg>
   );
 }
-/** compact: em telas abaixo de 360px mostra só o símbolo (usado na barra de navegação). */
+/** compact: em telas abaixo de 420px (junto do botão Voltar) mostra só o símbolo (usado na barra de navegação). */
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <span className="inline-flex items-center gap-2 sm:gap-2.5">
       <LogoMark />
-      <span className={`font-display text-[15px] font-semibold tracking-[0.06em] text-abyss sm:text-[17px] sm:tracking-[0.14em] ${compact ? "hidden min-[360px]:inline" : ""}`}>NAUTIWORK</span>
+      <span className={`font-display text-[15px] font-semibold tracking-[0.06em] text-abyss sm:text-[17px] sm:tracking-[0.14em] ${compact ? "hidden min-[420px]:inline" : ""}`}>NAUTIWORK</span>
     </span>
   );
 }

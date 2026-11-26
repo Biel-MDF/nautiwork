@@ -7,6 +7,7 @@ import { emailNotify } from "./notify";
 import { jobSchema, jobSearchSchema } from "@/lib/validators";
 import { connectSkills } from "./skills";
 import { invalidatePublic } from "@/lib/cache";
+import { marketAreaById } from "./market/areas";
 
 export const PAGE_SIZE = 12;
 
@@ -20,6 +21,8 @@ export async function searchJobs(input: z.input<typeof jobSearchSchema>) {
     { skills: { some: { skill: { name: { contains: f.q, mode: "insensitive" } } } } },
   ];
   if (f.area) where.area = { contains: f.area, mode: "insensitive" };
+  const market = marketAreaById(f.mercado);
+  if (market) where.AND = [{ OR: market.jobAreas.map((a) => ({ area: { equals: a, mode: "insensitive" as const } })) }];
   if (f.location) where.location = { contains: f.location, mode: "insensitive" };
   if (f.workMode) where.workMode = f.workMode;
   if (f.contractType) where.contractType = f.contractType;

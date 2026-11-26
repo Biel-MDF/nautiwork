@@ -7,6 +7,7 @@ export const tabs = [
   { href: "/", label: "Início", hint: "Radar de empresas contratando, vagas recentes e como funciona" },
   { href: "/jobs", label: "Vagas", hint: "Busque por cargo, cidade, modalidade, contratação e salário" },
   { href: "/companies", label: "Empresas", hint: "Quem está contratando e as vagas abertas de cada empresa" },
+  { href: "/mercado", label: "Mercado", hint: "O que o mercado pede em cada área, com cargos, habilidades e fontes" },
   { href: "/about", label: "Sobre", hint: "O projeto e como a compatibilidade é calculada" },
 ] as const;
 

@@ -171,10 +171,18 @@ r = await anon.req("GET", `/api/jobs?q=${run}`);
 check("vaga encerrada some da busca pública", r.json?.total === 0, `total ${r.json?.total}`);
 
 // 10. Páginas públicas
-for (const p of ["/", "/jobs", "/companies", "/about", "/login", "/register", `/jobs/${jobId}`]) {
+for (const p of ["/", "/jobs", "/companies", "/mercado", "/mercado?area=enfermagem", "/about", "/login", "/register", `/jobs/${jobId}`]) {
   r = await anon.req("GET", p);
   check(`página pública ${p} responde 200`, r.status === 200, `status ${r.status}`);
 }
+
+// 10b. Análise de perfil (sem conta) e filtro por área de mercado
+r = await anon.req("POST", "/api/match", { skills: [], interestArea: "" });
+check("análise sem habilidades nem área retorna 400", r.status === 400, `status ${r.status}`);
+r = await anon.req("POST", "/api/match", { skills: ["React", "TypeScript"], interestArea: "", workMode: "REMOTE", location: "", yearsExperience: 1 });
+check("análise de perfil responde com áreas e vagas", r.status === 200 && Array.isArray(r.json?.areas) && r.json.areas.length > 0 && Array.isArray(r.json?.jobs), `status ${r.status}`);
+r = await anon.req("GET", "/jobs?mercado=ti");
+check("filtro por área de mercado em /jobs responde 200", r.status === 200, `status ${r.status}`);
 
 // 11. Prioridade 2: currículo, perfil da empresa, imagens, notificações e páginas novas
 r = await cand.req("POST", "/api/profile/educations", { institution: "UFPE", course: "Sistemas de Informação", startYear: 2021, endYear: "" });

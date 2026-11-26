@@ -36,11 +36,20 @@ export function Sonar({ companies }: { companies: SonarCompany[] }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const selected = companies.find((c) => c.id === selectedId) ?? null;
 
+  const figureRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
     if (!selected) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSelectedId(null); };
+    // clicar fora da aba e do radar fecha
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (!panelRef.current?.contains(t) && !figureRef.current?.contains(t)) setSelectedId(null);
+    };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    panelRef.current?.querySelector<HTMLElement>("[data-panel-focus]")?.focus({ preventScroll: true });
+    return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("mousedown", onDown); };
   }, [selected]);
 
   const n = companies.length;
@@ -53,7 +62,7 @@ export function Sonar({ companies }: { companies: SonarCompany[] }) {
   });
 
   return (
-    <figure className="mx-auto w-full max-w-[460px]">
+    <figure ref={figureRef} className="mx-auto w-full max-w-[460px]">
       <div className="relative aspect-square">
         {/* mostrador: anéis de distância, rumos e marcas de grau */}
         <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full" aria-hidden="true">
@@ -108,11 +117,22 @@ export function Sonar({ companies }: { companies: SonarCompany[] }) {
         </ul>
       </div>
 
-      <div id={panelId} ref={panelRef} aria-live="polite" className="mt-5">
-        {selected ? <CompanyPanel company={selected} onClose={() => setSelectedId(null)} /> : (
-          <figcaption className="text-center text-sm leading-relaxed text-abyss/70">
-            {companies.length > 0 ? "Toque numa empresa no radar para ver as vagas dela. Mais perto do centro, vaga mais recente." : "Nenhuma empresa contratando agora."}
-          </figcaption>
+      <figcaption className="mt-5 text-center text-sm leading-relaxed text-abyss/70">
+        {companies.length > 0 ? "Toque numa empresa no radar para ver as vagas dela. Mais perto do centro, vaga mais recente." : "Nenhuma empresa contratando agora."}
+      </figcaption>
+
+      {/* Aba da empresa: no computador abre por cima da coluna da esquerda (o bloco do topo é
+          a referência de posição); no celular sobe como uma folha por cima da página. */}
+      <div id={panelId} aria-live="polite">
+        {selected && (
+          <>
+            <div className="fixed inset-0 z-40 bg-[rgb(var(--scrim)/var(--scrim-a))] motion-safe:animate-menu lg:hidden" aria-hidden="true" onClick={() => setSelectedId(null)} />
+            <div ref={panelRef} key={selected.id}
+              className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-panel motion-safe:animate-sheet
+                lg:absolute lg:inset-x-auto lg:bottom-auto lg:left-4 lg:top-6 lg:z-30 lg:max-h-[calc(100%-3rem)] lg:w-[calc((100%-4rem)*1.1/2.1)] lg:overflow-visible lg:rounded-panel lg:motion-safe:animate-tab">
+              <CompanyPanel company={selected} onClose={() => setSelectedId(null)} />
+            </div>
+          </>
         )}
       </div>
     </figure>
@@ -125,11 +145,14 @@ function CompanyPanel({ company: c, onClose }: { company: SonarCompany; onClose:
   const levels = tally(c.jobs, (j) => j.seniority, seniorityLabel);
   const count = c.jobs.length;
   return (
-    <section aria-label={`Vagas de ${plain(c.name)}`} className="card motion-safe:animate-menu p-0 text-left">
+    <section aria-label={`Vagas de ${plain(c.name)}`} className="card relative rounded-b-none p-0 text-left shadow-[0_24px_60px_-20px_rgb(0_0_0/var(--shade-a))] lg:flex lg:max-h-full lg:flex-col lg:rounded-b-panel">
+      {/* puxador no celular; no computador, a ponta da aba apontando para o radar */}
+      <span className="mx-auto mt-2 block h-1 w-10 rounded-full bg-mist lg:hidden" aria-hidden="true" />
+      <span className="absolute -right-[7px] top-9 hidden h-3.5 w-3.5 rotate-45 border-r border-t border-mist bg-casco lg:block" aria-hidden="true" />
       <header className="flex items-start gap-3 border-b border-mist p-4">
         <CompanyMark userId={c.userId} name={c.name} imageVersion={c.imageVersion} size={44} />
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold leading-tight"><CompanyName name={c.name} /></h3>
+          <h3 data-panel-focus tabIndex={-1} className="font-semibold leading-tight outline-none"><CompanyName name={c.name} /></h3>
           <p className="mt-0.5 text-sm text-abyss/65">{[c.industry, c.location].filter(Boolean).join(", ")}</p>
         </div>
         <button type="button" onClick={onClose} aria-label="Fechar painel da empresa"
@@ -138,7 +161,7 @@ function CompanyPanel({ company: c, onClose }: { company: SonarCompany; onClose:
         </button>
       </header>
 
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-4 lg:min-h-0 lg:overflow-y-auto">
         <p className="flex items-baseline gap-2">
           <span className="tabular font-display text-3xl font-semibold text-reef">{count}</span>
           <span className="text-sm text-abyss/75">{count === 1 ? "vaga aberta" : "vagas abertas"}</span>

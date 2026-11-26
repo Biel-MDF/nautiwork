@@ -64,6 +64,8 @@ export const profileSchema = z.object({
 export const jobSearchSchema = z.object({
   q: z.string().trim().max(100).optional(),
   area: z.string().trim().max(80).optional(),
+  // área do mercado (/mercado): junta as áreas de vaga ligadas a ela
+  mercado: z.string().trim().max(20).optional(),
   location: z.string().trim().max(80).optional(),
   workMode: z.enum(["ONSITE", "HYBRID", "REMOTE"]).optional(),
   contractType: z.enum(["CLT", "PJ", "INTERNSHIP", "TEMPORARY"]).optional(),
