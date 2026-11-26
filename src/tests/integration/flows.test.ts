@@ -7,6 +7,8 @@ import { applyToJob, updateApplicationStatus, withdrawApplication } from "@/modu
 import { addEducation, deleteEducation, updateExperience, addExperience } from "@/modules/resume.service";
 import { changePassword, markNotificationsRead, updateCompanyProfile } from "@/modules/account.service";
 import { canViewImage, saveUserImage } from "@/modules/images";
+import { confirmJob, expireStaleJobs, notifyNoReply, responseStats } from "@/modules/hiring";
+import { recordResumeView } from "@/modules/resume-views";
 
 let seq = 0;
 const uid = () => `${Date.now().toString(36)}-${seq++}`;
@@ -39,7 +41,7 @@ async function makeCompany() {
 const jobInput = {
   title: "Vaga de integração", description: "Descrição longa o bastante para passar na validação.",
   area: "Tecnologia", location: "Recife", workMode: "REMOTE", contractType: "CLT", seniority: "JUNIOR",
-  minYears: 1, skills: ["TypeScript"],
+  minYears: 1, salaryMin: 3000, salaryMax: 4500, skills: ["TypeScript"],
 };
 
 async function expectHttp(p: Promise<unknown>, status: number) {
@@ -217,5 +219,67 @@ describe("imagens", () => {
     const cand = await makeCandidate();
     await expectHttp(saveUserImage(cand.id, new TextEncoder().encode("<svg onload=alert(1)>")), 415);
     expect(await db.userImage.count({ where: { userId: cand.id } })).toBe(0);
+  });
+});
+
+describe("vaga com validade", () => {
+  it("pausa a vaga sem confirmação há 30 dias, avisa a empresa uma vez e volta ao confirmar", async () => {
+    const job = await createJob(companyA.id, jobInput);
+    await db.job.update({ where: { id: job.id }, data: { confirmedAt: new Date(Date.now() - 31 * 86_400_000) } });
+    expect(await expireStaleJobs()).toBeGreaterThanOrEqual(1);
+    const paused = await db.job.findUniqueOrThrow({ where: { id: job.id } });
+    expect(paused.status).toBe("PAUSED");
+    expect(paused.expiredAt).not.toBeNull();
+    const notes = await db.notification.count({ where: { userId: companyA.id, title: "Vagas pausadas por falta de confirmação" } });
+    await expireStaleJobs();
+    expect(await db.notification.count({ where: { userId: companyA.id, title: "Vagas pausadas por falta de confirmação" } })).toBe(notes);
+    await expectHttp(confirmJob(companyB.id, job.id), 403);
+    const back = await confirmJob(companyA.id, job.id);
+    expect(back.status).toBe("ACTIVE");
+    expect(back.expiredAt).toBeNull();
+  });
+  it("pausa manual continua pausada ao confirmar", async () => {
+    const job = await createJob(companyA.id, jobInput);
+    await setJobStatus(companyA.id, job.id, "PAUSED");
+    expect((await confirmJob(companyA.id, job.id)).status).toBe("PAUSED");
+  });
+});
+
+describe("resposta da empresa", () => {
+  it("avisa o candidato depois de 14 dias sem resposta, uma única vez", async () => {
+    const company = await makeCompany();
+    const job = await createJob(company.id, jobInput);
+    const cand = await makeCandidate();
+    const app = await applyToJob(cand.id, { jobId: job.id });
+    await db.jobApplication.update({ where: { id: app.id }, data: { createdAt: new Date(Date.now() - 15 * 86_400_000) } });
+    await notifyNoReply();
+    await notifyNoReply();
+    expect(await db.notification.count({ where: { userId: cand.id, title: "Sem retorno da empresa" } })).toBe(1);
+  });
+  it("calcula a taxa de resposta pelas candidaturas reais", async () => {
+    const company = await makeCompany();
+    const job = await createJob(company.id, jobInput);
+    for (let i = 0; i < 3; i++) {
+      const cand = await makeCandidate();
+      const app = await applyToJob(cand.id, { jobId: job.id });
+      await db.jobApplication.update({ where: { id: app.id }, data: { createdAt: new Date(Date.now() - 20 * 86_400_000) } });
+      await updateApplicationStatus(company.id, app.id, { status: "IN_REVIEW" });
+    }
+    const stats = (await responseStats([company.company!.id])).get(company.company!.id)!;
+    expect(stats.decided).toBe(3);
+    expect(stats.rate).toBe(100);
+  });
+});
+
+describe("quem viu meu currículo", () => {
+  it("registra a empresa uma vez por visita e avisa o candidato só na primeira", async () => {
+    const cand = await makeCandidate();
+    const view = await recordResumeView(companyA.company!.id, cand.candidate!.id);
+    expect(view?.count).toBe(1);
+    const again = await recordResumeView(companyA.company!.id, cand.candidate!.id);
+    expect(again?.count).toBe(1);
+    const later = await recordResumeView(companyA.company!.id, cand.candidate!.id, new Date(Date.now() + 3_600_000));
+    expect(later?.count).toBe(2);
+    expect(await db.notification.count({ where: { userId: cand.id, title: "Uma empresa abriu seu currículo" } })).toBe(1);
   });
 });

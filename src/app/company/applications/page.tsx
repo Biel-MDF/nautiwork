@@ -5,6 +5,7 @@ import { requirePageRole } from "@/lib/rbac";
 import { Shell } from "@/components/Shell";
 import { Avatar, Empty, ScoreRing, StatusBadge } from "@/components/ui";
 import { StatusSelect } from "@/components/forms";
+import { noReplyDays } from "@/modules/hiring";
 
 export const dynamic = "force-dynamic";
 export default async function CompanyApplications(props: { searchParams: Promise<{ job?: string }> }) {
@@ -14,7 +15,7 @@ export default async function CompanyApplications(props: { searchParams: Promise
   const apps = await db.jobApplication.findMany({
     where: { job: { company: { userId: user.id }, ...(searchParams.job ? { id: searchParams.job } : {}) } },
     orderBy: [{ compatibility: "desc" }, { createdAt: "desc" }],
-    include: { job: true, candidate: { include: { user: { include: { image: { select: { updatedAt: true } } } }, skills: { include: { skill: true } }, educations: true, experiences: true } } },
+    include: { job: true, candidate: { include: { user: { include: { image: { select: { updatedAt: true } } } }, skills: { include: { skill: true } } } } },
   });
   return (
     <Shell role="COMPANY" title="Candidaturas">
@@ -36,13 +37,11 @@ export default async function CompanyApplications(props: { searchParams: Promise
               {a.compatibility !== null && <ScoreRing score={a.compatibility} />}
             </div>
             {a.candidate.skills.length > 0 && <div className="mt-4 flex flex-wrap gap-1.5">{a.candidate.skills.map((s) => <span key={s.skill.id} className="chip">{s.skill.name}</span>)}</div>}
-            <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-              <div><dt className="text-xs text-abyss/60">Experiência</dt><dd className="mt-0.5">{a.candidate.experiences.map((e) => `${e.role} em ${e.company}`).join("; ") || "Não informada"}</dd></div>
-              <div><dt className="text-xs text-abyss/60">Formação</dt><dd className="mt-0.5">{a.candidate.educations.map((e) => `${e.course} (${e.institution})`).join("; ") || "Não informada"}</dd></div>
-            </dl>
+            <Link href={`/company/candidates/${a.candidate.id}`} className="btn-ghost mt-4">Ver currículo completo</Link>
             {a.coverNote && <blockquote className="mt-4 border-l-2 border-tide/50 pl-3 text-sm italic text-abyss/85 whitespace-pre-line break-words">{a.coverNote}</blockquote>}
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-mist pt-4">
-              <p className="flex items-center gap-2 text-sm text-abyss/70">Etapa atual <StatusBadge status={a.status} /></p>
+              <p className="flex flex-wrap items-center gap-2 text-sm text-abyss/70">Etapa atual <StatusBadge status={a.status} />
+                {noReplyDays(a.createdAt, a.status) > 0 && <span className="chip border-coral/40 text-coral">Sem resposta há {noReplyDays(a.createdAt, a.status)} dias</span>}</p>
               <StatusSelect id={a.id} current={a.status} />
             </div>
           </li>))}</ul>}

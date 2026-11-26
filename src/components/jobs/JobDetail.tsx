@@ -8,6 +8,8 @@ import { ScoreRing } from "@/components/ui";
 import { contractLabel, salaryRange, seniorityLabel, workModeLabel } from "@/lib/labels";
 import { computeCompatibility } from "@/modules/compatibility";
 import { CompanyName } from "@/components/CompanyName";
+import { ResponseBadge } from "@/components/ResponseBadge";
+import { responseStats } from "@/modules/hiring";
 
 /** Carrega a vaga com o que a pessoa logada pode ver dela; null se ela não pode ver. */
 export async function loadJobDetail(id: string) {
@@ -17,6 +19,7 @@ export async function loadJobDetail(id: string) {
   const isOwner = job && session?.user.id === job.company.userId;
   if (!job || (!isOwner && session?.user.role !== "ADMIN" && (job.flagged || job.status === "CLOSED"))) return null;
 
+  const response = (await responseStats([job.company.id])).get(job.company.id) ?? null;
   let compat = null, applied = false, saved = false;
   if (session?.user.role === "CANDIDATE") {
     const p = await db.candidateProfile.findUnique({ where: { userId: session.user.id }, include: { skills: { include: { skill: true } } } });
@@ -31,7 +34,7 @@ export async function loadJobDetail(id: string) {
       applied = !!a; saved = !!s;
     }
   }
-  return { job, session, compat, applied, saved };
+  return { job, session, compat, applied, saved, response };
 }
 
 export type JobDetailData = NonNullable<Awaited<ReturnType<typeof loadJobDetail>>>;
@@ -91,7 +94,7 @@ function Facts({ d, cols }: { d: JobDetailData; cols: string }) {
   const { job } = d;
   const facts: [string, string][] = [
     ["Modalidade", workModeLabel[job.workMode]], ["Contratação", contractLabel[job.contractType]],
-    ["Nível", seniorityLabel[job.seniority]], ["Salário", salaryRange(job.salaryMin, job.salaryMax) ?? "A combinar"],
+    ["Nível", seniorityLabel[job.seniority]], ["Salário", salaryRange(job.salaryMin, job.salaryMax) ?? "Não informado"],
   ];
   return (
     <dl className={`grid gap-px overflow-hidden rounded-panel border border-mist bg-mist ${cols}`}>
@@ -113,7 +116,7 @@ export function JobDetailPage({ d }: { d: JobDetailData }) {
     <main className="mx-auto grid max-w-6xl gap-10 px-4 pb-32 pt-8 lg:grid-cols-[1fr_340px] lg:pb-10">
       <article className="min-w-0">
         <StatusNote d={d} />
-        <Link href={`/companies/${job.company.id}`} className="text-sm font-medium text-tide hover:text-deep hover:underline"><CompanyName name={job.company.name} /></Link>
+        <div className="flex flex-wrap items-center gap-2"><Link href={`/companies/${job.company.id}`} className="text-sm font-medium text-tide hover:text-deep hover:underline"><CompanyName name={job.company.name} /></Link><ResponseBadge stats={d.response} compact /></div>
         <h1 className="mt-2 text-3xl font-semibold leading-tight sm:text-[40px]">{job.title}</h1>
         <p className="mt-2 flex items-center gap-1.5 text-abyss/75"><Pin />{job.location}</p>
         <div className="mt-6"><Facts d={d} cols="grid-cols-2 sm:grid-cols-4" /></div>
@@ -134,7 +137,7 @@ export function JobDetailPanel({ d }: { d: JobDetailData }) {
     <article aria-labelledby={`panel-${job.id}`} className="overflow-hidden rounded-panel border border-mist bg-casco">
       <header className="border-b border-mist p-5">
         <StatusNote d={d} />
-        <Link href={`/companies/${job.company.id}`} className="text-sm font-medium text-tide hover:text-deep hover:underline"><CompanyName name={job.company.name} /></Link>
+        <div className="flex flex-wrap items-center gap-2"><Link href={`/companies/${job.company.id}`} className="text-sm font-medium text-tide hover:text-deep hover:underline"><CompanyName name={job.company.name} /></Link><ResponseBadge stats={d.response} compact /></div>
         <h2 id={`panel-${job.id}`} className="mt-1.5 text-2xl font-semibold leading-tight">{job.title}</h2>
         <p className="mt-1.5 flex items-center gap-1.5 text-sm text-abyss/75"><Pin />{job.location}</p>
         <Actions d={d} className="mt-4 flex flex-wrap items-start gap-2 [&>*]:min-w-[160px] [&>*]:flex-1" />

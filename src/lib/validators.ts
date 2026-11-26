@@ -31,11 +31,12 @@ export const jobSchema = z.object({
   workMode: z.enum(["ONSITE", "HYBRID", "REMOTE"]),
   contractType: z.enum(["CLT", "PJ", "INTERNSHIP", "TEMPORARY"]),
   seniority: z.enum(["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"]),
-  salaryMin: z.coerce.number().int().positive().optional(),
-  salaryMax: z.coerce.number().int().positive().optional(),
+  // faixa salarial obrigatória: o candidato sabe quanto a vaga paga antes de se candidatar
+  salaryMin: z.coerce.number({ message: "Informe o salário mínimo da faixa" }).int().positive("Informe o salário mínimo da faixa"),
+  salaryMax: z.coerce.number({ message: "Informe o salário máximo da faixa" }).int().positive("Informe o salário máximo da faixa"),
   minYears: z.coerce.number().int().min(0).max(40).default(0),
   skills: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
-}).refine((d) => !d.salaryMin || !d.salaryMax || d.salaryMin <= d.salaryMax, {
+}).refine((d) => d.salaryMin <= d.salaryMax, {
   path: ["salaryMax"], message: "O máximo deve ser maior que o mínimo",
 });
 
@@ -66,6 +67,7 @@ export const jobSearchSchema = z.object({
   area: z.string().trim().max(80).optional(),
   // área do mercado (/mercado): junta as áreas de vaga ligadas a ela
   mercado: z.string().trim().max(20).optional(),
+  salary: z.literal("1").optional(),
   location: z.string().trim().max(80).optional(),
   workMode: z.enum(["ONSITE", "HYBRID", "REMOTE"]).optional(),
   contractType: z.enum(["CLT", "PJ", "INTERNSHIP", "TEMPORARY"]).optional(),

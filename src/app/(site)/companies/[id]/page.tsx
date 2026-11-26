@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { companyPublic } from "@/modules/public-data";
+import { responseStats } from "@/modules/hiring";
+import { ResponseBadge } from "@/components/ResponseBadge";
 import { Empty, JobCard } from "@/components/ui";
 import { CompanyMark } from "@/components/CompanyMark";
 import { CompanyName } from "@/components/CompanyName";
@@ -22,7 +24,7 @@ export default async function CompanyPage(props: { params: Promise<{ id: string 
   const params = await props.params;
   const c = await companyPublic(params.id);
   if (!c || !c.user.active) notFound();
-  const viewer = await jobViewer();
+  const [viewer, stats] = await Promise.all([jobViewer(), responseStats([c.id]).then((m) => m.get(c.id) ?? null)]);
   return (<>
     <main className="mx-auto max-w-4xl px-4 py-8">
       <div className="flex items-center gap-4">
@@ -32,6 +34,7 @@ export default async function CompanyPage(props: { params: Promise<{ id: string 
           <p className="mt-1 text-abyss/70">{[c.industry, c.location].filter(Boolean).join(" • ") || "Informações em breve"}</p>
         </div>
       </div>
+      <div className="mt-4"><ResponseBadge stats={stats} /></div>
       {c.description && <p className="mt-4 whitespace-pre-line break-words">{c.description}</p>}
       {c.website && <a className="mt-2 inline-block break-all text-tide" href={c.website} rel="noopener noreferrer nofollow" target="_blank">{c.website}</a>}
       <h2 className="mb-4 mt-8 text-xl font-bold">Vagas abertas</h2>

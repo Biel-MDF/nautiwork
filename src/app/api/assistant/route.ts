@@ -8,7 +8,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { splitDemo } from "@/lib/display";
 import { currentUser } from "@/lib/rbac";
 import { createAssistantAgent } from "@/modules/assistant/agent";
-import { ASSISTANT_LIMITS, assistantAvailable, assistantMockEnabled } from "@/modules/assistant/config";
+import { ASSISTANT_LIMITS, assistantAvailable, assistantEnabled, assistantMockEnabled } from "@/modules/assistant/config";
 import { assistantErrorText, classifyAssistantError } from "@/modules/assistant/errors";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,10 @@ function clientIp(req: Request) {
 }
 
 /** Quem está conversando, para a tela ajustar sugestões. Não revela nada além do perfil. */
+const OFF = "O assistente está desligado no momento.";
+
 export const GET = handle(async () => {
+  if (!assistantEnabled()) throw new HttpError(404, OFF);
   const user = await currentUser();
   return NextResponse.json({
     available: assistantAvailable(),
@@ -39,6 +42,7 @@ export const GET = handle(async () => {
 });
 
 export const POST = handle(async (req: Request) => {
+  if (!assistantEnabled()) throw new HttpError(404, OFF);
   if (!assistantAvailable()) throw new HttpError(503, assistantErrorText.auth);
 
   const raw = await req.text();

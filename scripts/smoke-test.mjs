@@ -93,6 +93,8 @@ r = await cand.req("POST", "/api/jobs", jobBody);
 check("candidato criando vaga retorna 403", r.status === 403, `status ${r.status}`);
 r = await comp.req("POST", "/api/jobs", { ...jobBody, salaryMin: 9000, salaryMax: 1000 });
 check("vaga com salário máximo < mínimo retorna 400", r.status === 400, `status ${r.status}`);
+r = await comp.req("POST", "/api/jobs", { ...jobBody, salaryMin: undefined, salaryMax: undefined });
+check("vaga sem faixa salarial retorna 400", r.status === 400, `status ${r.status}`);
 r = await comp.req("POST", "/api/jobs", jobBody);
 check("empresa cria vaga (201)", r.status === 201 && r.json?.id, JSON.stringify(r.json));
 const jobId = r.json?.id;
@@ -122,6 +124,7 @@ check("candidato atualiza perfil", r.status === 200, JSON.stringify(r.json));
 r = await cand.req("POST", "/api/applications", { jobId, coverNote: "Tenho interesse." });
 check("candidatura criada (201) com compatibilidade calculada", r.status === 201 && typeof r.json?.compatibility === "number", JSON.stringify(r.json));
 const appId = r.json?.id;
+const candidateProfileId = r.json?.candidateId;
 console.log(`        compatibilidade calculada: ${r.json?.compatibility}`);
 r = await cand.req("POST", "/api/applications", { jobId });
 check("candidatura duplicada retorna 409", r.status === 409, `status ${r.status}`);
@@ -135,6 +138,18 @@ r = await comp.req("PATCH", `/api/applications/${appId}`, { status: "INTERVIEW" 
 check("empresa dona atualiza status para INTERVIEW", r.status === 200 && r.json?.status === "INTERVIEW", JSON.stringify(r.json));
 r = await comp.req("PATCH", `/api/applications/${appId}`, { status: "WITHDRAWN" });
 check("status não permitido à empresa retorna 400", r.status === 400, `status ${r.status}`);
+
+// 6b. Validade da vaga e quem viu o currículo
+r = await comp.req("POST", `/api/jobs/${jobId}/confirm`, {});
+check("empresa confirma que ainda contrata (renova a validade)", r.status === 200 && r.json?.expiredAt === null, `status ${r.status}`);
+r = await other.req("POST", `/api/jobs/${jobId}/confirm`, {});
+check("outra empresa não renova a vaga (403)", r.status === 403, `status ${r.status}`);
+r = await other.req("GET", `/company/candidates/${candidateProfileId}`);
+check("outra empresa não abre o currículo de quem não se candidatou a ela", r.status === 404 || (r.text.includes("NEXT_HTTP_ERROR_FALLBACK;404") && !r.text.includes("Candidaturas nas suas vagas")), `status ${r.status}`);
+r = await comp.req("GET", `/company/candidates/${candidateProfileId}`);
+check("empresa abre o currículo completo do candidato", r.status === 200 && r.text.includes("Candidaturas nas suas vagas"), `status ${r.status}`);
+r = await cand.req("GET", "/candidate/views");
+check("candidato vê a empresa em Quem viu meu currículo", r.status === 200 && !r.text.includes("Nenhuma empresa abriu"), `status ${r.status}`);
 
 // 7. Isolamento entre empresas
 r = await other.req("PATCH", `/api/applications/${appId}`, { status: "REJECTED" });
@@ -175,6 +190,14 @@ for (const p of ["/", "/jobs", "/companies", "/mercado", "/mercado?area=enfermag
   r = await anon.req("GET", p);
   check(`página pública ${p} responde 200`, r.status === 200, `status ${r.status}`);
 }
+
+// 10a. QR code do site
+r = await anon.req("GET", "/qr");
+check("página do QR code responde 200", r.status === 200 && r.text.includes("Baixar SVG"), `status ${r.status}`);
+r = await anon.req("GET", "/qr/nautiwork.svg");
+check("QR code em SVG", r.status === 200 && r.text.includes("<svg"), `status ${r.status}`);
+r = await anon.req("GET", "/qr/nautiwork.png");
+check("QR code em PNG", r.status === 200, `status ${r.status}`);
 
 // 10b. Análise de perfil (sem conta) e filtro por área de mercado
 r = await anon.req("POST", "/api/match", { skills: [], interestArea: "" });
@@ -471,10 +494,15 @@ if (!OUTBOX) {
   check("botão de aparência aparece na tela de login", r.text.includes("Aparência: tema e modo claro ou escuro"), "sem botão no login");
 }
 
-// 18. Assistente: perfil, validação e, com o modelo de roteiro (ASSISTANT_MOCK=1 no servidor
-// e SMOKE_ASSISTANT_STREAM=1 aqui), a resposta em streaming e o limite de perguntas.
-// Sem SMOKE_ASSISTANT_STREAM nada chama o modelo de verdade (não gasta créditos em produção).
-{
+// 18. Assistente. Fica fora do ar por padrão (ASSISTANT_ENABLED diferente de 1): o teste confirma
+// que ele não aparece. Com o modelo de roteiro (ASSISTANT_MOCK=1 no servidor e
+// SMOKE_ASSISTANT_STREAM=1 aqui), testa a conversa inteira sem gastar créditos.
+if (process.env.SMOKE_ASSISTANT_STREAM !== "1") {
+  r = await anon.req("GET", "/");
+  check("assistente desligado: botão não aparece", !r.text.includes("Abrir assistente"), "botão presente");
+  r = await anon.req("GET", "/api/assistant");
+  check("assistente desligado: API responde 404", r.status === 404, `status ${r.status}`);
+} else {
   const ask = (text, role = "user") => ({ messages: [{ id: "m1", role, parts: [{ type: "text", text }] }] });
   r = await anon.req("GET", "/");
   check("botão do assistente aparece na página", r.text.includes('aria-haspopup="dialog"') && r.text.includes("Assistente"), "sem botão");

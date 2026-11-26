@@ -27,6 +27,7 @@ export async function searchJobs(input: z.input<typeof jobSearchSchema>) {
   if (f.workMode) where.workMode = f.workMode;
   if (f.contractType) where.contractType = f.contractType;
   if (f.minSalary) where.salaryMax = { gte: f.minSalary };
+  if (f.salary) where.salaryMin = { not: null };
   if (f.seniority) where.seniority = f.seniority;
   if (f.noExp) where.minYears = 0;
   if (f.days) where.publishedAt = { gte: new Date(Date.now() - f.days * 86_400_000) };
@@ -67,7 +68,7 @@ export async function updateJob(userId: string, jobId: string, raw: unknown) {
   const { skills, ...data } = jobSchema.parse(raw);
   const job = await db.$transaction(async (tx) => {
     await tx.jobSkill.deleteMany({ where: { jobId } });
-    return tx.job.update({ where: { id: jobId }, data: { ...data, skills: { create: await connectSkills(tx, skills) } } });
+    return tx.job.update({ where: { id: jobId }, data: { ...data, confirmedAt: new Date(), skills: { create: await connectSkills(tx, skills) } } });
   });
   invalidatePublic();
   return job;
@@ -76,7 +77,8 @@ export async function updateJob(userId: string, jobId: string, raw: unknown) {
 export async function setJobStatus(userId: string, jobId: string, status: "ACTIVE" | "PAUSED" | "CLOSED") {
   const job = await ownedJob(userId, jobId);
   if (job.status === "CLOSED") throw new HttpError(409, "Vagas encerradas não podem ser reabertas.");
-  const updated = await db.job.update({ where: { id: jobId }, data: { status } });
+  // reativar conta como confirmar que ainda contrata
+  const updated = await db.job.update({ where: { id: jobId }, data: status === "ACTIVE" ? { status, confirmedAt: new Date(), expiredAt: null } : { status } });
   invalidatePublic();
   if (status === "CLOSED") {
     const apps = await db.jobApplication.findMany({

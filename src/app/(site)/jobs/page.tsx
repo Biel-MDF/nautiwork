@@ -11,7 +11,7 @@ import { FiltersToggle, JobsBoard, ViewSwitcher } from "@/components/jobs/JobsBo
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Vagas — Nautiwork", description: "Vagas por cargo, cidade, modalidade, contratação, nível e salário. Veja o quanto cada uma combina com o seu perfil.", alternates: { canonical: "/jobs" } };
 
-const FILTER_KEYS = ["q", "area", "mercado", "location", "workMode", "contractType", "minSalary", "seniority", "noExp", "days"];
+const FILTER_KEYS = ["q", "area", "mercado", "location", "workMode", "contractType", "minSalary", "seniority", "noExp", "salary", "days"];
 
 export default async function Jobs(props: { searchParams: Promise<Record<string, string>> }) {
   const searchParams = await props.searchParams;
@@ -50,7 +50,7 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
               <div><label className="label" htmlFor="contractType">Contratação</label><select id="contractType" name="contractType" defaultValue={clean.contractType ?? ""} className="input"><option value="">Todas</option><option value="CLT">CLT</option><option value="PJ">PJ</option><option value="INTERNSHIP">Estágio</option><option value="TEMPORARY">Temporário</option></select></div>
               <button className="btn-primary w-full sm:col-span-2 lg:col-span-1 lg:w-auto">Buscar</button>
             </div>
-            <details className="group mt-3" open={["area", "mercado", "minSalary", "seniority", "noExp", "days"].some((k) => clean[k]) || undefined}>
+            <details className="group mt-3" open={["area", "mercado", "minSalary", "seniority", "noExp", "salary", "days"].some((k) => clean[k]) || undefined}>
               <summary className="inline-flex min-h-[40px] cursor-pointer list-none items-center gap-2 text-sm font-medium text-tide">
                 <span aria-hidden="true" className="transition-transform group-open:rotate-90">›</span>Mais filtros
               </summary>
@@ -60,7 +60,8 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
                 <div><label className="label" htmlFor="seniority">Nível</label><select id="seniority" name="seniority" defaultValue={clean.seniority ?? ""} className="input"><option value="">Todos</option><option value="INTERN">Estagiário</option><option value="JUNIOR">Júnior</option><option value="MID">Pleno</option><option value="SENIOR">Sênior</option><option value="LEAD">Liderança</option></select></div>
                 <div><label className="label" htmlFor="minSalary">Salário a partir de (R$)</label><input id="minSalary" name="minSalary" type="number" min={1} defaultValue={clean.minSalary} className="input" /></div>
                 <div><label className="label" htmlFor="days">Publicada nos últimos</label><select id="days" name="days" defaultValue={clean.days ?? ""} className="input"><option value="">Qualquer data</option><option value="1">1 dia</option><option value="7">7 dias</option><option value="30">30 dias</option></select></div>
-                <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm sm:col-span-2"><input type="checkbox" name="noExp" value="1" defaultChecked={clean.noExp === "1"} className="h-5 w-5 accent-tide" />Só vagas sem experiência exigida</label>
+                <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm"><input type="checkbox" name="noExp" value="1" defaultChecked={clean.noExp === "1"} className="h-5 w-5 accent-tide" />Só vagas sem experiência exigida</label>
+                <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm"><input type="checkbox" name="salary" value="1" defaultChecked={clean.salary === "1"} className="h-5 w-5 accent-tide" />Só vagas com salário informado</label>
               </div>
             </details>
           </form>

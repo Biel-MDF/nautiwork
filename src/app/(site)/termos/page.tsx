@@ -59,7 +59,7 @@ export default function Termos() {
     },
     {
       id: "assistente", title: "Assistente com inteligência artificial",
-      body: <p>O assistente de conversa é um recurso de apoio, oferecido sem garantia de disponibilidade. As respostas são geradas automaticamente e podem ter erros; as informações que valem são as das páginas de cada vaga e do seu painel. Há um limite de perguntas por período. Como os dados da conversa são tratados está na Política de Privacidade.</p>,
+      body: <p>O assistente de conversa é um recurso de apoio, oferecido sem garantia de disponibilidade, e está desligado no momento. As respostas são geradas automaticamente e podem ter erros; as informações que valem são as das páginas de cada vaga e do seu painel. Há um limite de perguntas por período. Como os dados da conversa são tratados está na Política de Privacidade.</p>,
     },
     {
       id: "moderacao", title: "Moderação e suspensão",

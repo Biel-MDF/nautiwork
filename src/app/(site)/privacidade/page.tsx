@@ -44,6 +44,7 @@ export default function Privacidade() {
       body: <>
         <ul>
           <li><strong>Empresas para as quais você se candidata:</strong> recebem seu nome, e-mail, perfil, foto e a nota de compatibilidade com a vaga. Elas não veem candidaturas feitas para outras empresas.</li>
+          <li><strong>Você, sobre as empresas que abriram seu currículo:</strong> quando uma empresa abre o seu currículo completo, registramos qual empresa foi, quantas vezes e em que datas, e mostramos essa lista só para você em Quem viu meu currículo. A empresa não vê essa lista.</li>
           <li><strong>Provedores que operam a plataforma:</strong> hospedagem (Vercel), banco de dados (Neon), envio de e-mails (Resend) e monitoramento de erros (Sentry). O Sentry recebe apenas detalhes técnicos de falhas, sem IP, cookies ou conteúdo de formulários. Eles tratam os dados apenas para prestar o serviço.</li>
           <li><strong>Autoridades públicas,</strong> quando houver obrigação legal ou ordem judicial.</li>
         </ul>
@@ -54,6 +55,7 @@ export default function Privacidade() {
     {
       id: "assistente", title: "Assistente com inteligência artificial",
       body: <>
+        <p><strong>No momento o assistente está desligado</strong> e nenhuma conversa é enviada a provedores de IA. As regras abaixo valem quando ele voltar.</p>
         <p>O site tem um assistente de conversa, opcional, que ajuda a buscar vagas e tirar dúvidas. Ele só é usado quando você escreve, e só consulta: não se candidata, não salva, não publica e não altera nada.</p>
         <ul>
           <li><strong>O que é enviado:</strong> sua pergunta, as mensagens anteriores da mesma conversa e os dados que o assistente consulta para responder. Para visitantes, só vagas e empresas públicas. Para candidatos, também o perfil (título, cidade, área, modalidade, anos de experiência e habilidades) e as candidaturas. Para empresas, também as próprias vagas, a contagem de candidaturas e o primeiro nome dos candidatos mais compatíveis. E-mail, foto, telefone e senha nunca são enviados.</li>

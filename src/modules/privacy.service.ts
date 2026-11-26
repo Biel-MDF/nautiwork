@@ -34,6 +34,7 @@ export async function exportUserData(userId: string) {
             orderBy: { createdAt: "desc" },
           },
           savedJobs: { select: { createdAt: true, job: { select: { title: true, company: { select: { name: true } } } } } },
+          views: { select: { count: true, firstAt: true, lastAt: true, company: { select: { name: true } } } },
         },
       },
       company: {

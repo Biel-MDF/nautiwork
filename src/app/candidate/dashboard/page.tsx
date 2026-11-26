@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function CandidateDashboard() {
   const user = await requirePageRole("CANDIDATE");
   const profile = await db.candidateProfile.findUnique({ where: { userId: user.id },
-    include: { skills: { include: { skill: true } }, applications: { orderBy: { createdAt: "desc" }, take: 5, include: { job: { include: { company: true } } } }, _count: { select: { savedJobs: true, applications: true } } } });
+    include: { skills: { include: { skill: true } }, applications: { orderBy: { createdAt: "desc" }, take: 5, include: { job: { include: { company: true } } } }, _count: { select: { savedJobs: true, applications: true, views: true } } } });
   if (!profile) return <Shell role="CANDIDATE" title="Painel"><Empty title="Perfil não encontrado" hint="Entre em contato com o suporte." /></Shell>;
 
   const checks = [profile.headline, profile.about, profile.location, profile.interestArea, profile.workMode, profile.skills.length > 0];
@@ -31,8 +31,9 @@ export default async function CandidateDashboard() {
   return (
     <Shell role="CANDIDATE" title={`Olá, ${user.name.replace(/\[[^\]]*\]\s*/g, "").split(" ")[0]}`}>
       {!user.emailVerified && <VerifyEmailBanner email={user.email} />}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Perfil preenchido" value={`${progress}%`} /><Stat label="Candidaturas" value={profile._count.applications} /><Stat label="Vagas salvas" value={profile._count.savedJobs} />
+        <Link href="/candidate/views" className="rounded-panel transition-colors hover:[&>*]:border-tide/60" aria-label={`${profile._count.views} empresas viram seu currículo. Ver quais`}><Stat label="Empresas que viram seu currículo" value={profile._count.views} /></Link>
       </div>
       {progress < 100 && <p className="mt-4 rounded-lg bg-foam p-3 text-sm">Complete seu perfil para melhorar a compatibilidade. <Link className="font-semibold text-tide" href="/candidate/profile">Editar perfil</Link></p>}
       <h2 className="mb-3 mt-8 text-lg font-bold">Vagas com maior compatibilidade</h2>

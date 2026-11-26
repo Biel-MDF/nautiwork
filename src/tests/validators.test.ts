@@ -31,7 +31,7 @@ describe("deleteAccountSchema", () => {
 });
 
 describe("jobSchema", () => {
-  const base = { title: "Dev Front", description: "Descrição com mais de vinte caracteres.", area: "TI", location: "Recife", workMode: "REMOTE", contractType: "CLT", seniority: "MID" };
+  const base = { title: "Dev Front", description: "Descrição com mais de vinte caracteres.", area: "TI", location: "Recife", workMode: "REMOTE", contractType: "CLT", seniority: "MID", salaryMin: 3000, salaryMax: 5000 };
   it("aceita vaga válida", () => expect(jobSchema.safeParse(base).success).toBe(true));
   it("rejeita salário mínimo maior que máximo", () =>
     expect(jobSchema.safeParse({ ...base, salaryMin: 9000, salaryMax: 5000 }).success).toBe(false));

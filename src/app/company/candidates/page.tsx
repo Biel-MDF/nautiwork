@@ -27,8 +27,7 @@ export default async function CompanyCandidates(props: { searchParams: Promise<{
     include: {
       user: { select: { id: true, name: true, email: true, image: { select: { updatedAt: true } } } },
       skills: { include: { skill: true } },
-      educations: { orderBy: { startYear: "desc" } },
-      experiences: { orderBy: { startDate: "desc" } },
+      experiences: { orderBy: { startDate: "desc" }, take: 1 },
       applications: { where: { job: { company: { userId: user.id } } }, include: { job: { select: { id: true, title: true } } }, orderBy: { createdAt: "desc" } },
     },
     orderBy: { user: { name: "asc" } },
@@ -54,11 +53,10 @@ export default async function CompanyCandidates(props: { searchParams: Promise<{
                 <p className="text-sm"><a className="text-tide hover:underline" href={`mailto:${c.user.email}`}>{c.user.email}</a></p>
               </div>
             </div>
-            {c.about && <p className="whitespace-pre-line break-words text-sm">{c.about}</p>}
             {c.skills.length > 0 ? <div className="flex flex-wrap gap-1.5">{c.skills.map((s) => <span key={s.skill.id} className="chip">{s.skill.name}</span>)}</div>
               : <p className="text-sm text-abyss/60">Habilidades não informadas.</p>}
-            {c.experiences.length > 0 && <div className="text-sm"><p className="font-semibold">Experiência</p><ul className="list-disc pl-5">{c.experiences.map((e) => <li key={e.id}>{e.role} em {e.company} ({year(e.startDate)} – {year(e.endDate)})</li>)}</ul></div>}
-            {c.educations.length > 0 && <div className="text-sm"><p className="font-semibold">Formação</p><ul className="list-disc pl-5">{c.educations.map((e) => <li key={e.id}>{e.course}, {e.institution} ({e.startYear} – {e.endYear ?? "em andamento"})</li>)}</ul></div>}
+            {c.experiences[0] && <p className="text-sm text-abyss/80">Último cargo: {c.experiences[0].role} em {c.experiences[0].company} ({year(c.experiences[0].startDate)} – {year(c.experiences[0].endDate)})</p>}
+            <Link href={`/company/candidates/${c.id}`} className="btn-ghost">Ver currículo completo</Link>
             <div className="text-sm"><p className="font-semibold">Candidaturas nas suas vagas</p>
               <ul className="mt-1 space-y-1">{c.applications.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-2">

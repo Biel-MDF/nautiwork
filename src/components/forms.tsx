@@ -182,8 +182,9 @@ export function JobForm({ jobId, initial = {} }: { jobId?: string; initial?: Job
         <div><label className="label" htmlFor="contractType">Contratação</label><select id="contractType" name="contractType" defaultValue={v("contractType") || "CLT"} className="input"><option value="CLT">CLT</option><option value="PJ">PJ</option><option value="INTERNSHIP">Estágio</option><option value="TEMPORARY">Temporário</option></select></div>
         <div><label className="label" htmlFor="seniority">Senioridade</label><select id="seniority" name="seniority" defaultValue={v("seniority") || "MID"} className="input"><option value="INTERN">Estagiário</option><option value="JUNIOR">Júnior</option><option value="MID">Pleno</option><option value="SENIOR">Sênior</option><option value="LEAD">Liderança</option></select></div>
         <div><label className="label" htmlFor="minYears">Anos de experiência mínimos</label><input id="minYears" name="minYears" type="number" min={0} defaultValue={v("minYears") || 0} className="input" /></div>
-        <div><label className="label" htmlFor="salaryMin">Salário mínimo (R$)</label><input id="salaryMin" name="salaryMin" type="number" min={1} defaultValue={v("salaryMin")} className="input" /></div>
-        <div><label className="label" htmlFor="salaryMax">Salário máximo (R$)</label><input id="salaryMax" name="salaryMax" type="number" min={1} defaultValue={v("salaryMax")} className="input" /><Err k="salaryMax" /></div>
+        <div><label className="label" htmlFor="salaryMin">Salário mínimo (R$)</label><input id="salaryMin" name="salaryMin" type="number" min={1} required defaultValue={v("salaryMin")} className="input" aria-describedby="salary-hint" /><Err k="salaryMin" /></div>
+        <div><label className="label" htmlFor="salaryMax">Salário máximo (R$)</label><input id="salaryMax" name="salaryMax" type="number" min={1} required defaultValue={v("salaryMax")} className="input" aria-describedby="salary-hint" /><Err k="salaryMax" /></div>
+        <p id="salary-hint" className="text-xs text-abyss/60 sm:col-span-2">A faixa salarial é obrigatória. Vagas com salário recebem mais candidaturas, e o candidato decide com informação real.</p>
       </div>
       </fieldset>
       <hr className="border-mist" />
@@ -229,6 +230,21 @@ export function JobStatusButtons({ id, status }: { id: string; status: string })
       <button className="btn-danger" onClick={() => set("CLOSED")}>Encerrar</button>
       <Msg error={error} />
     </div>
+  );
+}
+
+/** "Ainda estou contratando": renova a validade da vaga por mais 30 dias. */
+export function ConfirmJobButton({ id, label = "Ainda estou contratando" }: { id: string; label?: string }) {
+  const router = useRouter(); const [state, setState] = useState<{ busy?: boolean; error?: string }>({});
+  return (
+    <span className="inline-flex flex-col gap-1">
+      <button type="button" className="btn-primary" disabled={state.busy} onClick={async () => {
+        setState({ busy: true });
+        const r = await api("POST", `/api/jobs/${id}/confirm`, {});
+        if (r.ok) { setState({}); router.refresh(); } else setState({ error: r.data.error ?? "Erro." });
+      }}>{state.busy ? "Confirmando..." : label}</button>
+      <Msg error={state.error} />
+    </span>
   );
 }
 

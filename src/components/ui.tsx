@@ -81,12 +81,10 @@ export function JobCard({ job, score, save }: { job: JobCardJob; score?: number;
         <li className="flex items-center gap-1.5"><Mode />{workModeLabel[job.workMode]}</li>
         <li className="flex items-center gap-1.5"><Doc />{contractLabel[job.contractType]}</li>
       </ul>
-      {(salary || score !== undefined) && (
-        <div className="mt-2 flex items-center justify-between gap-3">
-          {salary ? <p className="tabular text-sm font-medium text-abyss">{salary}</p> : <span />}
+      <div className="mt-2 flex items-center justify-between gap-3">
+          {salary ? <p className="tabular text-sm font-medium text-abyss">{salary}</p> : <p className="text-sm text-abyss/60">Salário não informado</p>}
           {score !== undefined && <span className="flex items-center gap-2 text-xs text-abyss/60">compatibilidade<ScoreRing score={score} size={44} /></span>}
-        </div>
-      )}
+      </div>
       <div className="mt-auto flex items-end justify-between gap-3 pt-4">
         {job.skills.length > 0 ? <div className="flex flex-wrap gap-1.5">
           {job.skills.slice(0, 4).map((s) => <span key={s.skill.name} className="chip">{s.skill.name}</span>)}

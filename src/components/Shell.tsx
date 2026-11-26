@@ -3,7 +3,7 @@ import { ShellNav } from "./ShellNav";
 
 export const menus = {
   CANDIDATE: [["Painel", "/candidate/dashboard"], ["Perfil", "/candidate/profile"], ["Currículo", "/candidate/resume"],
-    ["Candidaturas", "/candidate/applications"], ["Vagas salvas", "/candidate/saved-jobs"], ["Configurações", "/candidate/settings"], ["Suporte", "/support"]],
+    ["Candidaturas", "/candidate/applications"], ["Quem viu meu currículo", "/candidate/views"], ["Vagas salvas", "/candidate/saved-jobs"], ["Configurações", "/candidate/settings"], ["Suporte", "/support"]],
   COMPANY: [["Painel", "/company/dashboard"], ["Perfil da empresa", "/company/profile"], ["Vagas", "/company/jobs"],
     ["Nova vaga", "/company/jobs/new"], ["Candidaturas", "/company/applications"], ["Candidatos", "/company/candidates"], ["Suporte", "/support"]],
   ADMIN: [["Painel", "/admin/dashboard"], ["Usuários", "/admin/users"], ["Empresas", "/admin/companies"], ["Vagas", "/admin/jobs"], ["Suporte", "/admin/support"]],

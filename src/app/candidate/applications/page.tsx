@@ -6,6 +6,7 @@ import { Shell } from "@/components/Shell";
 import { Empty, ScoreRing, StatusBadge } from "@/components/ui";
 import { WithdrawButton } from "@/components/forms";
 import { appStatusLabel } from "@/lib/labels";
+import { noReplyDays } from "@/modules/hiring";
 
 export const dynamic = "force-dynamic";
 export default async function Applications() {
@@ -24,7 +25,8 @@ export default async function Applications() {
               </div>
               {a.compatibility !== null && <ScoreRing score={a.compatibility} />}
             </div>
-            <div className="mt-3"><StatusBadge status={a.status} /></div>
+            <div className="mt-3 flex flex-wrap items-center gap-2"><StatusBadge status={a.status} />
+              {noReplyDays(a.createdAt, a.status) > 0 && <span className="chip border-coral/40 text-coral" title="A empresa ainda não mexeu nesta candidatura">Sem retorno há {noReplyDays(a.createdAt, a.status)} dias</span>}</div>
             {/* linha do tempo: cada mudança de etapa, da mais antiga para a mais recente */}
             <ol className="mt-5 space-y-0 text-sm" aria-label="Histórico da candidatura">{a.history.map((h, i) => {
               const last = i === a.history.length - 1;

@@ -126,6 +126,7 @@ model CandidateProfile {
   experiences     Experience[]
   applications    JobApplication[]
   savedJobs       SavedJob[]
+  views           ResumeView[]
   updatedAt       DateTime         @updatedAt
 }
 
@@ -180,6 +181,7 @@ model CompanyProfile {
   website     String?
   location    String?
   jobs        Job[]
+  resumeViews ResumeView[]
 }
 
 model Job {
@@ -202,12 +204,17 @@ model Job {
   status           JobStatus        @default(ACTIVE)
   flagged          Boolean          @default(false)
   publishedAt      DateTime         @default(now())
+  /// última vez que a empresa confirmou que ainda contrata; sem confirmação por 30 dias, a vaga sai do ar
+  confirmedAt      DateTime         @default(now())
+  /// preenchido quando a vaga foi pausada por falta de confirmação
+  expiredAt        DateTime?
   updatedAt        DateTime         @updatedAt
   skills           JobSkill[]
   applications     JobApplication[]
   saved            SavedJob[]
 
   @@index([status, publishedAt])
+  @@index([status, confirmedAt])
   @@index([companyId])
 }
 
@@ -229,6 +236,8 @@ model JobApplication {
   status        ApplicationStatus          @default(SUBMITTED)
   coverNote     String?
   compatibility Int?
+  /// quando o candidato foi avisado de que a empresa não respondeu em 14 dias
+  noReplyNotifiedAt DateTime?
   createdAt     DateTime                   @default(now())
   updatedAt     DateTime                   @updatedAt
   history       ApplicationStatusHistory[]
@@ -311,4 +320,19 @@ model SupportMessage {
   createdAt DateTime      @default(now())
 
   @@index([ticketId, createdAt])
+}
+
+/// Uma linha por empresa que abriu o currículo de um candidato (o candidato vê a lista).
+model ResumeView {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  companyId   String
+  company     CompanyProfile   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  count       Int              @default(1)
+  firstAt     DateTime         @default(now())
+  lastAt      DateTime         @default(now())
+
+  @@unique([candidateId, companyId])
+  @@index([candidateId, lastAt])
 }
