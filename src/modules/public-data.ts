@@ -23,6 +23,8 @@ export const homePublic = cachedPublic(async () => {
       db.job.count({ where: { ...publicJob, workMode: "REMOTE" } }),
       db.job.count({ where: { ...publicJob, minYears: 0 } }),
       db.job.count({ where: { ...publicJob, seniority: "JUNIOR" } }),
+      db.job.count({ where: { ...publicJob, forApprentice: true } }),
+      db.job.count({ where: { ...publicJob, pcdOnly: true } }),
     ]),
     db.job.groupBy({ by: ["area"], where: publicJob, _count: { _all: true }, orderBy: { _count: { area: "desc" } }, take: 8 }),
     db.job.groupBy({ by: ["location"], where: publicJob, _count: { _all: true }, orderBy: { _count: { location: "desc" } }, take: 8 }),

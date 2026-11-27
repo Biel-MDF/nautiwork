@@ -19,7 +19,14 @@ export async function loadJobDetail(id: string) {
   // currentUser respeita o modo de visualização do admin
   const session = me ? { user: { id: me.id, role: me.role } } : null;
   const isOwner = job && session?.user.id === job.company.userId;
-  if (!job || (!isOwner && session?.user.role !== "ADMIN" && (job.flagged || job.status === "CLOSED"))) return null;
+  if (!job) return null;
+  if (!isOwner && session?.user.role !== "ADMIN" && (job.flagged || job.status === "CLOSED")) {
+    // vaga encerrada continua visível para quem se candidatou, com o aviso de encerrada;
+    // vaga retida pela moderação some para todos, menos a empresa e o admin
+    if (job.flagged || session?.user.role !== "CANDIDATE") return null;
+    const mine = await db.jobApplication.count({ where: { jobId: job.id, candidate: { userId: session.user.id } } });
+    if (!mine) return null;
+  }
 
   const response = (await responseStats([job.company.id])).get(job.company.id) ?? null;
   let compat = null, applied = false, saved = false, commute: number | null = null;

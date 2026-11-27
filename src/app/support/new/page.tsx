@@ -9,7 +9,7 @@ export default async function NewTicket() {
   const user = await requirePageUser();
   return (
     <Shell role={user.role} title="">
-      <Link href="/support" className="text-sm text-tide hover:underline">Voltar para os pedidos</Link>
+      <Link href="/support" className="tap text-sm text-tide hover:underline">Voltar para os pedidos</Link>
       <h1 className="mb-2 mt-3 text-2xl font-semibold sm:text-[28px]">Abrir pedido de suporte</h1>
       <p className="mb-7 max-w-[60ch] text-abyss/75">Quanto mais detalhes, mais rápida a solução. A resposta aparece neste site e, se você deixou ligado nas Configurações, também por e-mail.</p>
       <div className="grid gap-6 lg:grid-cols-[1fr_260px]">

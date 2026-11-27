@@ -42,7 +42,7 @@ export default async function Mercado(props: { searchParams: Promise<{ area?: st
     <>
       <PageHeader title="Mercado" description="O que as empresas estão pedindo em 2026, área por área: cargos em alta, habilidades, ferramentas e tendências, comparados com as vagas abertas aqui."
         stats={[["Áreas analisadas", MARKET_AREAS.length], ["Vagas abertas no Nautiwork", openJobs]]} />
-      <main className="mx-auto max-w-6xl px-4 py-10">
+      <main className="mx-auto w-full max-w-6xl px-4 py-10">
         <section aria-labelledby="tendencias">
           <h2 id="tendencias" className="text-xl font-semibold sm:text-2xl">O que vale para todas as áreas</h2>
           {/* no celular os cartões rolam para o lado em vez de empilhar quatro telas */}
@@ -70,11 +70,11 @@ export default async function Mercado(props: { searchParams: Promise<{ area?: st
               <tbody className="divide-y divide-mist">
                 {MARKET_AREAS.map((a) => (
                   <tr key={a.id} className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 bg-casco/40 px-4 py-3 md:table-row md:p-0">
-                    <th scope="row" className="font-semibold md:px-4 md:py-3"><Link href={`/mercado?area=${a.id}#area`} className="hover:text-tide hover:underline">{a.name}</Link></th>
+                    <th scope="row" className="font-semibold md:px-4 md:py-3"><Link href={`/mercado?area=${a.id}#area`} className="tap hover:text-tide hover:underline">{a.name}</Link></th>
                     <td className="text-right md:px-4 md:py-3 md:text-left"><DemandChip value={a.demand} /></td>
                     <td className="col-span-2 text-abyss/80 md:px-4 md:py-3">{a.hardSkills.slice(0, 3).join(" · ")}</td>
                     <td className="tabular col-span-2 text-abyss/70 md:px-4 md:py-3 md:text-right">
-                      {(live[a.id]?.jobs ?? 0) > 0 ? <Link href={`/jobs?mercado=${a.id}`} className="font-semibold text-tide hover:underline">{live[a.id].jobs} {live[a.id].jobs === 1 ? "vaga" : "vagas"}</Link> : <span className="whitespace-nowrap">nenhuma ainda</span>}
+                      {(live[a.id]?.jobs ?? 0) > 0 ? <Link href={`/jobs?mercado=${a.id}`} className="tap font-semibold text-tide hover:underline">{live[a.id].jobs} {live[a.id].jobs === 1 ? "vaga" : "vagas"}</Link> : <span className="whitespace-nowrap">nenhuma ainda</span>}
                     </td>
                   </tr>
                 ))}

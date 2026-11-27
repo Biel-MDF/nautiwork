@@ -102,6 +102,10 @@ async function main() {
     await db.jobApplication.create({ data: { jobId: jobs[ji].id, candidateId: cps[ci].id, status, compatibility: 70 + ci * 10,
       history: { create: hist.slice(0, hist.indexOf(status) + 1).map((s) => ({ status: s })) } } });
   }
+  // os mesmos dados de demonstração dos diferenciais que a migração aplica em produção
+  const extras = readFileSync(path.join(__dirname, "migrations/20261127003000_demo_differentials/migration.sql"), "utf8");
+  for (const stmt of extras.split(/;\s*\n/).map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await db.$executeRawUnsafe(stmt);
+
   console.log(`Seed ok. ${process.env.SEED_PASSWORD ? "Senhas definidas por variável de ambiente (não exibidas)." : `Senha de todas as contas demo: ${PASSWORD}`}\n  admin${D}\n  mares${D} (empresa)\n  ana${D} (candidata)`);
 }
 main().finally(() => db.$disconnect());

@@ -35,7 +35,7 @@ export function LoginForm() {
           {show ? "Ocultar" : "Mostrar"}
         </button>
       </div>
-      <div className="pt-1"><Link className="text-sm text-abyss/70 hover:text-tide hover:underline" href="/forgot-password">Esqueceu sua senha?</Link></div>
+      <div className="pt-1"><Link className="tap text-sm text-abyss/70 hover:text-tide hover:underline" href="/forgot-password">Esqueceu sua senha?</Link></div>
       <Msg error={error} />
       <button className="btn-primary min-h-[52px] w-full text-base" disabled={busy}>{busy ? "Entrando..." : "Entrar"}</button>
     </form>

@@ -18,7 +18,7 @@ export default async function TicketPage(props: { params: Promise<{ id: string }
   if (!t || t.userId !== user.id) notFound();
   return (
     <Shell role={user.role} title="">
-      <Link href="/support" className="text-sm text-tide hover:underline">Voltar para os pedidos</Link>
+      <Link href="/support" className="tap text-sm text-tide hover:underline">Voltar para os pedidos</Link>
       {novo && <p role="status" className="mt-4 rounded-control border border-reef/30 bg-reef/10 p-3 text-sm text-reef">Pedido enviado. A equipe foi avisada e a resposta vai aparecer aqui.</p>}
       <div className="mb-7 mt-4 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">

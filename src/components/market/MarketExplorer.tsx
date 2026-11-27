@@ -45,7 +45,7 @@ export function MarketExplorer({ initial, live }: { initial: string; live: Recor
     <section id="area" className="mt-14 scroll-mt-24" aria-labelledby="area-title">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h2 id="area-title" className="text-xl font-semibold sm:text-2xl">Escolha a área</h2>
-        <Link href="/#como-funciona" className="text-sm font-semibold text-tide hover:underline">Comparar com o meu perfil</Link>
+        <Link href="/#como-funciona" className="tap text-sm font-semibold text-tide hover:underline">Comparar com o meu perfil</Link>
       </div>
 
       {/* celular: lista horizontal que rola; computador: coluna à esquerda */}

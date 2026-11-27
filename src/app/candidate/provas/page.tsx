@@ -32,7 +32,7 @@ export default async function ProvasPage(props: { searchParams: Promise<{ prova?
     return (
       <Shell role="CANDIDATE" title={`Prova de ${current.name}`}>
         <div className="max-w-2xl space-y-5">
-          <Link href="/candidate/provas" className="text-sm font-medium text-tide hover:underline">Todas as provas</Link>
+          <Link href="/candidate/provas" className="tap text-sm font-medium text-tide hover:underline">Todas as provas</Link>
           <section className="card space-y-4">
             <ul className="list-disc space-y-1 pl-5 text-sm text-abyss/80">
               <li>{QUESTIONS_PER_TEST} questões sorteadas, {TIME_LIMIT_MIN} minutos. O tempo começa quando você clicar em começar.</li>

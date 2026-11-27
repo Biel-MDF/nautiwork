@@ -28,7 +28,7 @@ export function LegalPage({ title, intro, sections, other }: {
                 </li>
               ))}
             </ol>
-            <Link href={other.href} className="mt-6 inline-block text-sm font-semibold text-tide hover:underline">{other.label}</Link>
+            <Link href={other.href} className="tap mt-6 text-sm font-semibold text-tide hover:underline">{other.label}</Link>
           </nav>
 
           <div className="max-w-[68ch] space-y-12">

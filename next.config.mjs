@@ -1,8 +1,23 @@
 import { withSentryConfig } from "@sentry/nextjs/config";
 
 /** @type {import('next').NextConfig} */
+// Cabeçalhos de segurança em todas as respostas. A CSP aqui só trava o que não quebra nada:
+// ninguém pode pôr o site dentro de um quadro (golpe de clique na tela de login), formulários
+// só enviam para o próprio site e nenhum plugin (object/embed) é carregado.
+const securityHeaders = [
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+];
+
 const nextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
   // O projeto não usa next/image. Com o otimizador desligado, /_next/image responde 404,
   // o que fecha falhas do Next 14 nesse endpoint que só foram corrigidas na linha 15.5.x.
   images: { unoptimized: true },

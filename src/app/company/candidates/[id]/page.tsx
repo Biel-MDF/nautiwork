@@ -35,7 +35,7 @@ export default async function CandidateResume(props: { params: Promise<{ id: str
 
   return (
     <Shell role="COMPANY" title="Currículo">
-      <Link href="/company/candidates" className="mb-4 inline-block text-sm text-tide hover:underline">Todos os candidatos</Link>
+      <Link href="/company/candidates" className="tap mb-4 text-sm text-tide hover:underline">Todos os candidatos</Link>
       <article className="card space-y-6">
         <header className="flex items-start gap-4">
           <Avatar userId={c.user.id} name={c.user.name} version={c.user.image?.updatedAt} size={64} />
@@ -61,7 +61,7 @@ export default async function CandidateResume(props: { params: Promise<{ id: str
         {c.projects.length > 0 && <section><h3 className="font-semibold">Projetos</h3>
           <ul className="mt-2 space-y-3 text-sm">{c.projects.map((pr) => <li key={pr.id}>
             <p className="font-medium">{pr.title} <span className="font-normal text-abyss/70">({pr.school})</span></p>
-            {pr.validatedAt ? <p className="text-xs font-semibold text-abyss/80">Confirmado pelo professor {pr.teacherName} ({pr.teacherEmail}) em {pr.validatedAt.toLocaleDateString("pt-BR")}</p> : <p className="text-xs text-abyss/60">Ainda não confirmado pelo professor</p>}
+            {pr.validatedAt ? <p className="text-xs font-semibold text-abyss/80">Confirmado por {pr.teacherName} ({pr.teacherEmail}), professor(a) do curso, em {pr.validatedAt.toLocaleDateString("pt-BR")}</p> : <p className="text-xs text-abyss/60">Ainda não confirmado pelo professor</p>}
             <p className="mt-1 whitespace-pre-line break-words">{pr.description}</p>
             {pr.url && <a href={pr.url} target="_blank" rel="noopener noreferrer nofollow" className="break-all text-tide hover:underline">{pr.url}</a>}
             {pr.validatedAt && pr.validatorNote && <blockquote className="mt-1 border-l-2 border-reef/50 pl-3 italic text-abyss/80">{pr.validatorNote}</blockquote>}

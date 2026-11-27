@@ -20,7 +20,7 @@ export default async function AdminTicket(props: { params: Promise<{ id: string 
   const others = await db.supportTicket.count({ where: { userId: t.userId, id: { not: t.id } } });
   return (
     <Shell role="ADMIN" title="">
-      <Link href="/admin/support" className="text-sm text-tide hover:underline">Voltar para a fila</Link>
+      <Link href="/admin/support" className="tap text-sm text-tide hover:underline">Voltar para a fila</Link>
       <div className="mb-7 mt-4 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="break-words text-2xl font-semibold sm:text-[28px]">{t.subject}</h1>

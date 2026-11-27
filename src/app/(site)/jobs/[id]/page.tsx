@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const job = await jobPublic((await props.params).id);
-  if (!job || job.flagged || job.status === "CLOSED") return { title: "Vaga não encontrada — Nautiwork", robots: { index: false } };
+  if (!job || job.flagged) return { title: "Vaga não encontrada — Nautiwork", robots: { index: false } };
+  if (job.status === "CLOSED") return { title: "Vaga encerrada — Nautiwork", robots: { index: false } };
   const company = splitDemo(job.company.name);
   const title = `${job.title} — ${company.name}`;
   const description = snippet(`${job.location}, ${workModeLabel[job.workMode]}, ${contractLabel[job.contractType]}. ${job.description}`);

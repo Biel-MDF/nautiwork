@@ -43,6 +43,8 @@
 }
 
 @layer components {
+  /* link de texto solto (voltar, ver todas): área de toque de pelo menos 32 px de altura */
+  .tap { @apply inline-flex min-h-[32px] items-center; }
   .btn { @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-control px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
     /* botão principal em degradê entre as duas cores da paleta, nos dois modos */
   .btn-primary { @apply btn bg-accent text-onaccent; background-image: linear-gradient(120deg, rgb(var(--c-accent)), rgb(var(--c-accentb))); box-shadow: 0 8px 22px -12px rgb(var(--c-accent) / 0.65); }

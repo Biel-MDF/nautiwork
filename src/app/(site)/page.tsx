@@ -59,10 +59,10 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
     ...pool.flatMap((j) => j.skills.map((s) => s.skill.name)),
     ...contacts.map((c) => splitDemo(c.name).name),
   ])].slice(0, 60);
-  const [internships, remote, noExp, junior] = quick;
+  const [internships, remote, noExp, junior, apprentice, pcd] = quick;
   const shortcuts: [string, string, number][] = [
-    ["Estágio", "contractType=INTERNSHIP", internships], ["Remoto", "workMode=REMOTE", remote],
-    ["Sem experiência", "noExp=1", noExp], ["Júnior", "seniority=JUNIOR", junior],
+    ["Estágio", "contractType=INTERNSHIP", internships], ["Jovem Aprendiz", "aprendiz=1", apprentice], ["Sem experiência", "noExp=1", noExp],
+    ["Remoto", "workMode=REMOTE", remote], ["Júnior", "seniority=JUNIOR", junior], ["Vagas PcD", "pcd=1", pcd],
   ];
 
   return (
@@ -138,14 +138,14 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
           <section className="mx-auto max-w-6xl px-4 pt-16">
             <div className="mb-6 flex items-end justify-between gap-4">
               <div><h2 className="text-2xl font-semibold sm:text-[28px]">Recomendadas para você</h2><p className="mt-1 text-sm text-abyss/65">Ordenadas pela compatibilidade com o seu perfil.</p></div>
-              <Link href="/candidate/dashboard" className="shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver no painel</Link>
+              <Link href="/candidate/dashboard" className="tap shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver no painel</Link>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{recommended.map(({ j, score }) => <JobCard key={j.id} job={j} score={score} save={viewer.save(j.id)} commute={viewer.commute(j)} />)}</div>
           </section>
         )}
 
         <section className="mx-auto max-w-6xl px-4 pt-16">
-          <div className="mb-6 flex items-end justify-between gap-4"><h2 className="text-2xl font-semibold sm:text-[28px]">Vagas recentes</h2><Link href="/jobs" className="shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver todas as vagas</Link></div>
+          <div className="mb-6 flex items-end justify-between gap-4"><h2 className="text-2xl font-semibold sm:text-[28px]">Vagas recentes</h2><Link href="/jobs" className="tap shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver todas as vagas</Link></div>
           {recent.length === 0 ? <Empty title="Ainda não há vagas publicadas" hint="Quando uma empresa publicar, ela aparece aqui." href="/register?tipo=empresa" cta="Criar conta de empresa" />
             : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{recent.map((j) => <JobCard key={j.id} job={j} save={viewer.save(j.id)} score={viewer.score(j)} commute={viewer.commute(j)} />)}</div>}
         </section>
@@ -175,9 +175,32 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
           </div>
         </section>
 
+        <section className="mx-auto max-w-6xl px-4 pt-20" aria-labelledby="diferente">
+          <div className="max-w-[62ch]">
+            <h2 id="diferente" className="text-2xl font-semibold sm:text-[28px]">Feito para quem ainda não tem experiência</h2>
+            <p className="mt-3 leading-relaxed text-abyss/75">Regras que a maioria dos sites de vaga não tem. Valem para todas as empresas que publicam aqui.</p>
+          </div>
+          <ul className="mt-8 grid gap-px overflow-hidden rounded-panel border border-mist bg-mist sm:grid-cols-2 lg:grid-cols-3">
+            {([
+              ["Vaga que pede dinheiro não entra", "Pix, taxa, curso pago ou dados bancários barram a publicação. Texto suspeito passa pela moderação, e três denúncias tiram a vaga do ar.", "/primeiro-emprego#golpes", "Como reconhecer golpe"],
+              ["Mostre o que sabe sem experiência", "Provas curtas de habilidade dão o selo comprovada no currículo. O projeto do curso entra confirmado pelo professor.", "/register", "Criar perfil"],
+              ["Recusa com retorno", "Quem recusa escolhe o motivo e as habilidades que faltaram. Você recebe cursos gratuitos para cada uma.", "/about#regras", "Ver todas as regras"],
+              ["Salário sempre visível", "Toda vaga mostra a faixa salarial. Estágio e Jovem Aprendiz não podem pedir anos de experiência.", "/jobs?noExp=1", "Vagas sem experiência"],
+              ["Quanto tempo até a vaga", "Com o seu CEP, cada vaga mostra o tempo estimado de casa até lá, e a busca filtra por minutos.", "/jobs", "Buscar vagas"],
+              ["Guia do primeiro emprego", "Documentos, direitos do aprendiz e do estagiário e uma lista para marcar o que já fez.", "/primeiro-emprego", "Abrir o guia"],
+            ] as const).map(([t, d, href, cta]) => (
+              <li key={t} className="flex flex-col bg-casco p-6">
+                <h3 className="font-semibold">{t}</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-abyss/75">{d}</p>
+                <Link href={href} className="tap mt-3 self-start text-sm font-semibold text-tide hover:text-deep hover:underline">{cta}</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         {(areas.length > 0 || cities.length > 0) && (
           <section className="mx-auto max-w-6xl px-4 pt-20" aria-labelledby="explorar">
-            <div className="mb-6 flex items-end justify-between gap-4"><h2 id="explorar" className="text-2xl font-semibold sm:text-[28px]">Explorar vagas</h2><Link href="/companies" className="shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver empresas</Link></div>
+            <div className="mb-6 flex items-end justify-between gap-4"><h2 id="explorar" className="text-2xl font-semibold sm:text-[28px]">Explorar vagas</h2><Link href="/companies" className="tap shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver empresas</Link></div>
             <div className="grid gap-8 md:grid-cols-[1.4fr_1fr]">
               <div>
                 <h3 className="text-sm font-medium text-abyss/70">Por área</h3>

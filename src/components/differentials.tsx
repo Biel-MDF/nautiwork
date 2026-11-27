@@ -177,7 +177,7 @@ export function DeleteProjectButton({ id }: { id: string }) {
   const router = useRouter(); const [error, setError] = useState("");
   return (
     <span>
-      <button type="button" className="text-sm font-medium text-coral hover:underline" onClick={async () => {
+      <button type="button" className="tap text-sm font-medium text-coral hover:underline" onClick={async () => {
         if (!confirm("Excluir este projeto do currículo?")) return;
         const r = await api("DELETE", `/api/projects/${id}`);
         if (r.ok) router.refresh(); else setError((r.data as ErrData).error ?? "Erro.");

@@ -48,7 +48,7 @@ export default async function AdminDashboard() {
       </section>
 
       <section className="mt-6" aria-labelledby="cadastros">
-        <div className="mb-3 flex items-end justify-between gap-3"><h2 id="cadastros" className="font-semibold">Últimos cadastros</h2><Link href="/admin/users" className="text-sm font-semibold text-tide hover:underline">Ver todas as contas</Link></div>
+        <div className="mb-3 flex items-end justify-between gap-3"><h2 id="cadastros" className="font-semibold">Últimos cadastros</h2><Link href="/admin/users" className="tap text-sm font-semibold text-tide hover:underline">Ver todas as contas</Link></div>
         <ul className="divide-y divide-mist overflow-hidden rounded-panel border border-mist bg-casco">
           {recent.map((u) => (
             <li key={u.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-3.5 text-sm">
