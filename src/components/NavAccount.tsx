@@ -6,6 +6,7 @@ import { signOutAction } from "@/app/actions/auth";
 import { AccountMenu } from "./AccountMenu";
 import { MobileMenu } from "./MobileMenu";
 import { ViewModeBar } from "./ViewMode";
+import { NotificationBell } from "./NotificationBell";
 
 const home = { CANDIDATE: "/candidate/dashboard", COMPANY: "/company/dashboard", ADMIN: "/admin/dashboard" } as const;
 
@@ -19,6 +20,7 @@ export function NavAccount() {
       {user ? (
         <>
           <Link href={home[user.role]} className="btn-ghost hidden px-4 sm:inline-flex">Meu painel</Link>
+          <NotificationBell unread={me?.unread ?? 0} panel={home[user.role]} />
           <AccountMenu signOutAction={async () => { clearMe(); await signOutAction(); }} user={user} />
         </>
       ) : (

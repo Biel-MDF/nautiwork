@@ -23,7 +23,7 @@ export async function recordResumeView(companyId: string, candidateId: string, n
       const name = company.name.replace(/\[[^\]]*\]\s*/g, "");
       const title = "Uma empresa abriu seu currículo";
       const body = `${name} abriu o seu currículo completo. Veja a lista em Quem viu meu currículo.`;
-      await db.notification.create({ data: { userId: candidate.userId, title, body } });
+      await db.notification.create({ data: { userId: candidate.userId, title, body, link: "/candidate/views" } });
       await emailNotify([candidate.userId], title, body, "/candidate/views");
     }
     return view;

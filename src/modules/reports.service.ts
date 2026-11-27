@@ -32,7 +32,7 @@ export async function reportJob(userId: string, jobId: string, raw: unknown) {
     await db.job.update({ where: { id: jobId }, data: { flagged: true } });
     invalidatePublic();
   }
-  await db.notification.createMany({ data: admins.map((a) => ({ userId: a.id, title: held ? "Vaga retida por denúncias" : "Nova denúncia de vaga",
+  await db.notification.createMany({ data: admins.map((a) => ({ userId: a.id, link: "/admin/jobs", title: held ? "Vaga retida por denúncias" : "Nova denúncia de vaga",
     body: `"${job.title}" recebeu ${count} ${count === 1 ? "denúncia" : "denúncias"} (${REPORT_REASONS[reason]}).${held ? " Ela saiu do ar até a revisão." : ""}` })) });
   return { count, held };
 }

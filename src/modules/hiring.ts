@@ -102,7 +102,7 @@ export async function expireStaleJobs(now = new Date()) {
   const title = "Vagas pausadas por falta de confirmação";
   for (const [userId, titles] of byCompany) {
     const body = `${titles.length === 1 ? `A vaga "${titles[0]}" ficou` : `${titles.length} vagas ficaram`} ${JOB_VALID_DAYS} dias sem confirmação e saiu do ar. Se ainda está contratando, confirme em Minhas vagas para publicar de novo.`;
-    await db.notification.create({ data: { userId, title, body } });
+    await db.notification.create({ data: { userId, title, body, link: "/company/jobs" } });
     await emailNotify([userId], title, body, "/company/jobs");
   }
   invalidatePublic();
@@ -122,7 +122,7 @@ export async function notifyNoReply(now = new Date()) {
     const company = a.job.company.name.replace(/\[[^\]]*\]\s*/g, "");
     const title = "Sem retorno da empresa";
     const body = `${company} não respondeu à sua candidatura para "${a.job.title}" em ${NO_REPLY_DAYS} dias. Vale seguir buscando outras vagas enquanto isso.`;
-    await db.notification.create({ data: { userId: a.candidate.userId, title, body } });
+    await db.notification.create({ data: { userId: a.candidate.userId, title, body, link: "/candidate/applications" } });
     await emailNotify([a.candidate.userId], title, body, "/candidate/applications");
   }
   return late.length;
@@ -152,8 +152,8 @@ export async function createDueCheckins(now = new Date()) {
           const person = h.candidate.user.name.replace(/\[[^\]]*\]\s*/g, "");
           const company = h.job.company.name.replace(/\[[^\]]*\]\s*/g, "");
           await db.notification.create({ data: role === "CANDIDATE"
-            ? { userId: h.candidate.userId, title: `Como estão seus ${day} dias?`, body: `Uma pergunta rápida sobre o trabalho em ${company}. Sua resposta é só sua; a empresa só fica sabendo se você pedir uma conversa. Responda em /checkin/${c.id}` }
-            : { userId: h.job.company.userId, title: `${day} dias de ${person}`, body: `Como está a pessoa contratada para "${h.job.title}"? Registre em /checkin/${c.id}` } });
+            ? { userId: h.candidate.userId, title: `Como estão seus ${day} dias?`, body: `Uma pergunta rápida sobre o trabalho em ${company}. Sua resposta é só sua; a empresa só fica sabendo se você pedir uma conversa.`, link: `/checkin/${c.id}` }
+            : { userId: h.job.company.userId, title: `${day} dias de ${person}`, body: `Como está a pessoa contratada para "${h.job.title}"? Leva um minuto.`, link: `/checkin/${c.id}` } });
         } catch { /* outra varredura criou ao mesmo tempo (índice único) */ }
       }
     }
@@ -174,7 +174,7 @@ export async function answerCheckin(userId: string, id: string, raw: { score: nu
     const person = c.application.candidate.user.name.replace(/\[[^\]]*\]\s*/g, "");
     const title = "Pedido de conversa";
     const body = `${person}, contratado(a) para "${c.application.job.title}", pediu uma conversa sobre como está indo o trabalho (${c.day} dias).`;
-    await db.notification.create({ data: { userId: c.application.job.company.userId, title, body } });
+    await db.notification.create({ data: { userId: c.application.job.company.userId, title, body, link: "/company/dashboard" } });
     await emailNotify([c.application.job.company.userId], title, body, "/company/dashboard");
   }
   return { ok: true };

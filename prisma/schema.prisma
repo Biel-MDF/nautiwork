@@ -308,6 +308,8 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   body      String
+  /// página do site que resolve o aviso (ex.: /checkin/abc); a notificação vira um link
+  link      String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 

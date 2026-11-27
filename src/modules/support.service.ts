@@ -16,7 +16,7 @@ const plainName = (n: string) => n.replace(/\[[^\]]*\]\s*/g, "");
 /** Avisa a equipe: notificação no site para cada admin e e-mail para o endereço de suporte (resposta vai direto ao usuário). */
 async function alertStaff(ticketId: string, subject: string, intro: string, message: string, from: { name: string; email: string }) {
   const admins = await db.user.findMany({ where: { role: "ADMIN", active: true }, select: { id: true } });
-  if (admins.length) await db.notification.createMany({ data: admins.map((a) => ({ userId: a.id, title: "Suporte", body: `${intro}: "${subject}".` })) });
+  if (admins.length) await db.notification.createMany({ data: admins.map((a) => ({ userId: a.id, title: "Suporte", body: `${intro}: "${subject}".`, link: `/admin/support/${ticketId}` })) });
   const to = process.env.SUPPORT_EMAIL;
   if (!to) return;
   const mail = actionMail(to, `[Suporte Nautiwork] ${subject}`, `${intro}, enviado por ${plainName(from.name)} (${from.email}).`,
@@ -54,7 +54,7 @@ export async function addMessage(userId: string, role: string, ticketId: string,
     const m = await tx.supportMessage.create({ data: { ticketId, authorId: userId, body, fromStaff: staff } });
     // Resposta da equipe marca como respondido; nova mensagem do usuário (inclusive em pedido encerrado) reabre.
     await tx.supportTicket.update({ where: { id: ticketId }, data: { status: staff ? "ANSWERED" : "OPEN" } });
-    if (staff) await tx.notification.create({ data: { userId: t.userId, title: "Suporte respondeu", body: `Há uma resposta no seu pedido "${t.subject}".` } });
+    if (staff) await tx.notification.create({ data: { userId: t.userId, title: "Suporte respondeu", body: `Há uma resposta no seu pedido "${t.subject}".`, link: `/support/${t.id}` } });
     return m;
   });
   if (staff) await emailNotify([t.userId], "Suporte respondeu", `Há uma resposta no seu pedido "${t.subject}":\n\n${body}`, `/support/${t.id}`);

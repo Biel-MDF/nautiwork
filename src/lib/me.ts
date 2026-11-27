@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import type { MenuUser } from "@/components/AccountMenu";
 import type { ViewMode } from "@/lib/view-mode";
 
-export type Me = { user: MenuUser | null; mode: ViewMode | null; as: string | null };
+export type Me = { user: MenuUser | null; unread?: number; mode: ViewMode | null; as: string | null };
 const KEY = "nw-me";
 let state: Me | undefined;
 let inflight: Promise<void> | null = null;

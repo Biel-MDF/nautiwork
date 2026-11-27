@@ -45,6 +45,6 @@ export async function validateProject(raw: unknown, viewerUserId: string | null)
   const { count } = await db.project.updateMany({ where: { id: project.id, validatedAt: null }, data: {
     validatedAt: new Date(), teacherName, validatorNote: note ?? null, tokenHash: null } });
   if (count === 0) throw new HttpError(404, "Este link não vale mais.");
-  await db.notification.create({ data: { userId: project.candidate.user.id, title: "Projeto confirmado", body: `${teacherName} confirmou o projeto "${project.title}". Ele aparece com o selo de confirmado no seu currículo.` } });
+  await db.notification.create({ data: { userId: project.candidate.user.id, title: "Projeto confirmado", link: "/candidate/resume", body: `${teacherName} confirmou o projeto "${project.title}". Ele aparece com o selo de confirmado no seu currículo.` } });
   return { ok: true };
 }

@@ -77,8 +77,8 @@ async function holdForReview(jobId: string, title: string, companyUserId: string
   await db.job.update({ where: { id: jobId }, data: { flagged: true } });
   const admins = await db.user.findMany({ where: { role: "ADMIN", active: true }, select: { id: true } });
   await db.notification.createMany({ data: [
-    { userId: companyUserId, title: "Vaga em análise", body: `"${title}" ficou em análise antes de ir ao ar porque o texto ${warn.join(", ")}. A equipe libera em breve; se for engano, edite o texto.` },
-    ...admins.map((a) => ({ userId: a.id, title: "Vaga para revisar", body: `"${title}" foi retida automaticamente: ${warn.join(", ")}.` })),
+    { userId: companyUserId, title: "Vaga em análise", link: "/company/jobs", body: `"${title}" ficou em análise antes de ir ao ar porque o texto ${warn.join(", ")}. A equipe libera em breve; se for engano, edite o texto.` },
+    ...admins.map((a) => ({ userId: a.id, title: "Vaga para revisar", link: "/admin/jobs", body: `"${title}" foi retida automaticamente: ${warn.join(", ")}.` })),
   ] });
 }
 
@@ -123,7 +123,7 @@ export async function setJobStatus(userId: string, jobId: string, status: "ACTIV
       include: { candidate: true },
     });
     await db.notification.createMany({ data: apps.map((a) => ({
-      userId: a.candidate.userId, title: "Vaga encerrada", body: `A vaga "${job.title}" foi encerrada pela empresa.` })) });
+      userId: a.candidate.userId, title: "Vaga encerrada", body: `A vaga "${job.title}" foi encerrada pela empresa.`, link: "/candidate/applications" })) });
     await emailNotify(apps.map((a) => a.candidate.userId), "Vaga encerrada", `A vaga "${job.title}" foi encerrada pela empresa.`, "/candidate/applications");
   }
   return updated;

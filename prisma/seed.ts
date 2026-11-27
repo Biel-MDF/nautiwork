@@ -103,7 +103,8 @@ async function main() {
       history: { create: hist.slice(0, hist.indexOf(status) + 1).map((s) => ({ status: s })) } } });
   }
   // os mesmos dados de demonstração dos diferenciais que a migração aplica em produção
-  const extras = readFileSync(path.join(__dirname, "migrations/20261127003000_demo_differentials/migration.sql"), "utf8");
+  const extras = ["20261127003000_demo_differentials", "20261127013000_notification_link"]
+    .map((m) => readFileSync(path.join(__dirname, `migrations/${m}/migration.sql`), "utf8").replace(/^ALTER TABLE[^;]*;/m, "")).join(";\n");
   for (const stmt of extras.split(/;\s*\n/).map((x) => x.replace(/^\s*--.*$/gm, "").trim()).filter(Boolean)) await db.$executeRawUnsafe(stmt);
 
   console.log(`Seed ok. ${process.env.SEED_PASSWORD ? "Senhas definidas por variável de ambiente (não exibidas)." : `Senha de todas as contas demo: ${PASSWORD}`}\n  admin${D}\n  mares${D} (empresa)\n  ana${D} (candidata)`);

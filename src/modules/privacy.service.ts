@@ -109,7 +109,7 @@ export async function deleteAccount(userId: string, raw: unknown) {
     });
     affected = apps.map((a) => a.candidate.userId);
     const body = (title: string) => `A empresa ${user.company!.name} saiu do Nautiwork e a vaga "${title}" foi encerrada.`;
-    if (apps.length) await db.notification.createMany({ data: apps.map((a) => ({ userId: a.candidate.userId, title: "Vaga encerrada", body: body(a.job.title) })) });
+    if (apps.length) await db.notification.createMany({ data: apps.map((a) => ({ userId: a.candidate.userId, title: "Vaga encerrada", body: body(a.job.title), link: "/candidate/applications" })) });
     await db.user.delete({ where: { id: userId } });
     // Um e-mail por candidato basta, mesmo que ele tenha se candidatado a várias vagas da empresa.
     await emailNotify(affected, "Vaga encerrada", `A empresa ${user.company.name} saiu do Nautiwork e as vagas dela foram encerradas.`, "/candidate/applications");

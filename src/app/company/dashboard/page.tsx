@@ -58,7 +58,7 @@ export default async function CompanyDashboard() {
       {recent.length === 0 ? <Empty title="Sem candidaturas ainda" hint="Publique uma vaga para começar a receber candidatos." href="/company/jobs/new" cta="Publicar vaga" /> :
         <ul className="space-y-2">{recent.map((a) => <li key={a.id} className="card flex flex-wrap items-center justify-between gap-3"><span className="min-w-0 break-words"><span className="font-semibold"><CompanyName name={a.candidate.user.name} person /></span> • {a.job.title}</span><StatusBadge status={a.status} /></li>)}</ul>}
       <h2 className="mb-3 mt-8 text-lg font-bold">Notificações</h2>
-      <NotificationList items={notes.map((n) => ({ id: n.id, title: n.title, body: n.body, read: n.read, createdAt: n.createdAt.toISOString() }))} />
+      <NotificationList items={notes.map((n) => ({ id: n.id, title: n.title, body: n.body, link: n.link, read: n.read, createdAt: n.createdAt.toISOString() }))} />
     </Shell>
   );
 }

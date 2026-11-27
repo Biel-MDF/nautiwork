@@ -34,8 +34,8 @@ export async function applyToJob(userId: string, raw: unknown) {
           history: { create: { status: "SUBMITTED", changedById: userId } } },
       });
       await tx.notification.createMany({ data: [
-        { userId, title: "Candidatura enviada", body: `Você se candidatou a "${job.title}" em ${job.company.name}.` },
-        { userId: job.company.userId, title: "Nova candidatura", body: `${profile.user.name} se candidatou a "${job.title}".` },
+        { userId, title: "Candidatura enviada", body: `Você se candidatou a "${job.title}" em ${job.company.name}.`, link: "/candidate/applications" },
+        { userId: job.company.userId, title: "Nova candidatura", body: `${profile.user.name} se candidatou a "${job.title}".`, link: `/company/applications?job=${jobId}` },
       ] });
       return app;
     });
@@ -65,7 +65,7 @@ export async function updateApplicationStatus(userId: string, applicationId: str
   const updated = await db.$transaction(async (tx) => {
     const u = await tx.jobApplication.update({ where: { id: applicationId }, data: { status, ...extra } });
     await tx.applicationStatusHistory.create({ data: { applicationId, status, changedById: userId } });
-    await tx.notification.create({ data: { userId: app.candidate.userId, title: "Candidatura atualizada", body } });
+    await tx.notification.create({ data: { userId: app.candidate.userId, title: "Candidatura atualizada", body, link: "/candidate/applications" } });
     return u;
   });
   await emailNotify([app.candidate.userId], "Candidatura atualizada", body, "/candidate/applications");

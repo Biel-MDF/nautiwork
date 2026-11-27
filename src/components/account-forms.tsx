@@ -1,5 +1,6 @@
 "use client";
 import { meChanged } from "@/lib/me";
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -252,7 +253,7 @@ export function ImageUpload({ userId, version, label }: { userId: string; versio
 
 /* ---------- Notificações ---------- */
 
-export type NotificationItem = { id: string; title: string; body: string; read: boolean; createdAt: string };
+export type NotificationItem = { id: string; title: string; body: string; link?: string | null; read: boolean; createdAt: string };
 
 export function NotificationList({ items }: { items: NotificationItem[] }) {
   const router = useRouter();
@@ -274,7 +275,8 @@ export function NotificationList({ items }: { items: NotificationItem[] }) {
         {items.map((n) => (
           <li key={n.id} className={`card flex flex-wrap items-start justify-between gap-3 text-sm ${n.read ? "" : "border-tide/50 bg-foam/60"}`}>
             <div className="min-w-0 break-words">
-              <p className="font-semibold">{!n.read && <span className="sr-only">Não lida: </span>}{n.title}</p>
+              <p className="font-semibold">{!n.read && <span className="sr-only">Não lida: </span>}
+                {n.link ? <Link href={n.link} className="hover:text-tide hover:underline" onClick={() => { if (!n.read) void api("PATCH", "/api/notifications", { ids: [n.id] }).then(meChanged); }}>{n.title}</Link> : n.title}</p>
               <p>{n.body}</p>
               <p className="mt-1 text-xs text-abyss/60">{new Date(n.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</p>
             </div>

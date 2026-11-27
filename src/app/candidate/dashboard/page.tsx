@@ -51,7 +51,7 @@ export default async function CandidateDashboard() {
       {profile.applications.length === 0 ? <Empty title="Você ainda não se candidatou" hint="Encontre uma vaga e envie sua primeira candidatura." href="/jobs" cta="Buscar vagas" /> :
         <ul className="space-y-2">{profile.applications.map((a) => <li key={a.id} className="card flex items-center justify-between gap-3"><Link href={`/jobs/${a.jobId}`} className="font-semibold hover:text-tide">{a.job.title} <span className="font-normal text-abyss/70">• <CompanyName name={a.job.company.name} /></span></Link><StatusBadge status={a.status} /></li>)}</ul>}
       <h2 className="mb-3 mt-8 text-lg font-bold">Notificações</h2>
-      <NotificationList items={notes.map((n) => ({ id: n.id, title: n.title, body: n.body, read: n.read, createdAt: n.createdAt.toISOString() }))} />
+      <NotificationList items={notes.map((n) => ({ id: n.id, title: n.title, body: n.body, link: n.link, read: n.read, createdAt: n.createdAt.toISOString() }))} />
     </Shell>
   );
 }

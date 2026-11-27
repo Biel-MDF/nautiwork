@@ -436,6 +436,10 @@ if (!OUTBOX) {
   r = await sup.req("GET", "/api/me");
   check("/api/me traz a conta de quem está logado", r.status === 200 && !!r.json?.user?.id && r.json.user.role === "CANDIDATE" && !("passwordHash" in r.json.user), JSON.stringify(r.json));
   check("/api/me não é guardado em cache", /no-store/.test(r.headers.get("cache-control") ?? ""), r.headers.get("cache-control") ?? "sem cabeçalho");
+  r = await sup.req("GET", "/api/notifications");
+  check("sino lista as notificações com link", r.status === 200 && Array.isArray(r.json?.items) && r.json.items.every((n) => "link" in n), `status ${r.status}`);
+  r = await anon.req("GET", "/api/notifications");
+  check("sino sem login retorna 401", r.status === 401, `status ${r.status}`);
   r = await anon.req("GET", "/api/me");
   check("/api/me para visitante não traz conta", r.status === 200 && r.json?.user === null && r.json?.mode === null, JSON.stringify(r.json));
   for (const p of ["/support", "/support/new"]) { r = await sup.req("GET", p); check(`página ${p} responde 200 para quem está logado`, r.status === 200, `status ${r.status}`); }
