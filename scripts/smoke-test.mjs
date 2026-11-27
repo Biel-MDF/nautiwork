@@ -394,8 +394,8 @@ if (!OUTBOX) {
   check("troca de senha logado (200)", r.status === 200, JSON.stringify(r.json));
   r = await fresh.req("PUT", "/api/profile", { headline: "x", skills: [] });
   check("troca de senha encerra a sessão atual (401)", r.status === 401, `status ${r.status}`);
-  r = await fresh.req("GET", "/");
-  check("navbar não mostra sessão encerrada como logada", r.text.includes("Criar conta") && !r.text.includes("Meu painel"), "navbar ainda logada");
+  r = await fresh.req("GET", "/api/me");
+  check("sessão encerrada não aparece como logada (/api/me)", r.status === 200 && r.json?.user === null, JSON.stringify(r.json));
 }
 
 // 13. Suporte, preferências e menu da conta
