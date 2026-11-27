@@ -21,13 +21,16 @@ export async function exportUserData(userId: string) {
       candidate: {
         select: {
           headline: true, about: true, location: true, interestArea: true, workMode: true, objective: true,
-          linkedinUrl: true, yearsExperience: true, updatedAt: true,
-          skills: { select: { skill: { select: { name: true } } } },
+          linkedinUrl: true, yearsExperience: true, updatedAt: true, postalCode: true, whatsapp: true, whatsappOptIn: true,
+          skills: { select: { verifiedAt: true, skill: { select: { name: true } } } },
+          skillChecks: { select: { skill: true, score: true, total: true, passed: true, startedAt: true, finishedAt: true }, orderBy: { startedAt: "desc" } },
+          projects: { select: { title: true, description: true, url: true, school: true, teacherName: true, teacherEmail: true, validatedAt: true, validatorNote: true, createdAt: true } },
+          checkins: { where: { role: "CANDIDATE" }, select: { day: true, score: true, wantsTalk: true, comment: true, answeredAt: true } },
           educations: { select: { institution: true, course: true, startYear: true, endYear: true } },
           experiences: { select: { company: true, role: true, description: true, startDate: true, endDate: true } },
           applications: {
             select: {
-              status: true, coverNote: true, compatibility: true, createdAt: true, updatedAt: true,
+              status: true, coverNote: true, compatibility: true, createdAt: true, updatedAt: true, rejectReason: true, rejectSkills: true, hiredAt: true,
               job: { select: { title: true, company: { select: { name: true } } } },
               history: { select: { status: true, createdAt: true }, orderBy: { createdAt: "asc" } },
             },
@@ -40,11 +43,12 @@ export async function exportUserData(userId: string) {
       company: {
         select: {
           name: true, description: true, industry: true, website: true, location: true,
+          cnpj: true, legalName: true, cnpjVerifiedAt: true, companySize: true, employees: true, apprentices: true, pcdEmployees: true,
           jobs: {
             select: {
               title: true, description: true, responsibilities: true, requirements: true, benefits: true, area: true,
               location: true, workMode: true, contractType: true, seniority: true, salaryMin: true, salaryMax: true,
-              minYears: true, status: true, publishedAt: true, updatedAt: true,
+              minYears: true, status: true, publishedAt: true, updatedAt: true, forApprentice: true, pcdOnly: true, postalCode: true,
               skills: { select: { skill: { select: { name: true } } } },
               _count: { select: { applications: true } },
             },
@@ -63,9 +67,10 @@ export async function exportUserData(userId: string) {
     },
   });
   if (!user) throw new HttpError(404, "Conta não encontrada.");
+  const reports = await db.jobReport.findMany({ where: { userId }, select: { reason: true, createdAt: true, job: { select: { title: true } } } });
 
   // Achata as tabelas de ligação para o arquivo ficar legível por uma pessoa.
-  const skillNames = (s: { skill: { name: string } }[]) => s.map((x) => x.skill.name);
+  const skillNames = (s: { skill: { name: string }; verifiedAt?: Date | null }[]) => s.map((x) => (x.verifiedAt ? `${x.skill.name} (comprovada em ${x.verifiedAt.toISOString().slice(0, 10)})` : x.skill.name));
   return {
     exportadoEm: new Date().toISOString(),
     aviso: "Cópia dos seus dados pessoais no Nautiwork. A senha não é incluída porque só guardamos um hash dela.",
@@ -77,6 +82,7 @@ export async function exportUserData(userId: string) {
     },
     notificacoes: user.notifications,
     pedidosDeSuporte: user.supportTickets,
+    denunciasDeVagas: reports,
   };
 }
 
@@ -93,6 +99,8 @@ export async function deleteAccount(userId: string, raw: unknown) {
   if (user.role === "ADMIN") throw new HttpError(403, "Contas de administrador não podem ser excluídas por aqui.");
   if (!(await bcrypt.compare(password, user.passwordHash))) throw new HttpError(400, "Senha incorreta.");
 
+  // denúncias feitas pela pessoa saem junto (guardam quem denunciou)
+  await db.jobReport.deleteMany({ where: { userId } });
   let affected: string[] = [];
   if (user.company) {
     const apps = await db.jobApplication.findMany({

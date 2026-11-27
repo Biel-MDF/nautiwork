@@ -51,8 +51,8 @@ const Mode = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" a
 const Doc = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-tide/80"><path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10A.5.5 0 0 1 7 20V3.5Z" stroke="currentColor" strokeWidth="1.8"/><path d="M10 12h5M10 15.5h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
 
 type JobCardJob = { id: string; title: string; location: string; workMode: keyof typeof workModeLabel; contractType: keyof typeof contractLabel;
-  salaryMin: number | null; salaryMax: number | null; publishedAt?: Date | null;
-  company: { id: string; name: string; userId?: string; user?: { image: { updatedAt: Date } | null } };
+  salaryMin: number | null; salaryMax: number | null; publishedAt?: Date | null; forApprentice?: boolean; pcdOnly?: boolean;
+  company: { id: string; name: string; userId?: string; cnpjVerifiedAt?: Date | null; user?: { image: { updatedAt: Date } | null } };
   skills: { skill: { name: string } }[] };
 
 /**
@@ -60,7 +60,7 @@ type JobCardJob = { id: string; title: string; location: string; workMode: keyof
  * save ("saved"/"unsaved" mostram o marcador; "login" leva ao login).
  * O conteúdo ocupa a altura toda e as habilidades descem para o pé, para a grade ficar alinhada.
  */
-export function JobCard({ job, score, save }: { job: JobCardJob; score?: number; save?: "saved" | "unsaved" | "login" }) {
+export function JobCard({ job, score, save, commute }: { job: JobCardJob; score?: number; save?: "saved" | "unsaved" | "login"; commute?: number | null }) {
   const salary = salaryRange(job.salaryMin, job.salaryMax);
   const mark = job.company.userId;
   return (
@@ -80,7 +80,9 @@ export function JobCard({ job, score, save }: { job: JobCardJob; score?: number;
         <li className="flex items-center gap-1.5"><Pin />{job.location}</li>
         <li className="flex items-center gap-1.5"><Mode />{workModeLabel[job.workMode]}</li>
         <li className="flex items-center gap-1.5"><Doc />{contractLabel[job.contractType]}</li>
+        {commute != null && <li className="flex items-center gap-1.5" title="Estimativa de transporte público a partir do seu CEP"><Clock />≈ {commute} min de casa</li>}
       </ul>
+      <JobTags job={job} className="mt-2.5" />
       <div className="mt-2 flex items-center justify-between gap-3">
           {salary ? <p className="tabular text-sm font-medium text-abyss">{salary}</p> : <p className="text-sm text-abyss/60">Salário não informado</p>}
           {score !== undefined && <span className="flex items-center gap-2 text-xs text-abyss/60">compatibilidade<ScoreRing score={score} size={44} /></span>}
@@ -94,6 +96,31 @@ export function JobCard({ job, score, save }: { job: JobCardJob; score?: number;
     </article>
   );
 }
+
+/** Selos da vaga: Jovem Aprendiz, vaga PcD e empresa com CNPJ verificado. */
+export function JobTags({ job, className = "" }: { job: Pick<JobCardJob, "forApprentice" | "pcdOnly" | "company">; className?: string }) {
+  const tags: [string, string][] = [];
+  if (job.forApprentice) tags.push(["Jovem Aprendiz", "Contrato de aprendizagem, com carteira assinada"]);
+  if (job.pcdOnly) tags.push(["Vaga para PcD", "Vaga exclusiva para pessoas com deficiência"]);
+  if (job.company.cnpjVerifiedAt) tags.push(["Empresa verificada", "CNPJ ativo conferido na Receita Federal"]);
+  if (!tags.length) return null;
+  return (
+    <ul className={`relative z-10 flex flex-wrap gap-1.5 ${className}`} aria-label="Selos da vaga">
+      {tags.map(([t, title]) => <li key={t} title={title} className="inline-flex items-center gap-1 rounded-full border border-reef/40 bg-reef/10 px-2 py-0.5 text-xs font-semibold text-abyss">
+        {t === "Empresa verificada" && <svg viewBox="0 0 24 24" className="h-3 w-3 text-reef" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>}{t}</li>)}
+    </ul>
+  );
+}
+
+/** Habilidade no currículo; "comprovada" quando a pessoa passou na prova do Nautiwork. */
+export function SkillBadge({ name, verified }: { name: string; verified?: boolean }) {
+  return verified
+    ? <span className="inline-flex items-center gap-1 rounded-md border border-reef/40 bg-reef/10 px-2 py-1 text-sm" title="Comprovada por prova no Nautiwork">{name}
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-reef" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg><span className="sr-only">(comprovada)</span></span>
+    : <span className="rounded-md bg-foam px-2 py-1 text-sm">{name}</span>;
+}
+
+const Clock = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="text-tide/80" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" strokeLinecap="round" /></svg>;
 
 /** Foto ou logotipo servido por /api/images (com checagem de permissão). Sem imagem, a inicial na cor fixa da pessoa. */
 export function Avatar({ userId, name, version, size = 48 }: { userId: string; name: string; version?: Date | null; size?: number }) {

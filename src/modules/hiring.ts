@@ -128,6 +128,58 @@ export async function notifyNoReply(now = new Date()) {
   return late.length;
 }
 
+/* ---------- acompanhamento dos primeiros 90 dias ---------- */
+
+export const CHECKIN_DAYS = [30, 60, 90] as const;
+
+/** Cria as perguntas de 30, 60 e 90 dias para cada contratação (uma para cada lado) e avisa. */
+export async function createDueCheckins(now = new Date()) {
+  const hires = await db.jobApplication.findMany({
+    where: { status: "APPROVED", hiredAt: { not: null, gte: new Date(now.getTime() - 120 * DAY), lte: new Date(now.getTime() - CHECKIN_DAYS[0] * DAY) } },
+    select: { id: true, hiredAt: true, candidateId: true, candidate: { select: { userId: true, user: { select: { name: true } } } },
+      job: { select: { title: true, company: { select: { userId: true, name: true } } } }, checkins: { select: { day: true, role: true } } },
+  });
+  let created = 0;
+  for (const h of hires) {
+    const days = Math.floor((now.getTime() - h.hiredAt!.getTime()) / DAY);
+    for (const day of CHECKIN_DAYS) {
+      if (days < day) continue;
+      for (const role of ["CANDIDATE", "COMPANY"] as const) {
+        if (h.checkins.some((c) => c.day === day && c.role === role)) continue;
+        try {
+          const c = await db.hireCheckin.create({ data: { applicationId: h.id, candidateId: h.candidateId, day, role } });
+          created++;
+          const person = h.candidate.user.name.replace(/\[[^\]]*\]\s*/g, "");
+          const company = h.job.company.name.replace(/\[[^\]]*\]\s*/g, "");
+          await db.notification.create({ data: role === "CANDIDATE"
+            ? { userId: h.candidate.userId, title: `Como estão seus ${day} dias?`, body: `Uma pergunta rápida sobre o trabalho em ${company}. Sua resposta é só sua; a empresa só fica sabendo se você pedir uma conversa. Responda em /checkin/${c.id}` }
+            : { userId: h.job.company.userId, title: `${day} dias de ${person}`, body: `Como está a pessoa contratada para "${h.job.title}"? Registre em /checkin/${c.id}` } });
+        } catch { /* outra varredura criou ao mesmo tempo (índice único) */ }
+      }
+    }
+  }
+  return created;
+}
+
+export async function answerCheckin(userId: string, id: string, raw: { score: number; wantsTalk: boolean; comment?: string }) {
+  const c = await db.hireCheckin.findUnique({ where: { id }, include: { application: { include: { candidate: { include: { user: true } }, job: { include: { company: true } } } } } });
+  if (!c) throw new HttpError(404, "Pergunta não encontrada.");
+  const owner = c.role === "CANDIDATE" ? c.application.candidate.userId : c.application.job.company.userId;
+  if (owner !== userId) throw new HttpError(404, "Pergunta não encontrada.");
+  const { count } = await db.hireCheckin.updateMany({ where: { id, answeredAt: null }, data: {
+    score: raw.score, wantsTalk: c.role === "CANDIDATE" ? raw.wantsTalk : false, comment: raw.comment ?? null, answeredAt: new Date() } });
+  if (count === 0) throw new HttpError(409, "Esta pergunta já foi respondida.");
+  // o candidato decide: só o pedido de conversa vai para a empresa, nunca a nota ou o comentário
+  if (c.role === "CANDIDATE" && raw.wantsTalk) {
+    const person = c.application.candidate.user.name.replace(/\[[^\]]*\]\s*/g, "");
+    const title = "Pedido de conversa";
+    const body = `${person}, contratado(a) para "${c.application.job.title}", pediu uma conversa sobre como está indo o trabalho (${c.day} dias).`;
+    await db.notification.create({ data: { userId: c.application.job.company.userId, title, body } });
+    await emailNotify([c.application.job.company.userId], title, body, "/company/dashboard");
+  }
+  return { ok: true };
+}
+
 let lastSweep = 0;
 /** Chamada a cada página: roda as duas varreduras no máximo a cada 10 minutos por servidor. */
 export async function maybeSweep(now = new Date()) {
@@ -136,6 +188,7 @@ export async function maybeSweep(now = new Date()) {
   try {
     await expireStaleJobs(now);
     await notifyNoReply(now);
+    await createDueCheckins(now);
   } catch (e) {
     console.error("[varredura] falhou:", (e as Error).message);
   }

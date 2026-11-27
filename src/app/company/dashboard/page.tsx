@@ -29,6 +29,8 @@ export default async function CompanyDashboard() {
     db.jobApplication.count({ where: { job: { companyId: company.id }, status: "SUBMITTED", createdAt: { lt: new Date(now - NO_REPLY_DAYS * DAY) } } }),
     responseStats([company.id]).then((m) => m.get(company.id) ?? null),
   ]);
+  const checkins = await db.hireCheckin.findMany({ where: { role: "COMPANY", answeredAt: null, application: { job: { companyId: company.id } } }, orderBy: { createdAt: "asc" },
+    include: { application: { select: { job: { select: { title: true } }, candidate: { select: { user: { select: { name: true } } } } } } } });
   return (
     <Shell role="COMPANY" title={splitDemo(company.name).name}>
       {!user.emailVerified && <VerifyEmailBanner email={user.email} />}
@@ -43,7 +45,9 @@ export default async function CompanyDashboard() {
           </div>
           <ResponseBadge stats={stats} />
         </div>
-        {(expiring > 0 || expired > 0 || waiting > 0) && <ul className="mt-3 space-y-1.5 text-sm">
+        {(expiring > 0 || expired > 0 || waiting > 0 || checkins.length > 0 || !company.cnpjVerifiedAt) && <ul className="mt-3 space-y-1.5 text-sm">
+          {checkins.map((c) => <li key={c.id}><Link href={`/checkin/${c.id}`} className="text-tide hover:underline">Acompanhamento de {c.day} dias: <CompanyName name={c.application.candidate.user.name} person />, {c.application.job.title}</Link></li>)}
+          {!company.cnpjVerifiedAt && <li><Link href="/company/cotas" className="text-tide hover:underline">Informe o CNPJ para ganhar o selo de empresa verificada nas vagas</Link></li>}
           {waiting > 0 && <li><Link href="/company/applications" className="text-tide hover:underline">{waiting} {waiting === 1 ? "candidatura espera" : "candidaturas esperam"} resposta há mais de {NO_REPLY_DAYS} dias</Link></li>}
           {expiring > 0 && <li><Link href="/company/jobs" className="text-tide hover:underline">{expiring} {expiring === 1 ? "vaga vence" : "vagas vencem"} em até {EXPIRY_WARN_DAYS} dias: confirme se ainda está contratando</Link></li>}
           {expired > 0 && <li><Link href="/company/jobs" className="text-tide hover:underline">{expired} {expired === 1 ? "vaga saiu" : "vagas saíram"} do ar por falta de confirmação</Link></li>}

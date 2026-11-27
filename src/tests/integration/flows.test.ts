@@ -115,7 +115,7 @@ describe("status e permissões entre empresas", () => {
   it("outra empresa recebe 403 ao mudar status, e nada muda", async () => {
     const cand = await makeCandidate();
     const app = await applyToJob(cand.id, { jobId });
-    await expectHttp(updateApplicationStatus(companyB.id, app.id, { status: "REJECTED" }), 403);
+    await expectHttp(updateApplicationStatus(companyB.id, app.id, { status: "REJECTED", reason: "OTHER" }), 403);
     expect((await db.jobApplication.findUniqueOrThrow({ where: { id: app.id } })).status).toBe("SUBMITTED");
     expect(await db.applicationStatusHistory.count({ where: { applicationId: app.id } })).toBe(1);
   });

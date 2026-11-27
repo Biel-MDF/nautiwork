@@ -50,7 +50,14 @@ export default function About() {
               ["Selo de quem responde", "A empresa que responde 80% ou mais das candidaturas em até 7 dias (mediana dos últimos 6 meses) ganha o selo Responde candidatos."],
               ["Aviso de sem retorno", "Se a empresa passar 14 dias sem mexer na sua candidatura, você recebe um aviso e a candidatura mostra há quantos dias está sem resposta."],
               ["Quem viu seu currículo", "Quando uma empresa abre o seu currículo completo, você é avisado e vê a lista em Quem viu meu currículo."],
-            ] as const).map(([t, d]) => <div key={t} className="bg-casco p-6 md:last:col-span-2"><dt className="font-semibold">{t}</dt><dd className="mt-1.5 text-sm leading-relaxed text-abyss/80">{d}</dd></div>)}
+              ["Recusa com motivo", "Ao recusar, a empresa escolhe o motivo e pode marcar habilidades a desenvolver. Você recebe o retorno com cursos gratuitos para cada uma."],
+              ["Antigolpe", "Vaga que pede Pix, taxa, curso pago ou dados bancários não é publicada. Sinais suspeitos passam pela moderação, e três denúncias tiram a vaga do ar até a revisão."],
+              ["Empresa verificada", "A empresa que informa um CNPJ ativo na base pública da Receita ganha o selo Empresa verificada nas vagas."],
+              ["Vaga de iniciante sem pegadinha", "Estágio, Jovem Aprendiz e vaga sem experiência não podem pedir anos de experiência no texto: o site barra na publicação."],
+              ["Habilidade comprovada", "Provas curtas de habilidade, com tempo e correção no servidor. Quem passa ganha o selo comprovada no currículo."],
+              ["Projeto confirmado pelo professor", "O projeto do curso entra no currículo e o professor confirma a autoria por um link, sem criar conta."],
+              ["Acompanhamento de 90 dias", "Depois da contratação, uma pergunta rápida aos 30, 60 e 90 dias. A nota do contratado fica só com ele; a empresa só é avisada se ele pedir uma conversa."],
+            ] as const).map(([t, d]) => <div key={t} className="bg-casco p-6"><dt className="font-semibold">{t}</dt><dd className="mt-1.5 text-sm leading-relaxed text-abyss/80">{d}</dd></div>)}
           </dl>
         </section>
         <div className="mt-10 flex flex-wrap gap-3"><Link href="/register" className="btn-primary">Criar perfil</Link><Link href="/jobs" className="btn-ghost">Ver vagas</Link></div>

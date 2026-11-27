@@ -152,7 +152,7 @@ r = await cand.req("GET", "/candidate/views");
 check("candidato vê a empresa em Quem viu meu currículo", r.status === 200 && !r.text.includes("Nenhuma empresa abriu"), `status ${r.status}`);
 
 // 7. Isolamento entre empresas
-r = await other.req("PATCH", `/api/applications/${appId}`, { status: "REJECTED" });
+r = await other.req("PATCH", `/api/applications/${appId}`, { status: "REJECTED", reason: "OTHER" });
 check("outra empresa mudando status da candidatura retorna 403", r.status === 403, `status ${r.status}`);
 r = await other.req("PATCH", `/api/jobs/${jobId}`, { status: "PAUSED" });
 check("outra empresa pausando a vaga retorna 403", r.status === 403, `status ${r.status}`);
@@ -160,6 +160,44 @@ r = await other.req("PATCH", `/api/jobs/${jobId}`, jobBody);
 check("outra empresa editando a vaga retorna 403", r.status === 403, `status ${r.status}`);
 r = await comp.req("PATCH", `/api/jobs/naoexiste`, { status: "PAUSED" });
 check("vaga inexistente retorna 404", r.status === 404, `status ${r.status}`);
+
+// 7b. Diferenciais: antigolpe, denúncia, recusa com motivo, provas, projetos, cotas, guia
+r = await comp.req("POST", "/api/jobs", { ...jobBody, title: `Golpe ${run}`, description: "Pague a taxa de inscrição via Pix para garantir a vaga." });
+check("vaga pedindo Pix é recusada (400 com campo)", r.status === 400 && !!r.json?.fields?.description, `status ${r.status}`);
+r = await comp.req("POST", "/api/jobs", { ...jobBody, title: `Estágio ${run}`, contractType: "INTERNSHIP", seniority: "INTERN", minYears: 0, requirements: "3 anos de experiência" });
+check("estágio pedindo anos de experiência é recusado", r.status === 400 && !!r.json?.fields?.requirements, `status ${r.status}`);
+r = await comp.req("POST", `/api/jobs/${jobId}/report`, { reason: "SCAM" });
+check("empresa não denuncia a própria vaga", r.status === 400, `status ${r.status}`);
+r = await anon.req("POST", `/api/jobs/${jobId}/report`, { reason: "SCAM" });
+check("denúncia sem login retorna 401", r.status === 401, `status ${r.status}`);
+r = await cand.req("POST", `/api/jobs/${jobId}/report`, { reason: "WRONG_INFO", details: "teste do smoke" });
+check("candidato denuncia a vaga", r.status === 201 && r.json?.count === 1, JSON.stringify(r.json));
+r = await cand.req("POST", `/api/jobs/${jobId}/report`, { reason: "SCAM" });
+check("denúncia repetida retorna 409", r.status === 409, `status ${r.status}`);
+r = await comp.req("PATCH", `/api/applications/${appId}`, { status: "REJECTED" });
+check("recusa sem motivo retorna 400", r.status === 400 && !!r.json?.fields?.reason, `status ${r.status}`);
+r = await cand.req("POST", "/api/skill-checks", { skill: "excel" });
+check("candidato começa prova sem receber as respostas", r.status === 201 && r.json?.questions?.length === 5 && !JSON.stringify(r.json).includes("answer"), `status ${r.status}`);
+r = await comp.req("POST", "/api/skill-checks", { skill: "excel" });
+check("empresa não faz prova (403)", r.status === 403, `status ${r.status}`);
+r = await cand.req("POST", "/api/projects", { title: "Projeto do smoke", description: "Projeto criado pelo teste automático do site.", school: "Escola Teste", teacherName: "Professor Teste", teacherEmail: "professor@example.com" });
+check("candidato cadastra projeto e recebe link", r.status === 201 && /\/validar-projeto\//.test(r.json?.link ?? ""), `status ${r.status}`);
+r = await anon.req("GET", "/validar-projeto/token-que-nao-existe-1234567890");
+check("link de projeto inválido mostra aviso", r.status === 200 && r.text.includes("Link sem validade"), `status ${r.status}`);
+r = await comp.req("PUT", "/api/company/compliance", { cnpj: "11.222.333/0001-82", companySize: "MEDIUM", employees: 150 });
+check("CNPJ com dígito errado retorna 400", r.status === 400 && !!r.json?.fields?.cnpj, `status ${r.status}`);
+r = await comp.req("PUT", "/api/company/compliance", { companySize: "MEDIUM", employees: 150, apprentices: 1 });
+check("empresa salva dados de cotas", r.status === 200, `status ${r.status}`);
+r = await comp.req("GET", "/company/cotas");
+check("página de cotas mostra a estimativa", r.status === 200 && r.text.includes("Estimativa das cotas"), `status ${r.status}`);
+r = await cand.req("GET", "/candidate/provas");
+check("página de provas responde 200", r.status === 200 && r.text.includes("Excel"), `status ${r.status}`);
+r = await cand.req("PUT", "/api/profile/contact", { whatsapp: "11912345678", whatsappOptIn: true });
+check("candidato salva WhatsApp com autorização", r.status === 200, `status ${r.status}`);
+r = await anon.req("GET", "/primeiro-emprego");
+check("guia do primeiro emprego responde 200", r.status === 200 && r.text.includes("Como reconhecer golpe"), `status ${r.status}`);
+r = await anon.req("GET", "/jobs?aprendiz=1&pcd=1");
+check("filtros de Jovem Aprendiz e PcD respondem 200", r.status === 200, `status ${r.status}`);
 
 // 8. Barreiras de rota
 r = await cand.req("GET", "/company/dashboard");

@@ -121,7 +121,17 @@ model CandidateProfile {
   objective       String?
   linkedinUrl     String?
   yearsExperience Int              @default(0)
+  /// CEP e coordenadas aproximadas, só para estimar o tempo de deslocamento até as vagas
+  postalCode      String?
+  lat             Float?
+  lng             Float?
+  /// WhatsApp opcional: a empresa só vê o número quando o candidato autoriza
+  whatsapp        String?
+  whatsappOptIn   Boolean          @default(false)
   skills          CandidateSkill[]
+  skillChecks     SkillCheck[]
+  projects        Project[]
+  checkins        HireCheckin[]
   educations      Education[]
   experiences     Experience[]
   applications    JobApplication[]
@@ -167,6 +177,8 @@ model CandidateSkill {
   skillId     String
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   skill       Skill            @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  /// quando a pessoa passou na prova desta habilidade (selo "comprovada")
+  verifiedAt  DateTime?
 
   @@id([candidateId, skillId])
 }
@@ -180,6 +192,15 @@ model CompanyProfile {
   industry    String?
   website     String?
   location    String?
+  /// CNPJ (só dígitos), conferido na BrasilAPI; a razão social vem de lá
+  cnpj           String?   @unique
+  legalName      String?
+  cnpjVerifiedAt DateTime?
+  /// dados para estimar as cotas de Aprendiz e PcD (informados pela empresa)
+  employees      Int?
+  companySize    String?
+  apprentices    Int?
+  pcdEmployees   Int?
   jobs        Job[]
   resumeViews ResumeView[]
 }
@@ -208,6 +229,14 @@ model Job {
   confirmedAt      DateTime         @default(now())
   /// preenchido quando a vaga foi pausada por falta de confirmação
   expiredAt        DateTime?
+  /// vaga de Jovem Aprendiz / vaga exclusiva para pessoas com deficiência
+  forApprentice    Boolean          @default(false)
+  pcdOnly          Boolean          @default(false)
+  /// CEP do local de trabalho e coordenadas aproximadas (estimativa de deslocamento)
+  postalCode       String?
+  lat              Float?
+  lng              Float?
+  reports          JobReport[]
   updatedAt        DateTime         @updatedAt
   skills           JobSkill[]
   applications     JobApplication[]
@@ -238,6 +267,12 @@ model JobApplication {
   compatibility Int?
   /// quando o candidato foi avisado de que a empresa não respondeu em 14 dias
   noReplyNotifiedAt DateTime?
+  /// motivo escolhido pela empresa ao recusar e habilidades que faltaram
+  rejectReason  String?
+  rejectSkills  String[]                   @default([])
+  /// data da aprovação (início do acompanhamento de 90 dias)
+  hiredAt       DateTime?
+  checkins      HireCheckin[]
   createdAt     DateTime                   @default(now())
   updatedAt     DateTime                   @updatedAt
   history       ApplicationStatusHistory[]
@@ -335,4 +370,69 @@ model ResumeView {
 
   @@unique([candidateId, companyId])
   @@index([candidateId, lastAt])
+}
+
+/// Tentativa de prova de habilidade: as questões sorteadas ficam guardadas no servidor.
+model SkillCheck {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skill       String
+  questionIds String[]
+  score       Int?
+  total       Int
+  passed      Boolean          @default(false)
+  startedAt   DateTime         @default(now())
+  finishedAt  DateTime?
+
+  @@index([candidateId, skill, startedAt])
+}
+
+/// Projeto do curso técnico confirmado por um professor por link de uso único.
+model Project {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  title         String
+  description   String
+  url           String?
+  school        String
+  teacherName   String
+  teacherEmail  String
+  tokenHash     String?          @unique
+  validatedAt   DateTime?
+  validatorNote String?
+  createdAt     DateTime         @default(now())
+
+  @@index([candidateId])
+}
+
+/// Pergunta de acompanhamento aos 30, 60 e 90 dias depois da contratação.
+model HireCheckin {
+  id            String           @id @default(cuid())
+  applicationId String
+  application   JobApplication   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  day           Int
+  role          Role
+  score         Int?
+  wantsTalk     Boolean          @default(false)
+  comment       String?
+  createdAt     DateTime         @default(now())
+  answeredAt    DateTime?
+
+  @@unique([applicationId, day, role])
+}
+
+/// Denúncia de vaga suspeita; três denúncias retêm a vaga para a moderação.
+model JobReport {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId    String
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@unique([jobId, userId])
 }

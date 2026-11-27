@@ -140,14 +140,14 @@ export default async function Home(props: { searchParams: Promise<{ aviso?: stri
               <div><h2 className="text-2xl font-semibold sm:text-[28px]">Recomendadas para você</h2><p className="mt-1 text-sm text-abyss/65">Ordenadas pela compatibilidade com o seu perfil.</p></div>
               <Link href="/candidate/dashboard" className="shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver no painel</Link>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{recommended.map(({ j, score }) => <JobCard key={j.id} job={j} score={score} save={viewer.save(j.id)} />)}</div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{recommended.map(({ j, score }) => <JobCard key={j.id} job={j} score={score} save={viewer.save(j.id)} commute={viewer.commute(j)} />)}</div>
           </section>
         )}
 
         <section className="mx-auto max-w-6xl px-4 pt-16">
           <div className="mb-6 flex items-end justify-between gap-4"><h2 className="text-2xl font-semibold sm:text-[28px]">Vagas recentes</h2><Link href="/jobs" className="shrink-0 text-sm font-semibold text-tide hover:text-deep hover:underline">Ver todas as vagas</Link></div>
           {recent.length === 0 ? <Empty title="Ainda não há vagas publicadas" hint="Quando uma empresa publicar, ela aparece aqui." href="/register?tipo=empresa" cta="Criar conta de empresa" />
-            : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{recent.map((j) => <JobCard key={j.id} job={j} save={viewer.save(j.id)} score={viewer.score(j)} />)}</div>}
+            : <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{recent.map((j) => <JobCard key={j.id} job={j} save={viewer.save(j.id)} score={viewer.score(j)} commute={viewer.commute(j)} />)}</div>}
         </section>
 
         <section className="mx-auto max-w-6xl px-4 pt-20" aria-labelledby="como-funciona">

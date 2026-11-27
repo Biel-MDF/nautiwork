@@ -27,6 +27,9 @@ export default async function CandidateDashboard() {
     .map((j) => ({ j, score: computeCompatibility(mine, { skills: j.skills.map((s) => s.skill.name), area: j.area, workMode: j.workMode, location: j.location, minYears: j.minYears }).score }))
     .sort((a, b) => b.score - a.score).slice(0, 4);
   const notes = await db.notification.findMany({ where: { userId: user.id }, orderBy: [{ read: "asc" }, { createdAt: "desc" }], take: 10 });
+  const pendingCheckins = await db.hireCheckin.findMany({ where: { candidateId: profile.id, role: "CANDIDATE", answeredAt: null }, orderBy: { createdAt: "asc" },
+    include: { application: { select: { job: { select: { title: true, company: { select: { name: true } } } } } } } });
+  const firstJob = profile.yearsExperience === 0;
 
   return (
     <Shell role="CANDIDATE" title={`Olá, ${user.name.replace(/\[[^\]]*\]\s*/g, "").split(" ")[0]}`}>
@@ -35,6 +38,11 @@ export default async function CandidateDashboard() {
         <Stat label="Perfil preenchido" value={`${progress}%`} /><Stat label="Candidaturas" value={profile._count.applications} /><Stat label="Vagas salvas" value={profile._count.savedJobs} />
         <Link href="/candidate/views" className="rounded-panel transition-colors hover:[&>*]:border-tide/60" aria-label={`${profile._count.views} empresas viram seu currículo. Ver quais`}><Stat label="Empresas que viram seu currículo" value={profile._count.views} /></Link>
       </div>
+      {pendingCheckins.length > 0 && <section className="mt-4 rounded-panel border border-tide/40 bg-tide/5 p-4 text-sm" aria-label="Acompanhamento do novo emprego">
+        <p className="font-semibold">Como está o novo trabalho?</p>
+        <ul className="mt-2 space-y-1">{pendingCheckins.map((c) => <li key={c.id}><Link href={`/checkin/${c.id}`} className="font-medium text-tide hover:underline">Responder: {c.day} dias em {c.application.job.title}, <CompanyName name={c.application.job.company.name} /></Link></li>)}</ul>
+        <p className="mt-2 text-abyss/70">Leva um minuto. A empresa não vê sua nota.</p></section>}
+      {firstJob && <p className="mt-4 rounded-lg border border-mist p-3 text-sm">Procurando o primeiro emprego? O <Link className="font-semibold text-tide" href="/primeiro-emprego">guia do primeiro emprego</Link> mostra os documentos, seus direitos e como fugir de golpes.</p>}
       {progress < 100 && <p className="mt-4 rounded-lg bg-foam p-3 text-sm">Complete seu perfil para melhorar a compatibilidade. <Link className="font-semibold text-tide" href="/candidate/profile">Editar perfil</Link></p>}
       <h2 className="mb-3 mt-8 text-lg font-bold">Vagas com maior compatibilidade</h2>
       {recommended.length === 0 ? <Empty title="Sem recomendações agora" hint="Quando houver vagas ativas, elas aparecem aqui ordenadas pela compatibilidade." href="/jobs" cta="Explorar vagas" />

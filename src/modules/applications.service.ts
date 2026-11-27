@@ -5,6 +5,7 @@ import { appStatusLabel } from "@/lib/labels";
 import { emailNotify } from "./notify";
 import { applySchema, statusSchema } from "@/lib/validators";
 import { computeCompatibility } from "./compatibility";
+import { REJECT_REASONS } from "./courses";
 
 export async function applyToJob(userId: string, raw: unknown) {
   const { jobId, coverNote } = applySchema.parse(raw);
@@ -48,7 +49,7 @@ export async function applyToJob(userId: string, raw: unknown) {
 }
 
 export async function updateApplicationStatus(userId: string, applicationId: string, raw: unknown) {
-  const { status } = statusSchema.parse(raw);
+  const { status, reason, missingSkills } = statusSchema.parse(raw);
   const app = await db.jobApplication.findUnique({
     where: { id: applicationId }, include: { job: { include: { company: true } }, candidate: true },
   });
@@ -56,9 +57,13 @@ export async function updateApplicationStatus(userId: string, applicationId: str
   if (app.job.company.userId !== userId) throw new HttpError(403, "Esta candidatura pertence a outra empresa.");
   if (app.status === "WITHDRAWN") throw new HttpError(409, "O candidato retirou esta candidatura.");
   if (app.status === status) return app;
-  const body = `Sua candidatura para "${app.job.title}" passou para a etapa "${appStatusLabel[status]}".`;
+  // recusa com motivo: o candidato recebe o motivo e, se faltou habilidade, quais (com cursos no painel)
+  const why = status === "REJECTED" && reason ? ` Motivo informado pela empresa: ${REJECT_REASONS[reason].toLowerCase()}${missingSkills.length ? ` (${missingSkills.join(", ")})` : ""}. Veja em Candidaturas os cursos gratuitos sugeridos.` : "";
+  const body = `Sua candidatura para "${app.job.title}" passou para a etapa "${appStatusLabel[status]}".${why}`;
+  const extra = status === "REJECTED" ? { rejectReason: reason ?? null, rejectSkills: missingSkills }
+    : status === "APPROVED" ? { hiredAt: new Date() } : {};
   const updated = await db.$transaction(async (tx) => {
-    const u = await tx.jobApplication.update({ where: { id: applicationId }, data: { status } });
+    const u = await tx.jobApplication.update({ where: { id: applicationId }, data: { status, ...extra } });
     await tx.applicationStatusHistory.create({ data: { applicationId, status, changedById: userId } });
     await tx.notification.create({ data: { userId: app.candidate.userId, title: "Candidatura atualizada", body } });
     return u;

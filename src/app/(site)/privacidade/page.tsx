@@ -21,12 +21,16 @@ export default function Privacidade() {
         <ul>
           <li><strong>Conta:</strong> nome, e-mail, senha (guardada apenas como hash, nunca em texto), tipo de conta e data de aceite destes termos.</li>
           <li><strong>Perfil do candidato:</strong> título profissional, resumo, cidade, área de interesse, modalidade preferida, objetivo, anos de experiência, habilidades, formação, experiências e link do LinkedIn, todos informados por você.</li>
-          <li><strong>Perfil da empresa:</strong> nome, descrição, setor, site, cidade e as vagas publicadas.</li>
+          <li><strong>Contato e localização do candidato (opcionais):</strong> CEP de casa, usado só para estimar o tempo de deslocamento até as vagas (guardamos uma coordenada aproximada do CEP, não o endereço), e número de WhatsApp com a sua autorização para empresas chamarem.</li>
+          <li><strong>Provas e projetos do candidato:</strong> resultado das provas de habilidade e os projetos do curso que você cadastrar, com o nome e o e-mail do professor que você indicar para confirmar.</li>
+          <li><strong>Acompanhamento depois da contratação:</strong> respostas às perguntas de 30, 60 e 90 dias.</li>
+          <li><strong>Perfil da empresa:</strong> nome, descrição, setor, site, cidade, as vagas publicadas e, se informados, CNPJ, razão social, porte e número de funcionários, aprendizes e pessoas com deficiência contratadas.</li>
+          <li><strong>Denúncias de vagas</strong> que você fizer, com o motivo.</li>
           <li><strong>Foto ou logotipo,</strong> se você enviar.</li>
           <li><strong>Uso da plataforma:</strong> candidaturas e suas etapas, vagas salvas, notificações e pedidos de suporte com as mensagens trocadas.</li>
           <li><strong>Dados técnicos:</strong> cookie de sessão para manter você conectado e endereço IP, usado apenas de forma temporária para limitar tentativas de login, cadastro e perguntas ao assistente.</li>
         </ul>
-        <p>Não pedimos dados sensíveis, como origem racial, religião, saúde ou orientação sexual. Evite incluí-los nos campos de texto livre.</p>
+        <p>Não pedimos dados sensíveis, como origem racial, religião, saúde ou orientação sexual. Evite incluí-los nos campos de texto livre. Vagas marcadas como exclusivas para pessoas com deficiência não pedem nenhum laudo pelo site: isso fica entre você e a empresa, no processo seletivo.</p>
       </>,
     },
     {
@@ -35,7 +39,8 @@ export default function Privacidade() {
         <li><strong>Criar e manter sua conta e conectar candidatos a vagas</strong>, incluindo o cálculo de compatibilidade e o envio da candidatura à empresa escolhida. Base legal: execução de contrato e procedimentos preliminares a pedido do titular (art. 7º, V).</li>
         <li><strong>Enviar e-mails de confirmação, recuperação de senha e respostas do suporte.</strong> Base legal: execução de contrato (art. 7º, V).</li>
         <li><strong>Enviar avisos por e-mail sobre candidaturas e vagas.</strong> Você pode desligar a qualquer momento em Configurações, Notificações.</li>
-        <li><strong>Proteger a plataforma contra fraudes e abusos</strong>, como excesso de tentativas de login. Base legal: legítimo interesse (art. 7º, IX).</li>
+        <li><strong>Proteger a plataforma contra fraudes e abusos</strong>, como excesso de tentativas de login, vagas que pedem dinheiro e empresas inexistentes (consulta do CNPJ na base pública da Receita Federal). Base legal: legítimo interesse (art. 7º, IX).</li>
+        <li><strong>Estimar o tempo de deslocamento</strong> a partir do seu CEP e <strong>mostrar seu WhatsApp</strong> às empresas das suas candidaturas. Base legal: consentimento (art. 7º, I); apague o CEP ou desmarque a autorização no perfil quando quiser.</li>
         <li><strong>Cumprir obrigações legais</strong> e atender pedidos de autoridades. Base legal: art. 7º, II.</li>
       </ul>,
     },
@@ -43,9 +48,10 @@ export default function Privacidade() {
       id: "compartilhamento", title: "Com quem compartilhamos",
       body: <>
         <ul>
-          <li><strong>Empresas para as quais você se candidata:</strong> recebem seu nome, e-mail, perfil, foto e a nota de compatibilidade com a vaga. Elas não veem candidaturas feitas para outras empresas.</li>
+          <li><strong>Empresas para as quais você se candidata:</strong> recebem seu nome, e-mail, perfil, foto, a nota de compatibilidade com a vaga, as habilidades comprovadas por prova e os projetos cadastrados (com o nome e o e-mail do professor que confirmou). O WhatsApp só aparece se você autorizou. O CEP e as respostas do acompanhamento de 30, 60 e 90 dias não são mostrados; a empresa só é avisada se você pedir uma conversa. Elas não veem candidaturas feitas para outras empresas.</li>
+          <li><strong>Professor indicado por você:</strong> recebe o título e a descrição do projeto para confirmar a autoria.</li>
           <li><strong>Você, sobre as empresas que abriram seu currículo:</strong> quando uma empresa abre o seu currículo completo, registramos qual empresa foi, quantas vezes e em que datas, e mostramos essa lista só para você em Quem viu meu currículo. A empresa não vê essa lista.</li>
-          <li><strong>Provedores que operam a plataforma:</strong> hospedagem (Vercel), banco de dados (Neon), envio de e-mails (Resend) e monitoramento de erros (Sentry). O Sentry recebe apenas detalhes técnicos de falhas, sem IP, cookies ou conteúdo de formulários. Eles tratam os dados apenas para prestar o serviço.</li>
+          <li><strong>Provedores que operam a plataforma:</strong> hospedagem (Vercel), banco de dados (Neon), envio de e-mails (Resend), monitoramento de erros (Sentry) e consulta de CEP e CNPJ (BrasilAPI e, se ela falhar, OpenStreetMap Nominatim para o CEP; só o número é enviado). O Sentry recebe apenas detalhes técnicos de falhas, sem IP, cookies ou conteúdo de formulários. Eles tratam os dados apenas para prestar o serviço.</li>
           <li><strong>Autoridades públicas,</strong> quando houver obrigação legal ou ordem judicial.</li>
         </ul>
         <p>Não vendemos dados pessoais e não os usamos para publicidade.</p>
@@ -69,7 +75,7 @@ export default function Privacidade() {
     {
       id: "retencao", title: "Por quanto tempo guardamos",
       body: <>
-        <p>Os dados ficam guardados enquanto sua conta existir. Ao excluir a conta, apagamos na hora o perfil, a foto, as candidaturas, as vagas salvas, as notificações e os pedidos de suporte.</p>
+        <p>Os dados ficam guardados enquanto sua conta existir. Ao excluir a conta, apagamos na hora o perfil, a foto, as candidaturas, as vagas salvas, as provas, os projetos, as respostas de acompanhamento, as denúncias feitas, as notificações e os pedidos de suporte.</p>
         <p>Cópias de segurança mantidas pelo provedor do banco de dados são sobrescritas automaticamente em até 30 dias. Registros técnicos de acesso, quando existirem, são guardados pelo prazo de 6 meses previsto no Marco Civil da Internet (Lei nº 12.965/2014) e depois descartados.</p>
       </>,
     },

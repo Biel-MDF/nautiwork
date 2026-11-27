@@ -14,7 +14,8 @@ export default async function EditJob(props: { params: Promise<{ id: string }> }
     <Shell role="COMPANY" title="Editar vaga">
       <JobForm jobId={job.id} initial={{ title: job.title, description: job.description, responsibilities: job.responsibilities ?? "", requirements: job.requirements ?? "",
         benefits: job.benefits ?? "", area: job.area, location: job.location, workMode: job.workMode, contractType: job.contractType, seniority: job.seniority,
-        minYears: job.minYears, salaryMin: job.salaryMin ?? "", salaryMax: job.salaryMax ?? "", skills: job.skills.map((s) => s.skill.name).join(", ") }} />
+        minYears: job.minYears, salaryMin: job.salaryMin ?? "", salaryMax: job.salaryMax ?? "", skills: job.skills.map((s) => s.skill.name).join(", "),
+        forApprentice: job.forApprentice, pcdOnly: job.pcdOnly, postalCode: job.postalCode ?? "" }} />
     </Shell>
   );
 }

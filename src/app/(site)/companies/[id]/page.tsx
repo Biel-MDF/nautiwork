@@ -38,7 +38,7 @@ export default async function CompanyPage(props: { params: Promise<{ id: string 
       {c.description && <p className="mt-4 whitespace-pre-line break-words">{c.description}</p>}
       {c.website && <a className="mt-2 inline-block break-all text-tide" href={c.website} rel="noopener noreferrer nofollow" target="_blank">{c.website}</a>}
       <h2 className="mb-4 mt-8 text-xl font-bold">Vagas abertas</h2>
-      {c.jobs.length === 0 ? <Empty title="Sem vagas abertas" hint="Volte mais tarde para ver novas oportunidades." /> : <div className="grid gap-4">{c.jobs.map((j) => <JobCard key={j.id} job={j} save={viewer.save(j.id)} score={viewer.score(j)} />)}</div>}
+      {c.jobs.length === 0 ? <Empty title="Sem vagas abertas" hint="Volte mais tarde para ver novas oportunidades." /> : <div className="grid gap-4">{c.jobs.map((j) => <JobCard key={j.id} job={j} save={viewer.save(j.id)} score={viewer.score(j)} commute={viewer.commute(j)} />)}</div>}
     </main>
   </>);
 }

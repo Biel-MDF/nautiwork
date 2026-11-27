@@ -36,6 +36,10 @@ export const jobSchema = z.object({
   salaryMax: z.coerce.number({ message: "Informe o salário máximo da faixa" }).int().positive("Informe o salário máximo da faixa"),
   minYears: z.coerce.number().int().min(0).max(40).default(0),
   skills: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
+  forApprentice: z.boolean().default(false),
+  pcdOnly: z.boolean().default(false),
+  postalCode: z.string().trim().max(9).optional().transform((v) => (v ? v.replace(/\D/g, "") : null))
+    .refine((v) => v === null || v.length === 8, "CEP com 8 dígitos"),
 }).refine((d) => d.salaryMin <= d.salaryMax, {
   path: ["salaryMax"], message: "O máximo deve ser maior que o mínimo",
 });
@@ -49,6 +53,54 @@ export const applySchema = z.object({
 
 export const statusSchema = z.object({
   status: z.enum(["IN_REVIEW", "IN_PROCESS", "INTERVIEW", "APPROVED", "REJECTED"]),
+  // recusa com motivo: obrigatório ao recusar
+  reason: z.enum(["SKILLS", "EXPERIENCE", "PROFILE", "LOCATION", "FILLED", "CONDITIONS", "OTHER"]).optional(),
+  missingSkills: z.array(z.string().trim().min(1).max(40)).max(10).default([]),
+}).refine((d) => d.status !== "REJECTED" || !!d.reason, { path: ["reason"], message: "Escolha o motivo da recusa: o candidato recebe esse retorno" });
+
+export const complianceSchema = z.object({
+  cnpj: z.string().trim().max(18).optional().transform((v) => (v ? v.replace(/\D/g, "") : null)),
+  companySize: z.enum(["MEI", "ME", "EPP", "MEDIUM", "LARGE"]),
+  employees: z.coerce.number().int().min(0).max(1_000_000),
+  apprentices: z.coerce.number().int().min(0).max(1_000_000).default(0),
+  pcdEmployees: z.coerce.number().int().min(0).max(1_000_000).default(0),
+});
+
+export const contactSchema = z.object({
+  postalCode: z.string().trim().max(9).optional().transform((v) => (v ? v.replace(/\D/g, "") : null))
+    .refine((v) => v === null || v.length === 8, "CEP com 8 dígitos"),
+  whatsapp: z.string().trim().max(20).optional().transform((v) => (v ? v.replace(/\D/g, "") : null))
+    .refine((v) => v === null || (v.length >= 10 && v.length <= 13), "Informe DDD e número"),
+  whatsappOptIn: z.boolean().default(false),
+});
+
+export const projectSchema = z.object({
+  title: z.string().trim().min(3, "Dê um nome ao projeto").max(120),
+  description: z.string().trim().min(20, "Descreva o projeto em pelo menos 20 caracteres").max(2000),
+  url: z.string().trim().max(300).optional()
+    .refine((v) => !v || /^https?:\/\/[^\s]+\.[^\s]+$/i.test(v), "Use um endereço começando com http:// ou https://")
+    .transform((v) => (v ? v : null)),
+  school: z.string().trim().min(3, "Informe a escola").max(160),
+  teacherName: z.string().trim().min(3, "Informe o nome do professor").max(120),
+  teacherEmail: z.string().trim().toLowerCase().email("E-mail do professor inválido"),
+});
+
+export const projectValidationSchema = z.object({
+  token: z.string().min(20).max(200),
+  teacherName: z.string().trim().min(3, "Informe seu nome").max(120),
+  confirm: z.literal(true, { message: "Marque a confirmação" }),
+  note: z.string().trim().max(500).optional(),
+});
+
+export const reportSchema = z.object({
+  reason: z.enum(["SCAM", "FAKE", "DISCRIMINATION", "WRONG_INFO", "OTHER"]),
+  details: z.string().trim().max(500).optional(),
+});
+
+export const checkinSchema = z.object({
+  score: z.coerce.number().int().min(1).max(5),
+  wantsTalk: z.boolean().default(false),
+  comment: z.string().trim().max(1000).optional(),
 });
 
 export const profileSchema = z.object({
@@ -76,6 +128,10 @@ export const jobSearchSchema = z.object({
   seniority: z.enum(["INTERN", "JUNIOR", "MID", "SENIOR", "LEAD"]).optional(),
   // "1" = só vagas que não pedem experiência
   noExp: z.enum(["1"]).optional(),
+  aprendiz: z.literal("1").optional(),
+  pcd: z.literal("1").optional(),
+  // até quantos minutos de deslocamento estimado (precisa do CEP do candidato)
+  maxMin: z.coerce.number().int().min(15).max(180).optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
 

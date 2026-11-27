@@ -150,26 +150,37 @@ export function ProfileForm({ initial }: { initial: { headline: string; about: s
   );
 }
 
-type JobInitial = Record<string, string | number | undefined>;
+type JobInitial = Record<string, string | number | boolean | undefined>;
 export function JobForm({ jobId, initial = {} }: { jobId?: string; initial?: JobInitial }) {
   const router = useRouter();
-  const [state, setState] = useState<{ busy?: boolean; error?: string; fields?: Record<string, string[]> }>({});
+  const [state, setState] = useState<{ busy?: boolean; error?: string; fields?: Record<string, string[]>; held?: boolean }>({});
   const v = (k: string) => (initial[k] ?? "") as string;
   const Err = ({ k }: { k: string }) => <Msg error={state.fields?.[k]?.[0]} />;
+  if (state.held) return (
+    <div role="status" className="card space-y-3">
+      <h2 className="font-display text-lg font-semibold">Vaga salva e em análise</h2>
+      <p className="text-sm text-abyss/80">O texto tem sinais que também aparecem em golpes (por exemplo, contato direto por telefone ou WhatsApp, ou promessa de renda extra). A vaga fica fora do ar até a equipe conferir; você recebe uma notificação. Se foi engano, edite o texto e tire esses trechos.</p>
+      <div className="flex flex-wrap gap-2"><a href="/company/jobs" className="btn-primary">Ver minhas vagas</a></div>
+    </div>
+  );
   return (
     <form className="card space-y-4" onSubmit={async (e) => {
       e.preventDefault(); setState({ busy: true });
-      const f = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
-      const body = { ...f, salaryMin: f.salaryMin || undefined, salaryMax: f.salaryMax || undefined, skills: csv(f.skills) };
-      const r = await api(jobId ? "PATCH" : "POST", jobId ? `/api/jobs/${jobId}` : "/api/jobs", body);
-      if (r.ok) { router.push("/company/jobs"); router.refresh(); } else setState({ error: r.data.error, fields: r.data.fields });
+      const fd = new FormData(e.currentTarget);
+      const f = Object.fromEntries(fd) as Record<string, string>;
+      const body = { ...f, salaryMin: f.salaryMin || undefined, salaryMax: f.salaryMax || undefined, skills: csv(f.skills),
+        forApprentice: fd.get("forApprentice") === "on", pcdOnly: fd.get("pcdOnly") === "on", postalCode: f.postalCode || undefined };
+      const r = await api<{ flagged?: boolean }>(jobId ? "PATCH" : "POST", jobId ? `/api/jobs/${jobId}` : "/api/jobs", body);
+      if (r.ok && (r.data as { flagged?: boolean }).flagged) { setState({ held: true }); router.refresh(); }
+      else if (r.ok) { router.push("/company/jobs"); router.refresh(); }
+      else setState({ error: r.data.error, fields: r.data.fields });
     }}>
       <fieldset className="space-y-4"><legend className="mb-4 font-display text-lg font-semibold">A vaga</legend>
       <div><label className="label" htmlFor="title">Cargo</label><input id="title" name="title" required defaultValue={v("title")} className="input" /><Err k="title" /></div>
       <div><label className="label" htmlFor="description">Descrição</label><textarea id="description" name="description" required rows={5} defaultValue={v("description")} className="input py-2" /><Err k="description" /></div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div><label className="label" htmlFor="responsibilities">Responsabilidades</label><textarea id="responsibilities" name="responsibilities" rows={3} defaultValue={v("responsibilities")} className="input py-2" /></div>
-        <div><label className="label" htmlFor="requirements">Requisitos</label><textarea id="requirements" name="requirements" rows={3} defaultValue={v("requirements")} className="input py-2" /></div>
+        <div><label className="label" htmlFor="responsibilities">Responsabilidades</label><textarea id="responsibilities" name="responsibilities" rows={3} defaultValue={v("responsibilities")} className="input py-2" /><Err k="responsibilities" /></div>
+        <div><label className="label" htmlFor="requirements">Requisitos</label><textarea id="requirements" name="requirements" rows={3} defaultValue={v("requirements")} className="input py-2" /><Err k="requirements" /></div>
       </div>
       <div><label className="label" htmlFor="benefits">Benefícios</label><input id="benefits" name="benefits" defaultValue={v("benefits")} className="input" /></div>
       </fieldset>
@@ -178,13 +189,21 @@ export function JobForm({ jobId, initial = {} }: { jobId?: string; initial?: Job
       <div className="grid gap-4 sm:grid-cols-2">
         <div><label className="label" htmlFor="area">Área</label><input id="area" name="area" required defaultValue={v("area")} className="input" placeholder="Tecnologia" /><Err k="area" /></div>
         <div><label className="label" htmlFor="location">Cidade</label><input id="location" name="location" required defaultValue={v("location")} className="input" /><Err k="location" /></div>
+        <div className="sm:col-span-2"><label className="label" htmlFor="postalCode">CEP do local de trabalho <span className="font-normal text-abyss/60">(opcional)</span></label><input id="postalCode" name="postalCode" inputMode="numeric" autoComplete="off" maxLength={9} placeholder="00000-000" defaultValue={v("postalCode")} className="input sm:max-w-[200px]" aria-describedby="cep-hint" /><Err k="postalCode" />
+          <p id="cep-hint" className="mt-1.5 text-xs text-abyss/60">Com o CEP, quem procura vaga vê quanto tempo leva de casa até aqui. O endereço exato não aparece.</p></div>
         <div><label className="label" htmlFor="workMode">Modalidade</label><select id="workMode" name="workMode" defaultValue={v("workMode") || "REMOTE"} className="input"><option value="REMOTE">Remoto</option><option value="HYBRID">Híbrido</option><option value="ONSITE">Presencial</option></select></div>
-        <div><label className="label" htmlFor="contractType">Contratação</label><select id="contractType" name="contractType" defaultValue={v("contractType") || "CLT"} className="input"><option value="CLT">CLT</option><option value="PJ">PJ</option><option value="INTERNSHIP">Estágio</option><option value="TEMPORARY">Temporário</option></select></div>
+        <div><label className="label" htmlFor="contractType">Contratação</label><select id="contractType" name="contractType" defaultValue={v("contractType") || "CLT"} className="input"><option value="CLT">CLT</option><option value="PJ">PJ</option><option value="INTERNSHIP">Estágio</option><option value="TEMPORARY">Temporário</option></select><Err k="contractType" /></div>
         <div><label className="label" htmlFor="seniority">Senioridade</label><select id="seniority" name="seniority" defaultValue={v("seniority") || "MID"} className="input"><option value="INTERN">Estagiário</option><option value="JUNIOR">Júnior</option><option value="MID">Pleno</option><option value="SENIOR">Sênior</option><option value="LEAD">Liderança</option></select></div>
-        <div><label className="label" htmlFor="minYears">Anos de experiência mínimos</label><input id="minYears" name="minYears" type="number" min={0} defaultValue={v("minYears") || 0} className="input" /></div>
+        <div><label className="label" htmlFor="minYears">Anos de experiência mínimos</label><input id="minYears" name="minYears" type="number" min={0} defaultValue={v("minYears") || 0} className="input" /><Err k="minYears" /></div>
         <div><label className="label" htmlFor="salaryMin">Salário mínimo (R$)</label><input id="salaryMin" name="salaryMin" type="number" min={1} required defaultValue={v("salaryMin")} className="input" aria-describedby="salary-hint" /><Err k="salaryMin" /></div>
         <div><label className="label" htmlFor="salaryMax">Salário máximo (R$)</label><input id="salaryMax" name="salaryMax" type="number" min={1} required defaultValue={v("salaryMax")} className="input" aria-describedby="salary-hint" /><Err k="salaryMax" /></div>
         <p id="salary-hint" className="text-xs text-abyss/60 sm:col-span-2">A faixa salarial é obrigatória. Vagas com salário recebem mais candidaturas, e o candidato decide com informação real.</p>
+      </div>
+      <div className="space-y-2 rounded-control border border-mist p-3">
+        <label className="flex min-h-[40px] cursor-pointer items-start gap-2.5"><input type="checkbox" name="forApprentice" defaultChecked={!!initial.forApprentice} className="mt-1 h-4 w-4 accent-tide" />
+          <span><span className="font-medium">Vaga de Jovem Aprendiz</span><span className="block text-xs text-abyss/60">Contrato de aprendizagem (CLT), para 14 a 24 anos, sem exigir experiência. Conta para a cota de aprendizes.</span></span></label>
+        <label className="flex min-h-[40px] cursor-pointer items-start gap-2.5"><input type="checkbox" name="pcdOnly" defaultChecked={!!initial.pcdOnly} className="mt-1 h-4 w-4 accent-tide" />
+          <span><span className="font-medium">Vaga exclusiva para pessoas com deficiência (PcD)</span><span className="block text-xs text-abyss/60">Conta para a cota da Lei 8.213/91. Descreva as adaptações do posto, se houver.</span></span></label>
       </div>
       </fieldset>
       <hr className="border-mist" />
@@ -197,20 +216,38 @@ export function JobForm({ jobId, initial = {} }: { jobId?: string; initial?: Job
   );
 }
 
-export function StatusSelect({ id, current }: { id: string; current: string }) {
-  const router = useRouter(); const [error, setError] = useState("");
-  const opts = [["IN_REVIEW", "Em análise"], ["IN_PROCESS", "Em processo seletivo"], ["INTERVIEW", "Entrevista"], ["APPROVED", "Aprovada"], ["REJECTED", "Rejeitada"]];
+export function StatusSelect({ id, current, reasons, jobSkills = [], missing = [] }: {
+  id: string; current: string; reasons: Record<string, string>; jobSkills?: string[]; missing?: string[];
+}) {
+  const router = useRouter(); const [error, setError] = useState(""); const [rejecting, setRejecting] = useState(false); const [busy, setBusy] = useState(false);
+  const opts = [["IN_REVIEW", "Em análise"], ["IN_PROCESS", "Em processo seletivo"], ["INTERVIEW", "Entrevista"], ["APPROVED", "Aprovada"], ["REJECTED", "Recusar com retorno"]];
+  const send = async (body: Record<string, unknown>) => {
+    setError(""); setBusy(true); const r = await api("PATCH", `/api/applications/${id}`, body); setBusy(false);
+    if (r.ok) { setRejecting(false); router.refresh(); } else setError(r.data.error ?? "Erro ao atualizar.");
+  };
   return (
-    <div>
+    <div className="w-full sm:w-auto">
       <label className="sr-only" htmlFor={`st-${id}`}>Mudar etapa</label>
-      <select id={`st-${id}`} className="input min-w-[210px]" defaultValue="" key={current} disabled={current === "WITHDRAWN"}
-        onChange={async (e) => {
-          setError(""); const r = await api("PATCH", `/api/applications/${id}`, { status: e.target.value });
-          if (r.ok) router.refresh(); else setError(r.data.error ?? "Erro ao atualizar.");
-        }}>
+      <select id={`st-${id}`} className="input min-w-[210px]" value="" disabled={current === "WITHDRAWN" || busy}
+        onChange={(e) => { if (e.target.value === "REJECTED") setRejecting(true); else send({ status: e.target.value }); }}>
         <option value="" disabled>Mudar etapa</option>
         {opts.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
       </select>
+      {rejecting && (
+        <form className="mt-3 space-y-3 rounded-control border border-mist p-3 text-sm" onSubmit={(e) => {
+          e.preventDefault(); const fd = new FormData(e.currentTarget);
+          send({ status: "REJECTED", reason: fd.get("reason"), missingSkills: fd.getAll("missing").map(String) });
+        }}>
+          <p className="text-abyss/80">O candidato recebe o motivo e, para cada habilidade marcada, cursos gratuitos para aprender. Ninguém fica sem resposta.</p>
+          <div><label className="label" htmlFor={`rr-${id}`}>Motivo</label>
+            <select id={`rr-${id}`} name="reason" required defaultValue="" className="input"><option value="" disabled>Escolha o motivo</option>
+              {Object.entries(reasons).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></div>
+          {jobSkills.length > 0 && <fieldset><legend className="label">Habilidades a desenvolver (opcional)</legend>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">{jobSkills.map((sk) => <label key={sk} className="flex min-h-[36px] cursor-pointer items-center gap-2"><input type="checkbox" name="missing" value={sk} defaultChecked={missing.includes(sk)} className="h-4 w-4 accent-tide" />{sk}</label>)}</div></fieldset>}
+          <div className="flex flex-wrap gap-2"><button className="btn-danger" disabled={busy}>{busy ? "Enviando..." : "Recusar e enviar retorno"}</button>
+            <button type="button" className="btn-ghost" onClick={() => setRejecting(false)}>Cancelar</button></div>
+        </form>
+      )}
       <Msg error={error} />
     </div>
   );

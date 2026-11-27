@@ -10,10 +10,13 @@ export const PUT = handle(async (req: Request) => {
   const { skills, ...data } = profileSchema.parse(await req.json());
   await db.$transaction(async (tx) => {
     const profile = await tx.candidateProfile.update({ where: { userId }, data });
-    await tx.candidateSkill.deleteMany({ where: { candidateId: profile.id } });
+    // mantém o selo "comprovada" das habilidades que continuam no perfil
     const links = await connectSkills(tx, skills);
-    for (const l of links)
-      await tx.candidateSkill.create({ data: { candidateId: profile.id, skillId: l.skill.connect.id } });
+    const keep = links.map((l) => l.skill.connect.id);
+    await tx.candidateSkill.deleteMany({ where: { candidateId: profile.id, skillId: { notIn: keep } } });
+    for (const skillId of keep)
+      await tx.candidateSkill.upsert({ where: { candidateId_skillId: { candidateId: profile.id, skillId } },
+        create: { candidateId: profile.id, skillId }, update: {} });
   });
   return NextResponse.json({ ok: true });
 });

@@ -4,7 +4,9 @@ import { currentUser } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { jobPublic } from "@/modules/public-data";
 import { ApplyButton, SaveButton } from "@/components/forms";
-import { ScoreRing } from "@/components/ui";
+import { ScoreRing, JobTags } from "@/components/ui";
+import { JobSafety } from "@/components/jobs/JobSafety";
+import { commuteFor } from "@/modules/geo";
 import { contractLabel, salaryRange, seniorityLabel, workModeLabel } from "@/lib/labels";
 import { computeCompatibility } from "@/modules/compatibility";
 import { CompanyName } from "@/components/CompanyName";
@@ -20,10 +22,11 @@ export async function loadJobDetail(id: string) {
   if (!job || (!isOwner && session?.user.role !== "ADMIN" && (job.flagged || job.status === "CLOSED"))) return null;
 
   const response = (await responseStats([job.company.id])).get(job.company.id) ?? null;
-  let compat = null, applied = false, saved = false;
+  let compat = null, applied = false, saved = false, commute: number | null = null;
   if (session?.user.role === "CANDIDATE") {
     const p = await db.candidateProfile.findUnique({ where: { userId: session.user.id }, include: { skills: { include: { skill: true } } } });
     if (p) {
+      if (p.lat != null && p.lng != null) commute = commuteFor({ lat: p.lat, lng: p.lng }, { lat: job.lat, lng: job.lng, workMode: job.workMode })?.minutes ?? null;
       compat = computeCompatibility(
         { skills: p.skills.map((s) => s.skill.name), interestArea: p.interestArea, workMode: p.workMode, location: p.location, yearsExperience: p.yearsExperience },
         { skills: job.skills.map((s) => s.skill.name), area: job.area, workMode: job.workMode, location: job.location, minYears: job.minYears });
@@ -34,7 +37,7 @@ export async function loadJobDetail(id: string) {
       applied = !!a; saved = !!s;
     }
   }
-  return { job, session, compat, applied, saved, response };
+  return { job, session, compat, applied, saved, response, commute };
 }
 
 export type JobDetailData = NonNullable<Awaited<ReturnType<typeof loadJobDetail>>>;
@@ -105,6 +108,13 @@ function Facts({ d, cols }: { d: JobDetailData; cols: string }) {
 
 const Pin = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-tide/80"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="9.5" r="2.3" stroke="currentColor" strokeWidth="1.8"/></svg>;
 
+function Where({ d, className }: { d: JobDetailData; className: string }) {
+  return (
+    <p className={`flex flex-wrap items-center gap-x-1.5 gap-y-1 ${className}`}><Pin />{d.job.location}
+      {d.commute != null && <span className="text-abyss/70" title="Estimativa em linha reta a partir do seu CEP, com transporte público. Pode variar.">· cerca de {d.commute} min da sua casa</span>}</p>
+  );
+}
+
 function StatusNote({ d }: { d: JobDetailData }) {
   return d.job.status !== "ACTIVE" ? <p role="status" className="mb-5 rounded-control border border-coral/40 bg-coral/10 p-3 text-sm text-coral">Esta vaga está {d.job.status === "PAUSED" ? "pausada" : "encerrada"} e não recebe candidaturas.</p> : null;
 }
@@ -118,13 +128,15 @@ export function JobDetailPage({ d }: { d: JobDetailData }) {
         <StatusNote d={d} />
         <div className="flex flex-wrap items-center gap-2"><Link href={`/companies/${job.company.id}`} className="text-sm font-medium text-tide hover:text-deep hover:underline"><CompanyName name={job.company.name} /></Link><ResponseBadge stats={d.response} compact /></div>
         <h1 className="mt-2 text-3xl font-semibold leading-tight sm:text-[40px]">{job.title}</h1>
-        <p className="mt-2 flex items-center gap-1.5 text-abyss/75"><Pin />{job.location}</p>
+        <Where d={d} className="mt-2 text-abyss/75" />
+        <JobTags job={job} className="mt-3" />
         <div className="mt-6"><Facts d={d} cols="grid-cols-2 sm:grid-cols-4" /></div>
         <Body d={d} headingLevel="h2" />
       </article>
       <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
         <Actions d={d} className="card space-y-3 [&_.btn-ghost]:w-full [&_.btn-primary]:w-full max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-20 max-lg:flex max-lg:items-start max-lg:gap-2 max-lg:space-y-0 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:bg-fossa/95 max-lg:px-4 max-lg:py-3 max-lg:backdrop-blur-md max-lg:[&>*]:flex-1" />
         <Compat d={d} />
+        <JobSafety jobId={job.id} title={job.title} loggedIn={!!d.session} own={d.session?.user.id === job.company.userId} />
       </aside>
     </main>
   );
@@ -139,13 +151,15 @@ export function JobDetailPanel({ d }: { d: JobDetailData }) {
         <StatusNote d={d} />
         <div className="flex flex-wrap items-center gap-2"><Link href={`/companies/${job.company.id}`} className="text-sm font-medium text-tide hover:text-deep hover:underline"><CompanyName name={job.company.name} /></Link><ResponseBadge stats={d.response} compact /></div>
         <h2 id={`panel-${job.id}`} className="mt-1.5 text-2xl font-semibold leading-tight">{job.title}</h2>
-        <p className="mt-1.5 flex items-center gap-1.5 text-sm text-abyss/75"><Pin />{job.location}</p>
+        <Where d={d} className="mt-1.5 text-sm text-abyss/75" />
+        <JobTags job={job} className="mt-2.5" />
         <Actions d={d} className="mt-4 flex flex-wrap items-start gap-2 [&>*]:min-w-[160px] [&>*]:flex-1" />
       </header>
       <div className="p-5">
         <Facts d={d} cols="grid-cols-2 xl:grid-cols-4" />
         {d.compat && <div className="mt-5"><Compat d={d} /></div>}
         <Body d={d} headingLevel="h3" />
+        <div className="mt-7"><JobSafety jobId={job.id} title={job.title} loggedIn={!!d.session} own={d.session?.user.id === job.company.userId} /></div>
         <Link href={`/jobs/${job.id}`} className="btn-ghost mt-7 w-full">Abrir a página da vaga</Link>
       </div>
     </article>

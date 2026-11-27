@@ -7,6 +7,7 @@ import { Empty, ScoreRing, StatusBadge } from "@/components/ui";
 import { WithdrawButton } from "@/components/forms";
 import { appStatusLabel } from "@/lib/labels";
 import { noReplyDays } from "@/modules/hiring";
+import { REJECT_REASONS, coursesFor } from "@/modules/courses";
 
 export const dynamic = "force-dynamic";
 export default async function Applications() {
@@ -38,6 +39,17 @@ export default async function Applications() {
                   <time className="tabular ml-auto text-abyss/60" dateTime={h.createdAt.toISOString()}>{h.createdAt.toLocaleDateString("pt-BR")}</time>
                 </li>);
             })}</ol>
+            {a.status === "REJECTED" && a.rejectReason && (
+              <section className="mt-5 rounded-control border border-mist bg-foam/40 p-4 text-sm" aria-label="Retorno da empresa">
+                <p><span className="font-semibold">Retorno da empresa:</span> {REJECT_REASONS[a.rejectReason as keyof typeof REJECT_REASONS] ?? "Outro motivo"}.</p>
+                {a.rejectSkills.length > 0 && <>
+                  <p className="mt-3 font-medium">Para a próxima, vale desenvolver:</p>
+                  <ul className="mt-2 space-y-2">{a.rejectSkills.map((sk) => (
+                    <li key={sk}><span className="chip">{sk}</span>
+                      <span className="mt-1 block text-abyss/75">Cursos gratuitos: {coursesFor(sk).map((c, i) => <span key={c.url}>{i > 0 && ", "}<a href={c.url} target="_blank" rel="noopener noreferrer" className="font-medium text-tide hover:underline" title={c.hint}>{c.provider}</a></span>)}</span></li>))}</ul>
+                </>}
+                <p className="mt-3 text-abyss/70">Depois de estudar, faça a <Link href="/candidate/provas" className="font-medium text-tide hover:underline">prova de habilidade</Link> para mostrar que aprendeu.</p>
+              </section>)}
             {!["APPROVED", "REJECTED", "WITHDRAWN"].includes(a.status) && <div className="mt-5 border-t border-mist pt-4"><WithdrawButton id={a.id} /></div>}
           </li>))}</ul>}
     </Shell>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Empty, JobCard } from "@/components/ui";
 import { jobsPublic } from "@/modules/public-data";
+import { searchJobs } from "@/modules/jobs.service";
 import { jobViewer } from "@/modules/viewer";
 import { PageHeader } from "@/components/PageHeader";
 import { MARKET_AREAS } from "@/modules/market/areas";
@@ -11,13 +12,16 @@ import { FiltersToggle, JobsBoard, ViewSwitcher } from "@/components/jobs/JobsBo
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Vagas — Nautiwork", description: "Vagas por cargo, cidade, modalidade, contratação, nível e salário. Veja o quanto cada uma combina com o seu perfil.", alternates: { canonical: "/jobs" } };
 
-const FILTER_KEYS = ["q", "area", "mercado", "location", "workMode", "contractType", "minSalary", "seniority", "noExp", "salary", "days"];
+const FILTER_KEYS = ["q", "area", "mercado", "location", "workMode", "contractType", "minSalary", "seniority", "noExp", "salary", "aprendiz", "pcd", "maxMin", "days"];
 
 export default async function Jobs(props: { searchParams: Promise<Record<string, string>> }) {
   const searchParams = await props.searchParams;
   const { vaga, ...rest } = searchParams;
   const clean = Object.fromEntries(Object.entries(rest).filter(([, v]) => v));
-  const [{ parsed, total, remote, internships, hiring, noExp }, viewer] = await Promise.all([jobsPublic(clean), jobViewer()]);
+  const [pub, viewer] = await Promise.all([jobsPublic(clean), jobViewer()]);
+  const { total, remote, internships, hiring, noExp } = pub;
+  // o filtro de deslocamento depende da casa de quem busca: não pode vir do cache público
+  const parsed = clean.maxMin && viewer.home ? await searchJobs(clean, viewer.home).catch(() => null) : pub.parsed;
   const qs = (page: number) => new URLSearchParams({ ...clean, page: String(page) }).toString();
   const active = FILTER_KEYS.filter((k) => clean[k]).length;
 
@@ -50,7 +54,7 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
               <div><label className="label" htmlFor="contractType">Contratação</label><select id="contractType" name="contractType" defaultValue={clean.contractType ?? ""} className="input"><option value="">Todas</option><option value="CLT">CLT</option><option value="PJ">PJ</option><option value="INTERNSHIP">Estágio</option><option value="TEMPORARY">Temporário</option></select></div>
               <button className="btn-primary w-full sm:col-span-2 lg:col-span-1 lg:w-auto">Buscar</button>
             </div>
-            <details className="group mt-3" open={["area", "mercado", "minSalary", "seniority", "noExp", "salary", "days"].some((k) => clean[k]) || undefined}>
+            <details className="group mt-3" open={["area", "mercado", "minSalary", "seniority", "noExp", "salary", "aprendiz", "pcd", "maxMin", "days"].some((k) => clean[k]) || undefined}>
               <summary className="inline-flex min-h-[40px] cursor-pointer list-none items-center gap-2 text-sm font-medium text-tide">
                 <span aria-hidden="true" className="transition-transform group-open:rotate-90">›</span>Mais filtros
               </summary>
@@ -62,6 +66,13 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
                 <div><label className="label" htmlFor="days">Publicada nos últimos</label><select id="days" name="days" defaultValue={clean.days ?? ""} className="input"><option value="">Qualquer data</option><option value="1">1 dia</option><option value="7">7 dias</option><option value="30">30 dias</option></select></div>
                 <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm"><input type="checkbox" name="noExp" value="1" defaultChecked={clean.noExp === "1"} className="h-5 w-5 accent-tide" />Só vagas sem experiência exigida</label>
                 <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm"><input type="checkbox" name="salary" value="1" defaultChecked={clean.salary === "1"} className="h-5 w-5 accent-tide" />Só vagas com salário informado</label>
+                <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm"><input type="checkbox" name="aprendiz" value="1" defaultChecked={clean.aprendiz === "1"} className="h-5 w-5 accent-tide" />Jovem Aprendiz</label>
+                <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm"><input type="checkbox" name="pcd" value="1" defaultChecked={clean.pcd === "1"} className="h-5 w-5 accent-tide" />Vagas para pessoas com deficiência</label>
+                {viewer.home ? (
+                  <div><label className="label" htmlFor="maxMin">Tempo de casa (estimado)</label><select id="maxMin" name="maxMin" defaultValue={clean.maxMin ?? ""} className="input"><option value="">Qualquer distância</option><option value="30">Até 30 min</option><option value="45">Até 45 min</option><option value="60">Até 1 hora</option><option value="90">Até 1h30</option></select></div>
+                ) : viewer.user?.role === "CANDIDATE" ? (
+                  <p className="text-sm text-abyss/70 sm:col-span-2">Informe seu CEP no <Link href="/candidate/profile#contato" className="text-tide hover:underline">perfil</Link> para ver o tempo de deslocamento até cada vaga.</p>
+                ) : null}
               </div>
             </details>
           </form>
@@ -80,7 +91,7 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
                   <JobsBoard>
                     <div className="jobs-list">
                       {items.map((j) => <div key={j.id} data-job={j.id} data-selected={j.id === selectedId}>
-                        <JobCard job={j} save={viewer.save(j.id)} score={viewer.score(j)} /></div>)}
+                        <JobCard job={j} save={viewer.save(j.id)} score={viewer.score(j)} commute={viewer.commute(j)} /></div>)}
                     </div>
                     <aside className="jobs-detail" aria-label="Vaga selecionada">
                       <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-auto rounded-panel border border-mist/70 bg-casco/60 transition-opacity">

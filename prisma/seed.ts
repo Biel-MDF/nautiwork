@@ -13,6 +13,14 @@ const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || (PUBLIC ? "" : PASSWOR
 if (!PASSWORD || !ADMIN_PASSWORD) throw new Error("Defina SEED_PASSWORD e SEED_ADMIN_PASSWORD para rodar o seed fora do ambiente local.");
 const D = "@demo.nautiwork.test";
 
+// centro aproximado de cada cidade das vagas demo, para a estimativa de deslocamento funcionar
+const CITY: Record<string, { lat: number; lng: number }> = {
+  "São Paulo": { lat: -23.5505, lng: -46.6333 }, Recife: { lat: -8.0476, lng: -34.877 }, Santos: { lat: -23.9608, lng: -46.3336 },
+  "Belo Horizonte": { lat: -19.9167, lng: -43.9345 }, Curitiba: { lat: -25.4284, lng: -49.2733 }, Fortaleza: { lat: -3.7319, lng: -38.5267 },
+  "Porto Alegre": { lat: -30.0346, lng: -51.2177 },
+};
+const coords = (city: string) => CITY[city] ?? {};
+
 async function skill(name: string) {
   return db.skill.upsert({ where: { name }, update: {}, create: { name } });
 }
@@ -49,7 +57,7 @@ async function main() {
     jobs.push(await db.job.create({ data: {
       companyId: profiles[j.c].id, title: j.title, description: `Vaga fictícia de demonstração para ${j.title}. Você vai trabalhar com times pequenos, entregas semanais e foco em qualidade.`,
       responsibilities: "Planejar, desenvolver e acompanhar entregas.", requirements: `Conhecimento em ${j.skills.join(", ")}.`, benefits: "Vale-refeição, plano de saúde",
-      area: j.area, location: j.location, workMode: j.workMode, contractType: j.contractType, seniority: j.seniority,
+      area: j.area, location: j.location, ...coords(j.location), workMode: j.workMode, contractType: j.contractType, seniority: j.seniority,
       minYears: j.minYears, salaryMin: j.salaryMin, salaryMax: j.salaryMax, skills: { create: sk.map((s) => ({ skillId: s.id })) } } }));
   }
 
@@ -66,7 +74,7 @@ async function main() {
       const sk = await Promise.all(j.skills.map(skill));
       await db.job.create({ data: {
         companyId: u.company!.id, title: j.title, description: j.description, requirements: `Conhecimento em ${j.skills.join(", ")}.`,
-        benefits: "Vale-refeição, plano de saúde", area: j.area, location: j.location, workMode: j.workMode, contractType: j.contractType, seniority: j.seniority,
+        benefits: "Vale-refeição, plano de saúde", area: j.area, location: j.location, ...coords(j.location), workMode: j.workMode, contractType: j.contractType, seniority: j.seniority,
         minYears: j.minYears, salaryMin: j.salaryMin, salaryMax: j.salaryMax, publishedAt: new Date(Date.now() - daysAgo++ * 86_400_000),
         skills: { create: sk.map((s) => ({ skillId: s.id })) } } });
     }
