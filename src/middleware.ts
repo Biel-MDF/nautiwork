@@ -14,13 +14,6 @@ export default auth((req) => {
   const role = req.auth?.user.role;
   const mode = role === "ADMIN" ? parseViewMode(req.cookies.get(VIEW_COOKIE)?.value) : null;
 
-  // Página inicial: quem não está logado recebe a versão pronta de antemão (/visitante),
-  // servida pela CDN; o endereço continua "/". Quem está logado recebe a versão montada na hora.
-  if (path === "/") {
-    if (!req.auth && !req.nextUrl.searchParams.has("aviso")) return NextResponse.rewrite(new URL("/visitante", req.url));
-    return;
-  }
-  if (path === "/visitante") return NextResponse.redirect(new URL("/", req.url), 308);
 
   // Modo de visualização: só olhar. Qualquer ação que muda dados é recusada,
   // menos trocar/sair do modo, o próprio login/logout, o assistente e a análise de perfil (que só consultam).
@@ -41,4 +34,4 @@ export default auth((req) => {
   return NextResponse.redirect(new URL("/", req.url));
 });
 
-export const config = { matcher: ["/", "/visitante", "/candidate/:path*", "/company/:path*", "/admin/:path*", "/api/:path*"] };
+export const config = { matcher: ["/candidate/:path*", "/company/:path*", "/admin/:path*", "/api/:path*"] };

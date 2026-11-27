@@ -15,6 +15,22 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Página inicial: sem cookie de sessão, "/" mostra a versão pronta de antemão (/visitante),
+  // direto da CDN. A regra roda no roteamento da Vercel, sem acordar servidor nem middleware.
+  async rewrites() {
+    const noSession = [
+      { type: "cookie", key: "authjs.session-token" },
+      { type: "cookie", key: "__Secure-authjs.session-token" },
+      // sessão grande vira cookie em pedaços (.0, .1...)
+      { type: "cookie", key: "authjs.session-token.0" },
+      { type: "cookie", key: "__Secure-authjs.session-token.0" },
+      { type: "query", key: "aviso" },
+    ];
+    return { beforeFiles: [{ source: "/", missing: noSession, destination: "/visitante" }] };
+  },
+  async redirects() {
+    return [{ source: "/visitante", destination: "/", permanent: true }];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
