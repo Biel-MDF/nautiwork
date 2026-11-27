@@ -37,7 +37,7 @@ class Client {
     this.store(res);
     const text = await res.text();
     let json; try { json = JSON.parse(text); } catch { json = undefined; }
-    return { status: res.status, json, location: res.headers.get("location"), text };
+    return { status: res.status, json, location: res.headers.get("location"), text, headers: res.headers };
   }
   async login(email, password) {
     const csrf = await this.req("GET", "/api/auth/csrf");
@@ -432,10 +432,12 @@ if (!OUTBOX) {
   check("salvar preferência de e-mail", r.status === 200 && r.json?.emailNotifications === false, JSON.stringify(r.json));
   r = await sup.req("PATCH", "/api/account/preferences", { emailNotifications: "talvez" });
   check("preferência inválida retorna 400", r.status === 400, `status ${r.status}`);
-  r = await sup.req("GET", "/");
-  check("barra mostra o menu da conta para quem está logado", r.text.includes('aria-haspopup="menu"') && !r.text.includes(">Criar conta<"), "menu ausente");
-  r = await anon.req("GET", "/");
-  check("barra não mostra o menu da conta para visitante", !r.text.includes('aria-haspopup="menu"') && r.text.includes("Criar conta"), "menu indevido");
+  // o menu da conta é montado no navegador a partir de /api/me
+  r = await sup.req("GET", "/api/me");
+  check("/api/me traz a conta de quem está logado", r.status === 200 && !!r.json?.user?.id && r.json.user.role === "CANDIDATE" && !("passwordHash" in r.json.user), JSON.stringify(r.json));
+  check("/api/me não é guardado em cache", /no-store/.test(r.headers.get("cache-control") ?? ""), r.headers.get("cache-control") ?? "sem cabeçalho");
+  r = await anon.req("GET", "/api/me");
+  check("/api/me para visitante não traz conta", r.status === 200 && r.json?.user === null && r.json?.mode === null, JSON.stringify(r.json));
   for (const p of ["/support", "/support/new"]) { r = await sup.req("GET", p); check(`página ${p} responde 200 para quem está logado`, r.status === 200, `status ${r.status}`); }
   r = await anon.req("GET", "/support");
   check("visitante em /support vai para o login", (r.status >= 300 && r.status < 400) || /url=\/login/.test(r.text), `status ${r.status}`);
@@ -479,16 +481,16 @@ if (!OUTBOX) {
     r = await va.req("POST", "/api/admin/view", { mode: "candidate" });
     check("admin liga a visão de candidato", r.status === 200 && r.json?.redirect === "/candidate/dashboard", `status ${r.status}`);
     r = await va.req("GET", "/candidate/dashboard");
-    const bar = (t, who) => new RegExp(`Vendo o site como (<!-- -->)?${who}`).test(t);
-    check("na visão de candidato, o painel do candidato abre", r.status === 200 && bar(r.text, "candidato"), `status ${r.status} ${r.location ?? ""}`);
+    const me = await va.req("GET", "/api/me");
+    check("na visão de candidato, o painel do candidato abre", r.status === 200 && me.json?.mode === "candidate" && me.json?.user?.role === "CANDIDATE" && /demonstração/.test(me.json?.as ?? ""), `status ${r.status} ${JSON.stringify(me.json)}`);
     r = await va.req("GET", "/admin/dashboard");
     // o redirecionamento pode vir como 3xx ou como meta refresh (página em streaming)
     check("na visão de candidato, o painel do admin não abre", (r.status >= 300 && r.status < 400) || (r.text.includes('http-equiv="refresh"') && !r.text.includes("Painel administrativo")), `status ${r.status}`);
     r = await va.req("POST", "/api/saved-jobs", { jobId: "qualquer" });
     check("na visão de candidato, ações são recusadas (403)", r.status === 403 && /visualiza/i.test(r.json?.error ?? ""), `status ${r.status}`);
     r = await va.req("POST", "/api/admin/view", { mode: "visitor" });
-    r = await va.req("GET", "/");
-    check("na visão de visitante, a página mostra Entrar/Criar conta", r.text.includes('href="/register"') && bar(r.text, "visitante"), "barra ou botões ausentes");
+    r = await va.req("GET", "/api/me");
+    check("na visão de visitante, o site trata o admin como visitante", r.json?.mode === "visitor" && r.json?.user === null, JSON.stringify(r.json));
     r = await va.req("POST", "/api/admin/view", { mode: "admin" });
     r = await va.req("GET", "/admin/dashboard");
     check("voltar ao modo admin reabre o painel do admin", r.status === 200 && !r.text.includes("Vendo o site como"), `status ${r.status}`);

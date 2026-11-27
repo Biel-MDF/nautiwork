@@ -11,6 +11,11 @@ type ScorableJob = { id: string; area: string; workMode: string; location: strin
  * - candidato: compatibilidade de cada vaga e marcador ligado nas vagas salvas;
  * - empresa/admin: nada extra.
  */
+/** Visitante sem sessão, sem ler cookies: deixa a página ser montada de antemão. */
+export function visitorViewer(): Awaited<ReturnType<typeof jobViewer>> {
+  return { user: null, save: () => "login" as const, score: () => undefined, home: null, commute: () => null };
+}
+
 export async function jobViewer() {
   const user = await currentUser();
   const none = { home: null, commute: () => null };

@@ -5,7 +5,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { CompanyMark } from "@/components/CompanyMark";
 import { CompanyName } from "@/components/CompanyName";
 
-export const dynamic = "force-dynamic";
+// Estática, refeita no máximo a cada minuto ou quando uma vaga/empresa muda (invalidatePublic).
+export const revalidate = 60;
 export const metadata = { title: "Empresas — Nautiwork" };
 export default async function Companies() {
   const companies = await companiesPublic();

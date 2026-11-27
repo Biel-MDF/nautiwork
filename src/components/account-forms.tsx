@@ -1,4 +1,5 @@
 "use client";
+import { meChanged } from "@/lib/me";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -140,7 +141,7 @@ export function CompanyProfileForm({ initial }: { initial: { name: string; descr
       e.preventDefault(); setS({ busy: true });
       const r = await api("PUT", "/api/company/profile", formData(e));
       if (!r.ok) return setS({ error: r.data.fields ? "Revise os campos destacados." : r.data.error, fields: r.data.fields });
-      setS({ ok: "Perfil da empresa salvo." }); router.refresh();
+      setS({ ok: "Perfil da empresa salvo." }); router.refresh(); meChanged();
     }}>
       <div><label className="label" htmlFor="c-name">Nome da empresa</label><input id="c-name" name="name" required defaultValue={initial.name} className="input" /><Msg error={s.fields?.name?.[0]} /></div>
       <div><label className="label" htmlFor="c-desc">Descrição</label><textarea id="c-desc" name="description" rows={5} maxLength={4000} defaultValue={initial.description} className="input py-2" /><Msg error={s.fields?.description?.[0]} /></div>
@@ -165,7 +166,7 @@ export function AccountNameForm({ name }: { name: string }) {
       e.preventDefault(); setS({ busy: true });
       const r = await api("PATCH", "/api/account", formData(e));
       if (!r.ok) return setS({ error: r.data.fields?.name?.[0] ?? r.data.error });
-      setS({ ok: "Nome atualizado." }); router.refresh();
+      setS({ ok: "Nome atualizado." }); router.refresh(); meChanged();
     }}>
       <div><label className="label" htmlFor="acc-name">Nome</label><input id="acc-name" name="name" required defaultValue={name} className="input" /></div>
       <Msg error={s.error} ok={s.ok} />
@@ -223,7 +224,7 @@ export function ImageUpload({ userId, version, label }: { userId: string; versio
           const res = await fetch("/api/account/image", { method: "POST", body: new FormData(form) });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) return setS({ error: data.error ?? "Não foi possível enviar." });
-          form.reset(); setFileName(""); setS({ ok: "Imagem atualizada." }); router.refresh();
+          form.reset(); setFileName(""); setS({ ok: "Imagem atualizada." }); router.refresh(); meChanged();
         } catch { setS({ error: "Sem conexão. Tente de novo." }); }
       }}>
         <p className="label" id="img-label">{label}</p>
@@ -240,7 +241,7 @@ export function ImageUpload({ userId, version, label }: { userId: string; versio
           {version && <button type="button" className="btn-danger" onClick={async () => {
             if (!confirm("Remover a imagem?")) return;
             const r = await api("DELETE", "/api/account/image");
-            if (r.ok) { setS({ ok: "Imagem removida." }); router.refresh(); } else setS({ error: r.data.error });
+            if (r.ok) { setS({ ok: "Imagem removida." }); router.refresh(); meChanged(); } else setS({ error: r.data.error });
           }}>Remover</button>}
         </div>
         <Msg error={s.error} ok={s.ok} />
@@ -260,7 +261,7 @@ export function NotificationList({ items }: { items: NotificationItem[] }) {
   const mark = async (body: object) => {
     setError("");
     const r = await api("PATCH", "/api/notifications", body);
-    if (r.ok) router.refresh(); else setError(r.data.error ?? "Não foi possível atualizar.");
+    if (r.ok) { router.refresh(); meChanged(); } else setError(r.data.error ?? "Não foi possível atualizar.");
   };
   if (items.length === 0) return <p className="text-sm text-abyss/70">Nenhuma notificação ainda.</p>;
   return (

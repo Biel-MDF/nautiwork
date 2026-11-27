@@ -2,23 +2,21 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
 import { MarketExplorer, type AreaLive } from "@/components/market/MarketExplorer";
-import { MARKET_AREAS, MARKET_TRENDS, MARKET_UPDATED, marketAreaById, marketAreaOfJobArea } from "@/modules/market/areas";
+import { MARKET_AREAS, MARKET_TRENDS, MARKET_UPDATED, marketAreaOfJobArea } from "@/modules/market/areas";
 import { areaStats } from "@/modules/public-data";
 import { DemandChip } from "@/components/market/DemandChip";
 
-export const dynamic = "force-dynamic";
+// Estática, refeita no máximo a cada minuto (as contagens de vagas mudam; o resto é editorial).
+// Servida pela CDN perto de quem acessa, sem esperar o servidor nem o banco.
+export const revalidate = 60;
 
-export async function generateMetadata(props: { searchParams: Promise<{ area?: string }> }): Promise<Metadata> {
-  const area = marketAreaById((await props.searchParams).area);
-  return {
-    title: area ? `${area.name}: o que o mercado pede em 2026 — Nautiwork` : "Mercado de trabalho por área em 2026 — Nautiwork",
-    description: area ? area.summary : "Cargos em alta, habilidades técnicas e comportamentais, ferramentas e tendências em 20 áreas, com as fontes de cada dado.",
-    alternates: { canonical: area ? `/mercado?area=${area.id}` : "/mercado" },
-  };
-}
+export const metadata: Metadata = {
+  title: "Mercado de trabalho por área em 2026 — Nautiwork",
+  description: "Cargos em alta, habilidades técnicas e comportamentais, ferramentas e tendências em 20 áreas, com as fontes de cada dado.",
+  alternates: { canonical: "/mercado" },
+};
 
-export default async function Mercado(props: { searchParams: Promise<{ area?: string }> }) {
-  const { area } = await props.searchParams;
+export default async function Mercado() {
   const stats = await areaStats();
 
   // junta as áreas das vagas do Nautiwork nas 20 áreas do mercado
@@ -36,7 +34,6 @@ export default async function Mercado(props: { searchParams: Promise<{ area?: st
   }
   for (const v of Object.values(live)) v.skills = v.skills.sort((a, b) => b.n - a.n).slice(0, 6);
   const openJobs = stats.reduce((t, s) => t + s.count, 0);
-  const initial = marketAreaById(area)?.id ?? MARKET_AREAS[0].id;
 
   return (
     <>
@@ -57,7 +54,7 @@ export default async function Mercado(props: { searchParams: Promise<{ area?: st
           </ul>
         </section>
 
-        <MarketExplorer initial={initial} live={live} />
+        <MarketExplorer live={live} />
 
         <section className="mt-14" aria-labelledby="comparar">
           <h2 id="comparar" className="text-xl font-semibold sm:text-2xl">Todas as áreas lado a lado</h2>

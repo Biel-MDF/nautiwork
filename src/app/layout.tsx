@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, Sora } from "next/font/google";
 import "./globals.css";
-import { currentUser, viewMode } from "@/lib/rbac";
-import { ViewModeBar } from "@/components/ViewMode";
-import { after } from "next/server";
+import { ViewModeGate } from "@/components/NavAccount";
 import { Assistant } from "@/components/assistant/Assistant";
 import { assistantEnabled } from "@/modules/assistant/config";
-import { maybeSweep } from "@/modules/hiring";
 import { NavHistory } from "@/components/BackButton";
-import { splitDemo } from "@/lib/display";
 import { themeBootScript, themeCss } from "@/lib/themes";
 import { uiBootScript } from "@/lib/ui-prefs";
 
@@ -31,12 +27,9 @@ export const viewport = { themeColor: "#030A1A" };
 const css = themeCss();
 const boot = themeBootScript() + uiBootScript();
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Modo de visualização do admin: barra fixa avisando e permitindo voltar.
-  // validade das vagas e avisos de "sem retorno": rodam depois da resposta, sem atrasar a página
-  after(() => maybeSweep());
-  const mode = await viewMode();
-  const as = mode && mode !== "visitor" ? await currentUser() : null;
+// Não lê cookies nem sessão: páginas sem dados pessoais ficam estáticas. A conta, a barra do
+// modo de visualização e as rotinas de validade das vagas vêm de /api/me, chamado no navegador.
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // suppressHydrationWarning: o script abaixo marca paleta e modo no <html> antes do React assumir.
     <html lang="pt-BR" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
@@ -44,11 +37,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <style dangerouslySetInnerHTML={{ __html: css }} />
         <script dangerouslySetInnerHTML={{ __html: boot }} />
       </head>
-      <body className={mode ? "pb-28" : undefined}>
+      <body>
         <NavHistory />
         {children}
-        {assistantEnabled() && <Assistant raised={!!mode} />}
-        {mode && <ViewModeBar mode={mode} as={as ? `${splitDemo(as.name).name}, conta de demonstração` : null} />}
+        {assistantEnabled() && <Assistant raised={false} />}
+        <ViewModeGate />
       </body>
     </html>
   );

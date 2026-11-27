@@ -2,8 +2,8 @@
 // Escolha de área + tabela do que o mercado pede nela. A área escolhida vai para a URL
 // (?area=), então dá para compartilhar o link de uma área específica.
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { MARKET_AREAS } from "@/modules/market/areas";
 import { DemandChip } from "./DemandChip";
 import { AreaChart } from "./AreaChart";
@@ -22,8 +22,27 @@ const Chips = ({ items, tone = "" }: { items: string[]; tone?: string }) => (
   <ul className="flex flex-wrap gap-1.5">{items.map((s) => <li key={s} className={`chip py-1 text-sm ${tone}`}>{s}</li>)}</ul>
 );
 
-export function MarketExplorer({ initial, live }: { initial: string; live: Record<string, AreaLive> }) {
+/**
+ * A página do mercado é estática (servida pela CDN); a área escolhida vem do endereço (?area=),
+ * lido aqui no navegador. Enquanto o endereço não é lido, mostra a primeira área.
+ */
+export function MarketExplorer({ live }: { live: Record<string, AreaLive> }) {
+  return (
+    <Suspense fallback={<Explorer initial={MARKET_AREAS[0].id} live={live} />}>
+      <FromUrl live={live} />
+    </Suspense>
+  );
+}
+
+function FromUrl({ live }: { live: Record<string, AreaLive> }) {
+  const wanted = useSearchParams().get("area");
+  return <Explorer initial={MARKET_AREAS.find((a) => a.id === wanted)?.id ?? MARKET_AREAS[0].id} live={live} />;
+}
+
+function Explorer({ initial, live }: { initial: string; live: Record<string, AreaLive> }) {
   const [id, setId] = useState(initial);
+  // link da tabela (?area=...) na mesma página: acompanha o endereço
+  useEffect(() => { setId(initial); }, [initial]);
   const router = useRouter();
   const path = usePathname();
   const area = MARKET_AREAS.find((a) => a.id === id) ?? MARKET_AREAS[0];
