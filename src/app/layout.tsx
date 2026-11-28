@@ -5,6 +5,7 @@ import { ViewModeGate } from "@/components/NavAccount";
 import { Assistant } from "@/components/assistant/Assistant";
 import { assistantEnabled } from "@/modules/assistant/config";
 import { NavHistory } from "@/components/BackButton";
+import { PwaRegister } from "@/components/InstallApp";
 import { themeBootScript, themeCss } from "@/lib/themes";
 import { uiBootScript } from "@/lib/ui-prefs";
 
@@ -18,11 +19,14 @@ export const metadata: Metadata = {
   title: { default: "Nautiwork — vagas e candidaturas num só lugar", template: "%s" },
   description,
   applicationName: "Nautiwork",
+  // iPhone: "Adicionar à Tela de Início" abre em tela cheia, com o nome curto
+  appleWebApp: { capable: true, title: "Nautiwork", statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false },
   openGraph: { type: "website", locale: "pt_BR", siteName: "Nautiwork", title: "Nautiwork — ache a vaga que combina com o seu rumo", description },
   twitter: { card: "summary_large_image", title: "Nautiwork — ache a vaga que combina com o seu rumo", description },
 };
 
-export const viewport = { themeColor: "#030A1A" };
+export const viewport = { themeColor: "#030A1A", viewportFit: "cover" as const };
 
 const css = themeCss();
 const boot = themeBootScript() + uiBootScript();
@@ -41,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NavHistory />
         {children}
         {assistantEnabled() && <Assistant raised={false} />}
+        <PwaRegister />
         <ViewModeGate />
       </body>
     </html>

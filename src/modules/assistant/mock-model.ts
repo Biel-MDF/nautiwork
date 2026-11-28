@@ -29,7 +29,14 @@ export function createMockAssistantModel() {
       const ask = lastUserText(prompt).toLowerCase();
       let chunks: LanguageModelV4StreamPart[];
       if (last?.role === "tool") {
-        chunks = text("Encontrei estas vagas para você. Veja os detalhes em [todas as vagas](/jobs).");
+        const tool = [...prompt].reverse().find((m) => m.role === "tool");
+        const first = tool?.role === "tool" ? tool.content[0] : undefined;
+        const name = first && "toolName" in first ? first.toolName : undefined;
+        chunks = text(name === "meu_curriculo" ? "Li seu currículo. Pontos fortes e melhorias: complete o campo sobre você. [Editar perfil](/candidate/profile)"
+          : "Encontrei estas vagas para você. Veja os detalhes em [todas as vagas](/jobs).");
+      } else if (ask.includes("revise meu currículo")) {
+        chunks = [{ type: "tool-call", toolCallId: "c2", toolName: "meu_curriculo", input: "{}" },
+          { type: "finish", finishReason: { unified: "tool-calls", raw: undefined }, usage }];
       } else if (ask.includes("vaga")) {
         const termo = ask.match(/vagas? de ([\p{L}\s-]+)/u)?.[1]?.trim();
         chunks = [{ type: "tool-call", toolCallId: "c1", toolName: "buscar_vagas", input: JSON.stringify(termo ? { termo } : {}) },

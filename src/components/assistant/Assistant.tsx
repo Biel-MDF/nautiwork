@@ -73,6 +73,8 @@ export function Assistant({ raised = false }: { raised?: boolean }) {
   }, [open, close]);
 
   const lift = raised ? "bottom-32" : overBar ? "max-lg:bottom-24 bottom-5" : "bottom-5";
+  // na página do assistente a conversa já está aberta em tela cheia
+  if (pathname?.startsWith("/assistente")) return null;
 
   return (
     <div className="print:hidden">

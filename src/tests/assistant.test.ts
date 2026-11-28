@@ -70,3 +70,28 @@ describe("instruções e escopo", () => {
     } finally { process.env = env; }
   });
 });
+
+describe("modos do assistente", () => {
+  it("cada modo só para quem pode usar", async () => {
+    const { modeAllowed } = await import("@/modules/assistant/modes");
+    expect(modeAllowed("curriculo", "CANDIDATE")).toBe(true);
+    expect(modeAllowed("curriculo", "COMPANY")).toBe(false);
+    expect(modeAllowed("empresa", "COMPANY")).toBe(true);
+    expect(modeAllowed("empresa", "VISITOR")).toBe(false);
+    expect(modeAllowed("entrevista", "VISITOR")).toBe(true);
+    expect(modeAllowed("carreira", "ADMIN")).toBe(true);
+  });
+  it("as instruções mudam com o modo e a vaga do simulado", async () => {
+    const { assistantInstructions } = await import("@/modules/assistant/prompt");
+    const v = { id: "u", role: "CANDIDATE" as const };
+    expect(assistantInstructions(v, "Ana", new Date(), "entrevista", "vaga123")).toMatch(/UMA pergunta por vez[\s\S]*|vaga123/);
+    expect(assistantInstructions(v, "Ana", new Date(), "entrevista", "vaga123")).toContain("vaga123");
+    expect(assistantInstructions(v, "Ana", new Date(), "curriculo")).toContain("meu_curriculo");
+    expect(assistantInstructions({ id: "c", role: "COMPANY" }, null, new Date(), "empresa")).toMatch(/Nunca use idade, gênero/);
+  });
+  it("ferramentas novas por perfil", () => {
+    expect(toolsFor({ id: "u", role: "CANDIDATE" })).toContain("meu_curriculo");
+    expect(toolsFor({ id: "c", role: "COMPANY" })).toContain("candidatos_da_vaga");
+    expect(toolsFor(null)).not.toContain("meu_curriculo");
+  });
+});

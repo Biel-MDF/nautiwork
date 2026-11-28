@@ -143,6 +143,7 @@ export function JobDetailPage({ d }: { d: JobDetailData }) {
       <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
         <Actions d={d} className="card space-y-3 [&_.btn-ghost]:w-full [&_.btn-primary]:w-full max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-20 max-lg:flex max-lg:items-start max-lg:gap-2 max-lg:space-y-0 max-lg:rounded-none max-lg:border-x-0 max-lg:border-b-0 max-lg:bg-fossa/95 max-lg:px-4 max-lg:py-3 max-lg:backdrop-blur-md max-lg:[&>*]:flex-1" />
         <Compat d={d} />
+        {d.session?.user.role !== "COMPANY" && d.session?.user.role !== "ADMIN" && <Link href={`/assistente?modo=entrevista&vaga=${job.id}`} className="btn-ghost w-full">Treinar a entrevista com IA</Link>}
         <JobSafety jobId={job.id} title={job.title} loggedIn={!!d.session} own={d.session?.user.id === job.company.userId} />
       </aside>
     </main>
@@ -166,7 +167,7 @@ export function JobDetailPanel({ d }: { d: JobDetailData }) {
         <Facts d={d} cols="grid-cols-2 xl:grid-cols-4" />
         {d.compat && <div className="mt-5"><Compat d={d} /></div>}
         <Body d={d} headingLevel="h3" />
-        <div className="mt-7"><JobSafety jobId={job.id} title={job.title} loggedIn={!!d.session} own={d.session?.user.id === job.company.userId} /></div>
+        <div className="mt-7 space-y-3">{d.session?.user.role !== "COMPANY" && d.session?.user.role !== "ADMIN" && <Link href={`/assistente?modo=entrevista&vaga=${job.id}`} className="btn-ghost w-full">Treinar a entrevista com IA</Link>}<JobSafety jobId={job.id} title={job.title} loggedIn={!!d.session} own={d.session?.user.id === job.company.userId} /></div>
         <Link href={`/jobs/${job.id}`} className="btn-ghost mt-7 w-full">Abrir a página da vaga</Link>
       </div>
     </article>

@@ -49,7 +49,7 @@ export default async function ResumePage() {
         <h2 id="sk-title" className="mb-3 text-lg font-bold">Habilidades</h2>
         {p.skills.length === 0 ? <p className="text-sm text-abyss/70">Nenhuma habilidade informada. <Link href="/candidate/profile" className="font-semibold text-tide">Adicionar no perfil</Link></p>
           : <div className="flex flex-wrap gap-1.5">{p.skills.map((s) => <SkillBadge key={s.skill.id} name={s.skill.name} verified={!!s.verifiedAt} />)}</div>}
-        <p className="mt-3 text-sm text-abyss/70"><Link href="/candidate/provas" className="font-semibold text-tide">Faça uma prova de habilidade</Link> para mostrar que sabe.</p>
+        <p className="mt-3 text-sm text-abyss/70"><Link href="/candidate/provas" className="font-semibold text-tide">Faça uma prova de habilidade</Link> para mostrar que sabe, ou <Link href="/assistente?modo=curriculo" className="font-semibold text-tide">peça uma revisão do currículo à IA</Link>.</p>
       </section>
     </Shell>
   );

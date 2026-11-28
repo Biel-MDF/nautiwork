@@ -540,15 +540,22 @@ if (!OUTBOX) {
   check("botão de aparência aparece na tela de login", r.text.includes("Aparência: tema e modo claro ou escuro"), "sem botão no login");
 }
 
-// 18. Assistente. Fica fora do ar por padrão (ASSISTANT_ENABLED diferente de 1): o teste confirma
-// que ele não aparece. Com o modelo de roteiro (ASSISTANT_MOCK=1 no servidor e
-// SMOKE_ASSISTANT_STREAM=1 aqui), testa a conversa inteira sem gastar créditos.
-if (process.env.SMOKE_ASSISTANT_STREAM !== "1") {
-  r = await anon.req("GET", "/");
-  check("assistente desligado: botão não aparece", !r.text.includes("Abrir assistente"), "botão presente");
-  r = await anon.req("GET", "/api/assistant");
-  check("assistente desligado: API responde 404", r.status === 404, `status ${r.status}`);
-} else {
+// 17b. App instalável
+r = await anon.req("GET", "/manifest.webmanifest");
+check("manifesto do app traz nome, ícones e tela cheia", r.status === 200 && r.json?.short_name === "Nautiwork" && r.json?.display === "standalone" && r.json?.icons?.some((i) => i.purpose === "maskable"), `status ${r.status}`);
+r = await anon.req("GET", "/sw.js");
+check("service worker é servido", r.status === 200 && r.text.includes("nw-v1"), `status ${r.status}`);
+r = await anon.req("GET", "/icons/maskable-512.png");
+check("ícone do app existe", r.status === 200, `status ${r.status}`);
+for (const page of ["/app", "/assistente", "/offline"]) {
+  r = await anon.req("GET", page);
+  check(`página ${page} responde 200`, r.status === 200, `status ${r.status}`);
+}
+
+// 18. Assistente (ligado por padrão, modelo gratuito). Sem chamar o modelo: aparece, valida e
+// respeita os modos por perfil. Com o modelo de roteiro (ASSISTANT_MOCK=1 no servidor e
+// SMOKE_ASSISTANT_STREAM=1 aqui), testa também a conversa inteira sem gastar créditos.
+{
   const ask = (text, role = "user") => ({ messages: [{ id: "m1", role, parts: [{ type: "text", text }] }] });
   r = await anon.req("GET", "/");
   check("botão do assistente aparece na página", r.text.includes('aria-haspopup="dialog"') && r.text.includes("Assistente"), "sem botão");
@@ -564,11 +571,21 @@ if (process.env.SMOKE_ASSISTANT_STREAM !== "1") {
     check("assistente exige que a última mensagem seja da pessoa", r.status === 400, `status ${r.status}`);
     r = await va.req("POST", "/api/assistant", ask("x".repeat(1001)));
     check("assistente recusa pergunta longa demais", r.status === 400 && /1000/.test(r.json?.error ?? ""), `status ${r.status}`);
+    r = await va.req("POST", "/api/assistant", { ...ask("revise"), mode: "curriculo" });
+    check("revisão de currículo pede login de candidato (401)", r.status === 401, `status ${r.status}`);
+    r = await va.req("POST", "/api/assistant", { ...ask("anúncio"), mode: "empresa" });
+    check("ajuda para empresas pede login de empresa (401)", r.status === 401, `status ${r.status}`);
+    r = await va.req("POST", "/api/assistant", { ...ask("oi"), mode: "inexistente" });
+    check("modo desconhecido é recusado (400)", r.status === 400, `status ${r.status}`);
   }
   const ca = new Client(`10.7.${Math.floor(Math.random() * 200)}.2`);
   await ca.login("ana@demo.nautiwork.test", DEMO_PASSWORD);
   r = await ca.req("GET", "/api/assistant");
   check("assistente reconhece o candidato logado", r.json?.role === "CANDIDATE" && r.json?.firstName === "Ana", JSON.stringify(r.json));
+  if (live) {
+    r = await ca.req("POST", "/api/assistant", { ...ask("anúncio"), mode: "empresa" });
+    check("candidato não usa a ajuda para empresas (403)", r.status === 403, `status ${r.status}`);
+  }
 
   if (live && process.env.SMOKE_ASSISTANT_STREAM === "1") {
     r = await va.req("POST", "/api/assistant", ask("Quero vagas de tecnologia"));
@@ -576,6 +593,8 @@ if (process.env.SMOKE_ASSISTANT_STREAM !== "1") {
     check("visitante não recebe compatibilidade", !r.text.includes('"compatibilidade":'), "veio compatibilidade");
     r = await ca.req("POST", "/api/assistant", ask("Quero vagas de tecnologia"));
     check("candidato recebe a compatibilidade nas vagas", r.status === 200 && r.text.includes('"compatibilidade":'), `status ${r.status}`);
+    r = await ca.req("POST", "/api/assistant", { ...ask("Revise meu currículo"), mode: "curriculo" });
+    check("revisão de currículo lê o currículo do candidato", r.status === 200 && r.text.includes('"toolName":"meu_curriculo"') && r.text.includes('"habilidades"'), `status ${r.status} ${r.text.slice(0, 200)}`);
     let last = 0;
     for (let i = 0; i < 9; i++) last = (await va.req("POST", "/api/assistant", ask("oi"))).status;
     check("assistente limita perguntas de visitante (429)", last === 429, `último status ${last}`);

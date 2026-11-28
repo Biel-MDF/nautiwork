@@ -10,6 +10,7 @@ import { currentUser } from "@/lib/rbac";
 import { createAssistantAgent } from "@/modules/assistant/agent";
 import { ASSISTANT_LIMITS, assistantAvailable, assistantEnabled, assistantMockEnabled } from "@/modules/assistant/config";
 import { assistantErrorText, classifyAssistantError } from "@/modules/assistant/errors";
+import { ASSISTANT_MODES, modeAllowed } from "@/modules/assistant/prompt";
 
 export const dynamic = "force-dynamic";
 // uma resposta com 2 ou 3 consultas leva poucos segundos; o teto evita conta presa
@@ -21,7 +22,11 @@ const message = z.object({
   role: z.enum(["user", "assistant"]),
   parts: z.array(z.object({ type: z.string().max(60) }).loose()).max(30),
 }).loose();
-const bodySchema = z.object({ messages: z.array(message).min(1).max(ASSISTANT_LIMITS.messages) }).loose();
+const bodySchema = z.object({
+  messages: z.array(message).min(1).max(ASSISTANT_LIMITS.messages),
+  mode: z.enum(ASSISTANT_MODES).optional(),
+  jobId: z.string().trim().regex(/^[a-z0-9_]{1,40}$/i).optional(),
+}).loose();
 
 function clientIp(req: Request) {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "local";
@@ -63,11 +68,15 @@ export const POST = handle(async (req: Request) => {
     : await rateLimit(`assistant:ip:${clientIp(req)}`, 8, 5 * 60_000) && await rateLimit(`assistant:ipd:${clientIp(req)}`, 40, 86_400_000);
   if (!ok) throw new HttpError(429, "Você fez muitas perguntas em pouco tempo. Espere alguns minutos e tente de novo.");
 
+  const mode = body.mode ?? "carreira";
+  if (!modeAllowed(mode, user?.role ?? "VISITOR")) {
+    throw new HttpError(user ? 403 : 401, mode === "empresa" ? "Este modo é para empresas logadas." : "Entre como candidato para usar este modo.");
+  }
   const viewer = user ? { id: user.id, role: user.role } : null;
   let model: LanguageModel | undefined;
   if (assistantMockEnabled()) model = (await import("@/modules/assistant/mock-model")).createMockAssistantModel();
   const agent = createAssistantAgent({
-    viewer, name: user?.name, model,
+    viewer, name: user?.name, model, mode, jobId: body.jobId,
     // identificador opaco: a Gateway agrupa o gasto por pessoa sem receber o id real
     userTag: user ? createHash("sha256").update(`nw-assistant:${user.id}`).digest("hex").slice(0, 16) : undefined,
   });

@@ -220,3 +220,20 @@ describe("Imperador (administrador maior)", () => {
     await db.user.update({ where: { id: emperor.id }, data: { emperor: false } });
   });
 });
+
+describe("IA: dados dos modos", () => {
+  it("currículo só do candidato logado; candidatos só da vaga da própria empresa, sem contato", async () => {
+    const { resumeFor, applicantsFor } = await import("@/modules/assistant/data");
+    const cand = await makeCandidate();
+    const r = await resumeFor({ id: cand.id, role: "CANDIDATE" });
+    expect(r).toMatchObject({ habilidades: expect.any(Array) });
+    expect(await resumeFor({ id: company.id, role: "COMPANY" })).toHaveProperty("erro");
+    const job = await createJob(company.id, { ...base, title: `IA ${uid()}` });
+    await applyToJob(cand.id, { jobId: job.id });
+    const a = await applicantsFor({ id: company.id, role: "COMPANY" }, job.id) as { candidatos: Record<string, unknown>[] };
+    expect(a.candidatos).toHaveLength(1);
+    expect(JSON.stringify(a)).not.toMatch(/@test\.local|whatsapp|postalCode/i);
+    const other = await makeCompany();
+    expect(await applicantsFor({ id: other.id, role: "COMPANY" }, job.id)).toHaveProperty("erro");
+  });
+});

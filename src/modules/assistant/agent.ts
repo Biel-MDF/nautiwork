@@ -2,8 +2,8 @@
 // É criado a cada requisição, com as ferramentas presas a quem está conversando.
 import { ToolLoopAgent, isStepCount, tool, type InferAgentUIMessage, type LanguageModel } from "ai";
 import { z } from "zod";
-import { companiesFor, companyJobsFor, jobDetailsFor, myApplicationsFor, myProfileFor, searchJobsFor, type Viewer } from "./data";
-import { assistantInstructions } from "./prompt";
+import { applicantsFor, companiesFor, companyJobsFor, jobDetailsFor, myApplicationsFor, myProfileFor, resumeFor, searchJobsFor, type Viewer } from "./data";
+import { assistantInstructions, type AssistantMode } from "./prompt";
 
 /**
  * Modelo padrão pela Vercel AI Gateway: gratuito (custo zero por token). Para usar o Claude,
@@ -60,6 +60,16 @@ export function createAssistantTools(viewer: Viewer) {
       inputSchema: z.object({}),
       execute: () => myApplicationsFor(viewer),
     }),
+    meu_curriculo: tool({
+      description: "Currículo completo do candidato logado (título, sobre, habilidades, experiências, formação e projetos), para revisar e sugerir melhorias.",
+      inputSchema: z.object({}),
+      execute: () => resumeFor(viewer),
+    }),
+    candidatos_da_vaga: tool({
+      description: "Candidatos de uma vaga da empresa logada, ordenados pela compatibilidade, com habilidades, experiência e projetos. Use o id que vagas_da_empresa devolve.",
+      inputSchema: z.object({ vagaId: z.string().trim().min(1).max(40) }),
+      execute: ({ vagaId }) => applicantsFor(viewer, vagaId),
+    }),
     vagas_da_empresa: tool({
       description: "Vagas da empresa logada, com quantas candidaturas cada uma recebeu, por situação, e as mais compatíveis.",
       inputSchema: z.object({}),
@@ -73,25 +83,25 @@ type ToolName = keyof ReturnType<typeof createAssistantTools>;
 /** Ferramentas que fazem sentido para cada perfil. */
 export function toolsFor(viewer: Viewer): ToolName[] {
   const common: ToolName[] = ["buscar_vagas", "ver_vaga", "listar_empresas"];
-  if (viewer?.role === "CANDIDATE") return [...common, "meu_perfil", "minhas_candidaturas"];
-  if (viewer?.role === "COMPANY") return [...common, "meu_perfil", "vagas_da_empresa"];
+  if (viewer?.role === "CANDIDATE") return [...common, "meu_perfil", "minhas_candidaturas", "meu_curriculo"];
+  if (viewer?.role === "COMPANY") return [...common, "meu_perfil", "vagas_da_empresa", "candidatos_da_vaga"];
   return common;
 }
 
-export function createAssistantAgent(opts: { viewer: Viewer; name?: string | null; model?: LanguageModel; userTag?: string }) {
+export function createAssistantAgent(opts: { viewer: Viewer; name?: string | null; model?: LanguageModel; userTag?: string; mode?: AssistantMode; jobId?: string }) {
   const { viewer } = opts;
   return new ToolLoopAgent({
     model: opts.model ?? assistantModel(),
-    instructions: assistantInstructions(viewer, opts.name),
+    instructions: assistantInstructions(viewer, opts.name, new Date(), opts.mode ?? "carreira", opts.jobId),
     tools: createAssistantTools(viewer),
     activeTools: toolsFor(viewer),
     // poucas voltas bastam (buscar, detalhar, responder) e limitam o custo de cada pergunta
-    stopWhen: isStepCount(5),
+    stopWhen: isStepCount(6),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     providerOptions: {
       gateway: {
         models: process.env.AI_GATEWAY_MODEL?.trim() ? [] : FALLBACK_MODELS,
-        tags: ["nautiwork-assistente", `perfil:${viewer?.role ?? "VISITOR"}`],
+        tags: ["nautiwork-assistente", `perfil:${viewer?.role ?? "VISITOR"}`, `modo:${opts.mode ?? "carreira"}`],
         ...(opts.userTag ? { user: opts.userTag } : {}),
       },
     },

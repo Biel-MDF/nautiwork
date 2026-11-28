@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 
 const cols: [string, [string, string][]][] = [
-  ["Plataforma", [["Vagas", "/jobs"], ["Empresas", "/companies"], ["Mercado por área", "/mercado"], ["Primeiro emprego", "/primeiro-emprego"], ["Sobre o projeto", "/about"], ["QR code do site", "/qr"]]],
+  ["Plataforma", [["Vagas", "/jobs"], ["Empresas", "/companies"], ["Mercado por área", "/mercado"], ["Primeiro emprego", "/primeiro-emprego"], ["Assistente com IA", "/assistente"], ["App para celular", "/app"], ["Sobre o projeto", "/about"], ["QR code do site", "/qr"]]],
   ["Para empresas", [["Publicar vaga", "/register?tipo=empresa"], ["Entrar como empresa", "/login"]]],
   ["Ajuda", [["Suporte", "/support"], ["Aparência e temas", "/aparencia"], ["Política de Privacidade", "/privacidade"], ["Termos de Uso", "/termos"]]],
 ];

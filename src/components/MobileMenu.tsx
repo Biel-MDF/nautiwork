@@ -44,7 +44,11 @@ export function MobileMenu({ loggedIn }: { loggedIn: boolean }) {
               </li>
             ))}
           </ul>
-          {!loggedIn && <Link href="/login" className="btn-ghost mt-3 w-full">Entrar</Link>}
+          <div className="mt-2 grid gap-2 border-t border-mist pt-3">
+            <Link href="/assistente" className="btn-ghost w-full">Assistente com IA</Link>
+            <Link href="/app" className="btn-ghost w-full">Instalar o app</Link>
+          </div>
+          {!loggedIn && <Link href="/login" className="btn-ghost mt-2 w-full">Entrar</Link>}
         </div>
       )}
     </div>

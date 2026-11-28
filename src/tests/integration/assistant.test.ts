@@ -119,7 +119,7 @@ describe("agente", () => {
     const results = (await res.steps).flatMap((s) => s.toolResults);
     expect(results[0]?.output).toMatchObject({ total: 1 });
     const offered = (model.doStreamCalls[0].tools ?? []).map((t) => t.name).sort();
-    expect(offered).toEqual(["buscar_vagas", "listar_empresas", "meu_perfil", "minhas_candidaturas", "ver_vaga"]);
+    expect(offered).toEqual(["buscar_vagas", "listar_empresas", "meu_curriculo", "meu_perfil", "minhas_candidaturas", "ver_vaga"]);
     expect(String(JSON.stringify(model.doStreamCalls[0].prompt))).toContain("CANDIDATO");
   });
 

@@ -233,3 +233,61 @@ export async function companiesFor(termo?: string) {
     link: "/companies",
   };
 }
+
+/* ---------- modos: revisão de currículo e ajuda para empresas ---------- */
+
+const ym = (d: Date | null) => (d ? d.toISOString().slice(0, 7) : "atual");
+
+/** Currículo completo do candidato logado, para a revisão. Sem e-mail, telefone ou CEP. */
+export async function resumeFor(viewer: Viewer) {
+  if (viewer?.role !== "CANDIDATE") return { erro: "A revisão de currículo é para candidatos logados.", link: "/login" };
+  const p = await db.candidateProfile.findUnique({ where: { userId: viewer.id }, select: {
+    headline: true, about: true, location: true, interestArea: true, workMode: true, yearsExperience: true,
+    skills: { select: { verifiedAt: true, skill: { select: { name: true } } } },
+    experiences: { orderBy: { startDate: "desc" }, select: { company: true, role: true, description: true, startDate: true, endDate: true } },
+    educations: { orderBy: { startYear: "desc" }, select: { institution: true, course: true, startYear: true, endYear: true } },
+    projects: { select: { title: true, description: true, url: true, school: true, validatedAt: true } },
+  } });
+  if (!p) return { erro: "Perfil de candidato não encontrado." };
+  return {
+    titulo: p.headline, sobre: p.about, cidade: p.location, areaDeInteresse: p.interestArea,
+    modalidade: p.workMode ? workModeLabel[p.workMode] : null, anosDeExperiencia: p.yearsExperience,
+    habilidades: p.skills.map((s) => (s.verifiedAt ? `${s.skill.name} (comprovada por prova)` : s.skill.name)),
+    experiencias: p.experiences.map((e) => ({ cargo: e.role, empresa: e.company, periodo: `${ym(e.startDate)} a ${ym(e.endDate)}`, descricao: e.description })),
+    formacao: p.educations.map((e) => ({ curso: e.course, instituicao: e.institution, periodo: `${e.startYear} a ${e.endYear ?? "atual"}` })),
+    projetos: p.projects.map((x) => ({ titulo: x.title, descricao: x.description, link: x.url, escola: x.school, confirmadoPeloProfessor: !!x.validatedAt })),
+    links: { editarPerfil: "/candidate/profile", curriculo: "/candidate/resume", provas: "/candidate/provas" },
+  };
+}
+
+/**
+ * Candidatos de uma vaga da empresa logada, para o resumo. Só o necessário para comparar:
+ * primeiro nome, etapa, compatibilidade, habilidades, experiência e projetos. Sem contato.
+ */
+export async function applicantsFor(viewer: Viewer, jobId: string) {
+  if (viewer?.role !== "COMPANY") return { erro: "O resumo de candidatos é para empresas logadas.", link: "/login" };
+  const job = await db.job.findFirst({ where: { id: jobId, company: { userId: viewer.id } },
+    select: { id: true, title: true, skills: { select: { skill: { select: { name: true } } } } } });
+  if (!job) return { erro: "Vaga não encontrada entre as vagas da sua empresa. Use vagas_da_empresa para ver os ids." };
+  const apps = await db.jobApplication.findMany({ where: { jobId, status: { not: "WITHDRAWN" } }, orderBy: { compatibility: "desc" }, take: 20,
+    select: { id: true, status: true, compatibility: true, coverNote: true, createdAt: true, candidate: { select: { id: true, headline: true, location: true, yearsExperience: true,
+      user: { select: { name: true } }, skills: { select: { verifiedAt: true, skill: { select: { name: true } } } },
+      projects: { where: { validatedAt: { not: null } }, select: { title: true } }, experiences: { select: { role: true } } } } } });
+  const wanted = job.skills.map((s) => s.skill.name.toLowerCase());
+  return {
+    vaga: { id: job.id, titulo: job.title, habilidadesPedidas: job.skills.map((s) => s.skill.name), link: `/company/applications?job=${job.id}` },
+    total: apps.length,
+    candidatos: apps.map((a) => {
+      const skills = a.candidate.skills.map((s) => s.skill.name);
+      return {
+        nome: splitDemo(a.candidate.user.name).name.split(/\s+/)[0], etapa: appStatusLabel[a.status], compatibilidade: `${a.compatibility}%`,
+        titulo: a.candidate.headline, cidade: a.candidate.location, anosDeExperiencia: a.candidate.yearsExperience,
+        habilidadesDaVaga: skills.filter((s) => wanted.includes(s.toLowerCase())),
+        habilidadesQueFaltam: job.skills.map((s) => s.skill.name).filter((s) => !skills.some((k) => k.toLowerCase() === s.toLowerCase())),
+        comprovadas: a.candidate.skills.filter((s) => s.verifiedAt).map((s) => s.skill.name),
+        projetosConfirmados: a.candidate.projects.map((p) => p.title), cargosAnteriores: a.candidate.experiences.map((e) => e.role),
+        mensagem: a.coverNote?.slice(0, 300) ?? null, curriculo: `/company/candidates/${a.candidate.id}`,
+      };
+    }),
+  };
+}

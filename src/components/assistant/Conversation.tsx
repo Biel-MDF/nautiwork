@@ -1,4 +1,5 @@
 "use client";
+import type { AssistantMode } from "@/modules/assistant/modes";
 // Conversa do assistente. Carregada só quando o painel abre, para não pesar nas páginas.
 // A conversa fica só nesta aba (sessionStorage), não no banco.
 import { useChat } from "@ai-sdk/react";
@@ -21,9 +22,19 @@ const SUGGESTIONS: Record<Role, string[]> = {
   ADMIN: ["Quantas vagas de tecnologia estão abertas?", "Quais empresas têm mais vagas?", "Como a compatibilidade é calculada?"],
 };
 
-export function load(owner: string): AssistantUIMessage[] {
+/** Título, apresentação e sugestões de cada modo (o de carreira usa as do perfil, acima). */
+const MODES: Record<Exclude<AssistantMode, "carreira">, { title: string; sub: string; intro: string; suggestions: string[]; placeholder: string }> = {
+  curriculo: { title: "Revisão de currículo", sub: "Pontos fortes e o que melhorar", intro: "Eu leio o seu currículo no Nautiwork e aponto o que melhorar, com exemplos usando só o que você já escreveu.",
+    suggestions: ["Revise meu currículo", "Como escrevo um bom 'sobre mim'?", "Quais habilidades devo comprovar com prova?"], placeholder: "Peça a revisão ou tire uma dúvida…" },
+  entrevista: { title: "Simulado de entrevista", sub: "Uma pergunta por vez, com retorno", intro: "Eu faço 5 perguntas como numa entrevista de verdade e comento cada resposta. Escolha a vaga ou peça para eu sugerir uma.",
+    suggestions: ["Começar o simulado", "Simulado para uma vaga de estágio em tecnologia", "Como responder 'fale sobre você'?"], placeholder: "Sua resposta…" },
+  empresa: { title: "Ajuda para empresas", sub: "Anúncio da vaga e resumo de candidatos", intro: "Eu escrevo o anúncio da vaga com você e resumo os candidatos de cada vaga. A decisão é sempre da empresa.",
+    suggestions: ["Escreva um anúncio de vaga de estágio em atendimento", "Resuma os candidatos da minha vaga mais recente", "Quem vale chamar para entrevista?"], placeholder: "Peça um anúncio ou um resumo…" },
+};
+
+export function load(owner: string, mode: AssistantMode = "carreira"): AssistantUIMessage[] {
   try {
-    const s = JSON.parse(sessionStorage.getItem(STORE) ?? "null");
+    const s = JSON.parse(sessionStorage.getItem(mode === "carreira" ? STORE : `${STORE}:${mode}`) ?? "null");
     return s?.owner === owner && Array.isArray(s.messages) ? s.messages : [];
   } catch { return []; }
 }
@@ -149,6 +160,10 @@ function ToolView({ part, onNavigate }: { part: Part; onNavigate: () => void }) 
       return busy ? <Working>Lendo seu perfil…</Working> : failed ? <Note>Não consegui ler seu perfil.</Note> : null;
     case "tool-minhas_candidaturas":
       return busy ? <Working>Conferindo suas candidaturas…</Working> : failed ? <Note>Não consegui ler suas candidaturas.</Note> : null;
+    case "tool-meu_curriculo":
+      return busy ? <Working>Lendo seu currículo…</Working> : failed ? <Note>Não consegui ler seu currículo.</Note> : null;
+    case "tool-candidatos_da_vaga":
+      return busy ? <Working>Comparando os candidatos…</Working> : failed ? <Note>Não consegui ler os candidatos.</Note> : null;
     case "tool-vagas_da_empresa":
       return busy ? <Working>Conferindo suas vagas…</Working> : failed ? <Note>Não consegui ler suas vagas.</Note> : null;
     default:
@@ -158,9 +173,13 @@ function ToolView({ part, onNavigate }: { part: Part; onNavigate: () => void }) 
 
 /* ---------- conversa ---------- */
 
-export default function Conversation({ who, initial, onClose, titleId }: { who: Who; initial: AssistantUIMessage[]; onClose: () => void; titleId: string }) {
+export default function Conversation({ who, initial, onClose, titleId, mode = "carreira", jobId }: {
+  who: Who; initial: AssistantUIMessage[]; onClose?: () => void; titleId: string; mode?: AssistantMode; jobId?: string;
+}) {
   const owner = `${who.role}:${who.firstName ?? ""}`;
-  const transport = useMemo(() => new DefaultChatTransport<AssistantUIMessage>({ api: "/api/assistant" }), []);
+  const store = mode === "carreira" ? STORE : `${STORE}:${mode}`;
+  const meta = mode === "carreira" ? null : MODES[mode];
+  const transport = useMemo(() => new DefaultChatTransport<AssistantUIMessage>({ api: "/api/assistant", body: { mode, ...(jobId ? { jobId } : {}) } }), [mode, jobId]);
   const { messages, sendMessage, status, stop, error, setMessages, clearError, regenerate } = useChat<AssistantUIMessage>({
     messages: initial, transport, throttle: 40,
   });
@@ -173,8 +192,8 @@ export default function Conversation({ who, initial, onClose, titleId }: { who: 
   // guarda a conversa nesta aba quando uma resposta termina
   useEffect(() => {
     if (busy) return;
-    try { sessionStorage.setItem(STORE, JSON.stringify({ owner, messages: messages.slice(-40) })); } catch { /* sem armazenamento: só nesta visita */ }
-  }, [messages, busy, owner]);
+    try { sessionStorage.setItem(store, JSON.stringify({ owner, messages: messages.slice(-40) })); } catch { /* sem armazenamento: só nesta visita */ }
+  }, [messages, busy, owner, store]);
 
   // acompanha o fim da conversa enquanto a resposta chega
   useEffect(() => {
@@ -185,7 +204,7 @@ export default function Conversation({ who, initial, onClose, titleId }: { who: 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   // no celular a conversa cobre a tela: ao seguir um link, ela fecha para mostrar a página
-  const onNavigate = useCallback(() => { if (window.matchMedia("(max-width: 639px)").matches) onClose(); }, [onClose]);
+  const onNavigate = useCallback(() => { if (onClose && window.matchMedia("(max-width: 639px)").matches) onClose(); }, [onClose]);
 
   function submit(value: string) {
     const q = value.trim();
@@ -199,7 +218,7 @@ export default function Conversation({ who, initial, onClose, titleId }: { who: 
     if (busy) stop();
     setMessages([]);
     clearError();
-    try { sessionStorage.removeItem(STORE); } catch { /* nada a limpar */ }
+    try { sessionStorage.removeItem(store); } catch { /* nada a limpar */ }
     inputRef.current?.focus();
   }
 
@@ -213,8 +232,8 @@ export default function Conversation({ who, initial, onClose, titleId }: { who: 
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-onaccent" aria-hidden="true"
             style={{ backgroundImage: "linear-gradient(135deg, rgb(var(--c-accent)), rgb(var(--c-accentb)))" }}><SonarIcon className="h-5 w-5" /></span>
           <div className="min-w-0">
-            <h2 id={titleId} className="truncate font-display text-base font-semibold leading-tight">Assistente Nautiwork</h2>
-            <p className="truncate text-xs text-abyss/70">{who.role === "CANDIDATE" ? "Vagas, perfil e candidaturas" : who.role === "COMPANY" ? "Suas vagas e candidaturas" : "Vagas, empresas e dúvidas do site"}</p>
+            <h2 id={titleId} className="truncate font-display text-base font-semibold leading-tight">{meta?.title ?? "Assistente Nautiwork"}</h2>
+            <p className="truncate text-xs text-abyss/70">{meta ? meta.sub : who.role === "CANDIDATE" ? "Vagas, perfil e candidaturas" : who.role === "COMPANY" ? "Suas vagas e candidaturas" : "Vagas, empresas e dúvidas do site"}</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -223,7 +242,8 @@ export default function Conversation({ who, initial, onClose, titleId }: { who: 
               <NewChat /><span className="hidden sm:inline">Nova conversa</span>
             </button>
           )}
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-abyss/80 hover:bg-foam hover:text-abyss" aria-label="Fechar assistente"><Close /></button>
+          {onClose && <Link href="/assistente" onClick={onClose} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-abyss/80 hover:bg-foam hover:text-abyss" title="Currículo, entrevista e mais">Mais funções</Link>}
+          {onClose && <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-abyss/80 hover:bg-foam hover:text-abyss" aria-label="Fechar assistente"><Close /></button>}
         </div>
       </header>
 
@@ -234,15 +254,15 @@ export default function Conversation({ who, initial, onClose, titleId }: { who: 
             <div className="space-y-1.5">
               <p className="font-display text-lg font-semibold">{who.firstName ? `Oi, ${who.firstName}.` : "Oi."} Em que posso ajudar?</p>
               <p className="text-sm text-abyss/75">
-                {who.role === "VISITOR" ? "Pergunte sobre vagas, empresas ou como o site funciona. Entrando na sua conta, eu também calculo a compatibilidade com cada vaga."
+                {meta ? meta.intro : <>{who.role === "VISITOR" ? "Pergunte sobre vagas, empresas ou como o site funciona. Entrando na sua conta, eu também calculo a compatibilidade com cada vaga."
                   : who.role === "CANDIDATE" ? "Posso procurar vagas pela sua compatibilidade, explicar a nota e acompanhar suas candidaturas."
                   : who.role === "COMPANY" ? "Posso resumir suas vagas e candidaturas e ajudar a escrever o texto de uma vaga."
                   : "Posso consultar vagas e empresas públicas e explicar o funcionamento do site."}
-                {" "}Eu só consulto: candidaturas e alterações você faz nas páginas do site.
+                {" "}Eu só consulto: candidaturas e alterações você faz nas páginas do site.</>}
               </p>
             </div>
             <ul className="flex flex-col gap-2" aria-label="Sugestões de perguntas">
-              {SUGGESTIONS[who.role].map((s) => (
+              {(meta?.suggestions ?? SUGGESTIONS[who.role]).map((s) => (
                 <li key={s}>
                   <button type="button" onClick={() => submit(s)}
                     className="w-full rounded-xl border border-mist bg-field/50 px-3 py-2 text-left text-sm transition hover:border-tide/60 hover:text-tide">{s}</button>
@@ -283,7 +303,7 @@ export default function Conversation({ who, initial, onClose, titleId }: { who: 
           <textarea id="nw-assistant-input" ref={inputRef} value={text} rows={1} maxLength={MAX_TEXT + 200}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(text); } }}
-            placeholder={who.role === "COMPANY" ? "Pergunte sobre suas vagas…" : "Pergunte sobre vagas…"}
+            placeholder={meta?.placeholder ?? (who.role === "COMPANY" ? "Pergunte sobre suas vagas…" : "Pergunte sobre vagas…")}
             className="max-h-32 min-h-[24px] flex-1 resize-none bg-transparent py-1 text-[15px] text-abyss outline-none [field-sizing:content] placeholder:text-abyss/60" />
           {busy ? (
             <button type="button" onClick={() => stop()} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-mist text-abyss hover:border-coral hover:text-coral" aria-label="Parar resposta"><Stop /></button>
