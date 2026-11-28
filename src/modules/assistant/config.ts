@@ -12,12 +12,9 @@ export function assistantMockEnabled() {
   return process.env.ASSISTANT_MOCK === "1" && process.env.VERCEL_ENV !== "production";
 }
 
-/**
- * O assistente está fora do ar por decisão do projeto (a AI Gateway exige crédito pago).
- * Volta só com ASSISTANT_ENABLED=1 no ambiente, ou com o modelo de roteiro nos testes.
- */
+/** Ligado por padrão (modelo gratuito). Para desligar: ASSISTANT_ENABLED=0 no ambiente. */
 export function assistantEnabled() {
-  return assistantMockEnabled() || process.env.ASSISTANT_ENABLED === "1";
+  return assistantMockEnabled() || process.env.ASSISTANT_ENABLED !== "0";
 }
 
 /** Há credencial para a AI Gateway? Na Vercel, o token OIDC é fornecido pela plataforma. */

@@ -5,10 +5,15 @@ import { z } from "zod";
 import { companiesFor, companyJobsFor, jobDetailsFor, myApplicationsFor, myProfileFor, searchJobsFor, type Viewer } from "./data";
 import { assistantInstructions } from "./prompt";
 
-/** Modelo padrão (pela Vercel AI Gateway) e alternativas, se o primeiro estiver fora do ar. */
-export const DEFAULT_MODEL = "anthropic/claude-haiku-5.5";
-export const FALLBACK_MODELS = ["openai/gpt-5.6-luna", "google/gemini-3.5-flash-lite"];
-export const MAX_OUTPUT_TOKENS = 900;
+/**
+ * Modelo padrão pela Vercel AI Gateway: gratuito (custo zero por token). Para usar o Claude,
+ * defina AI_GATEWAY_MODEL=anthropic/claude-haiku-5.5 (ou outro) no ambiente; exige créditos pagos.
+ * Se o primeiro estiver fora do ar, a Gateway tenta os outros, também gratuitos.
+ */
+export const DEFAULT_MODEL = "nvidia/nemotron-3.5-lightning-free";
+export const FALLBACK_MODELS = ["reflection/beam-free"];
+// modelos que "pensam" antes de responder gastam parte do limite com o raciocínio
+export const MAX_OUTPUT_TOKENS = 2000;
 
 export function assistantModel() {
   return process.env.AI_GATEWAY_MODEL?.trim() || DEFAULT_MODEL;
@@ -85,7 +90,7 @@ export function createAssistantAgent(opts: { viewer: Viewer; name?: string | nul
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     providerOptions: {
       gateway: {
-        models: FALLBACK_MODELS,
+        models: process.env.AI_GATEWAY_MODEL?.trim() ? [] : FALLBACK_MODELS,
         tags: ["nautiwork-assistente", `perfil:${viewer?.role ?? "VISITOR"}`],
         ...(opts.userTag ? { user: opts.userTag } : {}),
       },
