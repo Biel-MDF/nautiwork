@@ -10,7 +10,7 @@ import { Msg } from "./forms";
 import { UserAvatar } from "./UserAvatar";
 
 type Role = "CANDIDATE" | "COMPANY" | "ADMIN";
-export type MenuUser = { id: string; name: string; email: string; role: Role; imageVersion: number | null; emailNotifications: boolean };
+export type MenuUser = { id: string; name: string; email: string; role: Role; emperor?: boolean; imageVersion: number | null; emailNotifications: boolean };
 
 const roleLabel: Record<Role, string> = { CANDIDATE: "Candidato", COMPANY: "Empresa", ADMIN: "Administrador" };
 const home: Record<Role, string> = { CANDIDATE: "/candidate/dashboard", COMPANY: "/company/dashboard", ADMIN: "/admin/dashboard" };
@@ -77,7 +77,7 @@ export function AccountMenu({ user, signOutAction }: { user: MenuUser; signOutAc
             <div className="min-w-0">
               <p className="truncate font-display font-semibold">{plain(user.name)}</p>
               <p className="truncate text-xs text-abyss/65">{user.email}</p>
-              <p className="mt-0.5 text-xs text-tide">{roleLabel[user.role]}</p>
+              <p className="mt-0.5 text-xs text-tide">{user.emperor ? "Imperador, administrador maior" : roleLabel[user.role]}</p>
             </div>
           </div>
           <div className="my-1 h-px bg-mist" />

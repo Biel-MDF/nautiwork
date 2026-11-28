@@ -59,6 +59,8 @@ model User {
   passwordHash       String
   role               Role
   active             Boolean           @default(true)
+  // Imperador: o administrador maior (só um). Não pode ser desativado e é o único que desativa administradores.
+  emperor            Boolean           @default(false)
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
   candidate          CandidateProfile?

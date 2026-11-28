@@ -12,7 +12,7 @@ type Role = "CANDIDATE" | "COMPANY" | "ADMIN";
  * Confere no banco se a sessão ainda vale: conta ativa e mesma versão de sessão.
  * A versão sobe quando a senha é trocada ou redefinida, o que derruba sessões antigas.
  */
-const userSelect = { id: true, name: true, email: true, role: true, active: true, sessionVersion: true, emailVerified: true,
+const userSelect = { id: true, name: true, email: true, role: true, active: true, emperor: true, sessionVersion: true, emailVerified: true,
   emailNotifications: true, image: { select: { updatedAt: true } } } as const;
 
 /** Quem está de fato logado, sem considerar o modo de visualização. Uma consulta por requisição. */

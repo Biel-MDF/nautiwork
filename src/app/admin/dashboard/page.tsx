@@ -16,16 +16,17 @@ const tone: Record<(typeof order)[number], string> = {
 const roleLabel = { CANDIDATE: "Candidato", COMPANY: "Empresa", ADMIN: "Admin" } as const;
 
 export default async function AdminDashboard() {
-  await requirePageRole("ADMIN");
+  const admin = await requirePageRole("ADMIN");
   const [candidates, companies, jobs, flagged, apps, inactive, byStatus, recent] = await Promise.all([
     db.user.count({ where: { role: "CANDIDATE" } }), db.user.count({ where: { role: "COMPANY" } }), db.job.count(),
     db.job.count({ where: { flagged: true } }), db.jobApplication.count(), db.user.count({ where: { active: false } }),
     db.jobApplication.groupBy({ by: ["status"], _count: { _all: true } }),
     db.user.findMany({ orderBy: { createdAt: "desc" }, take: 6, select: { id: true, name: true, email: true, role: true, active: true, createdAt: true } }),
   ]);
+  const me = await db.user.findUnique({ where: { id: admin.id }, select: { emperor: true } });
   const count = Object.fromEntries(byStatus.map((s) => [s.status, s._count._all])) as Record<string, number>;
   return (
-    <Shell role="ADMIN" title="Painel administrativo">
+    <Shell role="ADMIN" title={me?.emperor ? "Painel do Imperador" : "Painel administrativo"}>
       <section className="mb-6" aria-labelledby="ver-como">
         <h2 id="ver-como" className="font-semibold">Ver o site como um usuário</h2>
         <p className="mb-3 mt-1 text-sm text-abyss/65">Só leitura e sem salvar nada. Usa contas da demonstração e volta ao modo admin a cada login ou ao fechar o navegador.</p>

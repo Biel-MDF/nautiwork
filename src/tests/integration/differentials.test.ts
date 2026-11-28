@@ -203,3 +203,20 @@ describe("contato, deslocamento e acompanhamento", () => {
     expect(JSON.stringify(data)).toContain("Muito puxado");
   });
 });
+
+describe("Imperador (administrador maior)", () => {
+  it("só o Imperador desativa administradores, e ninguém desativa o Imperador", async () => {
+    const { setUserActive } = await import("@/modules/admin-users.service");
+    const mk = (emperor = false) => db.user.create({ data: { name: "Admin", email: `adm-${uid()}@test.local`, role: "ADMIN", passwordHash: "x", emperor } });
+    await db.user.updateMany({ where: { emperor: true }, data: { emperor: false } });
+    const emperor = await mk(true), a1 = await mk(), a2 = await mk();
+    const cand = await makeCandidate();
+    await expectHttp(setUserActive(a1.id, a2.id, false), 403);
+    await expectHttp(setUserActive(a1.id, emperor.id, false), 403);
+    await expectHttp(setUserActive(emperor.id, emperor.id, false), 400);
+    expect(await setUserActive(a1.id, cand.id, false)).toMatchObject({ active: false });
+    expect(await setUserActive(emperor.id, a2.id, false)).toMatchObject({ active: false });
+    await expect(mk(true)).rejects.toThrow();
+    await db.user.update({ where: { id: emperor.id }, data: { emperor: false } });
+  });
+});

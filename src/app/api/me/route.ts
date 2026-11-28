@@ -17,7 +17,7 @@ export async function GET() {
   const unread = user ? await db.notification.count({ where: { userId: user.id, read: false } }) : 0;
   return NextResponse.json({
     user: user ? {
-      id: user.id, name: user.name, email: user.email, role: user.role,
+      id: user.id, name: user.name, email: user.email, role: user.role, emperor: user.emperor,
       imageVersion: user.image ? user.image.updatedAt.getTime() : null, emailNotifications: user.emailNotifications,
     } : null,
     unread,
