@@ -29,7 +29,7 @@ export function ViewModeBar({ mode, as }: { mode: ViewMode; as: string | null })
           <p>
             <span className="font-semibold">Vendo o site como {viewModeLabel[mode].toLowerCase()}</span>
             {as && <span className="text-[#FFE2A3]/75"> ({as})</span>}.{" "}
-            <span className="text-[#FFE2A3]/75">Só leitura: nenhuma ação é salva.</span>
+            <span className="text-[#FFE2A3]/75">{mode === "visitor" ? "Sem login: é o que qualquer pessoa vê." : `O que você fizer aqui fica salvo no seu perfil de ${mode === "candidate" ? "candidato" : "empresa"}.`}</span>
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-nowrap">

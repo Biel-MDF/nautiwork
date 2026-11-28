@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  html { scroll-behavior: smooth; }
+  /* sem rolagem suave: com ela, cada clique que troca o conteúdo animava a página subindo até o topo */
   body {
     @apply bg-fossa font-sans text-abyss antialiased;
     /* brilho difuso vindo da superfície, como luz que atravessa a água */

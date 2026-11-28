@@ -476,7 +476,7 @@ if (!OUTBOX) {
   check("conta excluída não consegue entrar de novo", !again.session?.user, "login funcionou");
 }
 
-// 15. Modo de visualização do admin: ver como visitante/candidato/empresa, só leitura, some no login
+// 15. Modo de visualização do admin: ver como visitante/candidato/empresa com a própria conta; some no login
 {
   const va = new Client("10.6.0.1");
   const vs = await va.login("admin@demo.nautiwork.test", ADMIN_PASSWORD);
@@ -486,12 +486,14 @@ if (!OUTBOX) {
     check("admin liga a visão de candidato", r.status === 200 && r.json?.redirect === "/candidate/dashboard", `status ${r.status}`);
     r = await va.req("GET", "/candidate/dashboard");
     const me = await va.req("GET", "/api/me");
-    check("na visão de candidato, o painel do candidato abre", r.status === 200 && me.json?.mode === "candidate" && me.json?.user?.role === "CANDIDATE" && /demonstração/.test(me.json?.as ?? ""), `status ${r.status} ${JSON.stringify(me.json)}`);
+    check("na visão de candidato, o painel do candidato abre com a conta do próprio admin", r.status === 200 && me.json?.mode === "candidate" && me.json?.user?.role === "CANDIDATE" && me.json?.user?.email === "admin@demo.nautiwork.test", `status ${r.status} ${JSON.stringify(me.json)}`);
     r = await va.req("GET", "/admin/dashboard");
     // o redirecionamento pode vir como 3xx ou como meta refresh (página em streaming)
     check("na visão de candidato, o painel do admin não abre", (r.status >= 300 && r.status < 400) || (r.text.includes('http-equiv="refresh"') && !r.text.includes("Painel administrativo")), `status ${r.status}`);
-    r = await va.req("POST", "/api/saved-jobs", { jobId: "qualquer" });
-    check("na visão de candidato, ações são recusadas (403)", r.status === 403 && /visualiza/i.test(r.json?.error ?? ""), `status ${r.status}`);
+    r = await va.req("POST", "/api/saved-jobs", { jobId });
+    check("na visão de candidato, o admin salva vaga no próprio perfil", r.status === 200 || r.status === 201, `status ${r.status} ${JSON.stringify(r.json)}`);
+    r = await va.req("PATCH", `/api/admin/users/${(await va.req("GET", "/api/me")).json?.user?.id}`, { active: false });
+    check("na visão de candidato, as APIs de admin ficam fechadas", r.status === 403, `status ${r.status}`);
     r = await va.req("POST", "/api/admin/view", { mode: "visitor" });
     r = await va.req("GET", "/api/me");
     check("na visão de visitante, o site trata o admin como visitante", r.json?.mode === "visitor" && r.json?.user === null, JSON.stringify(r.json));

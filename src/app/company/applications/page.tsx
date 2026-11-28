@@ -1,3 +1,4 @@
+import Form from "next/form";
 import { CompanyName } from "@/components/CompanyName";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -20,9 +21,9 @@ export default async function CompanyApplications(props: { searchParams: Promise
   });
   return (
     <Shell role="COMPANY" title="Candidaturas">
-      <form className="mb-5 flex flex-wrap gap-2"><label className="sr-only" htmlFor="job">Filtrar por vaga</label>
+      <Form action="/company/applications" scroll={false} className="mb-5 flex flex-wrap gap-2"><label className="sr-only" htmlFor="job">Filtrar por vaga</label>
         <select id="job" name="job" defaultValue={searchParams.job ?? ""} className="input max-w-xs"><option value="">Todas as vagas</option>{jobs.map((j) => <option key={j.id} value={j.id}>{j.title}</option>)}</select>
-        <button className="btn-ghost">Filtrar</button></form>
+        <button className="btn-ghost">Filtrar</button></Form>
       {apps.length === 0 ? <Empty title="Nenhuma candidatura" hint="Elas aparecem aqui assim que alguém se candidatar às suas vagas." /> :
         <ul className="space-y-3">{apps.map((a) => (
           <li key={a.id} className="card">

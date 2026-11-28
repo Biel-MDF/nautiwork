@@ -1,3 +1,4 @@
+import Form from "next/form";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Empty, JobCard } from "@/components/ui";
@@ -46,7 +47,7 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
       </PageHeader>
       <main className="mx-auto max-w-6xl px-4 py-6 md:py-8">
         <FiltersToggle active={active}>
-          <form className="card" role="search" aria-label="Filtros">
+          <Form action="/jobs" scroll={false} className="card" role="search" aria-label="Filtros">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1.2fr_1fr_1fr_auto] lg:items-end">
               <div><label className="label" htmlFor="q">Palavra-chave</label><input id="q" name="q" defaultValue={clean.q} className="input" placeholder="Cargo, empresa, habilidade" /></div>
               <div><label className="label" htmlFor="location">Cidade</label><input id="location" name="location" defaultValue={clean.location} className="input" /></div>
@@ -75,7 +76,7 @@ export default async function Jobs(props: { searchParams: Promise<Record<string,
                 ) : null}
               </div>
             </details>
-          </form>
+          </Form>
         </FiltersToggle>
 
         <section aria-live="polite" className="mt-5">

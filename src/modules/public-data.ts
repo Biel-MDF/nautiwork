@@ -44,7 +44,9 @@ export const jobsPublic = cachedPublic(async (filters: Record<string, string>) =
   return { parsed, total, remote, internships, hiring, noExp };
 }, "jobs");
 
-export const companiesPublic = cachedPublic(() => db.companyProfile.findMany({ where: { user: { active: true } },
+// perfil de empresa de administrador (criado pela visão de empresa) só aparece com vaga no ar
+const listedCompany = { user: { active: true }, OR: [{ user: { role: { not: "ADMIN" as const } } }, { jobs: { some: { status: "ACTIVE" as const, flagged: false } } }] };
+export const companiesPublic = cachedPublic(() => db.companyProfile.findMany({ where: listedCompany,
   orderBy: [{ jobs: { _count: "desc" } }, { name: "asc" }],
   include: { user: { select: { id: true, image: { select: { updatedAt: true } } } }, _count: { select: { jobs: { where: { status: "ACTIVE", flagged: false } } } } } }), "companies");
 

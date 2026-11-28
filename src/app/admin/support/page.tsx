@@ -28,7 +28,7 @@ export default async function AdminSupport(props: { searchParams: Promise<{ stat
     <Shell role="ADMIN" title="Suporte">
       <nav aria-label="Filtrar pedidos" className="mb-5 flex flex-wrap gap-2">
         {filters.map(([k, l]) => (
-          <Link key={k} href={`/admin/support?status=${k}`} aria-current={status === k ? "page" : undefined}
+          <Link key={k} href={`/admin/support?status=${k}`} scroll={false} aria-current={status === k ? "page" : undefined}
             className={`inline-flex min-h-[40px] items-center gap-2 rounded-full border px-4 text-sm ${status === k ? "border-tide/60 bg-foam text-abyss" : "border-mist text-abyss/70 hover:text-abyss"}`}>
             {l}<span className="tabular rounded-full bg-fossa px-2 text-xs">{count(k)}</span>
           </Link>))}

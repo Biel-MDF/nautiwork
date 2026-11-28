@@ -8,11 +8,8 @@ export type ViewMode = (typeof viewModes)[number];
 export const viewModeLabel: Record<ViewMode, string> = { visitor: "Visitante", candidate: "Candidato", company: "Empresa" };
 /** Onde cada modo começa. */
 export const viewModeHome: Record<ViewMode | "admin", string> = { visitor: "/", candidate: "/candidate/dashboard", company: "/company/dashboard", admin: "/admin/dashboard" };
-/**
- * Contas usadas para mostrar a visão de candidato e de empresa. Só contas da demonstração:
- * o admin nunca entra na visão de um usuário real.
- */
-export const viewModeAccount = { candidate: "ana@demo.nautiwork.test", company: "mares@demo.nautiwork.test" } as const;
+/** Papel que o admin assume em cada visão, com a própria conta (e o próprio perfil de candidato ou empresa). */
+export const viewModeRole = { candidate: "CANDIDATE", company: "COMPANY" } as const;
 
 export function parseViewMode(v: string | undefined): ViewMode | null {
   return (viewModes as readonly string[]).includes(v ?? "") ? (v as ViewMode) : null;

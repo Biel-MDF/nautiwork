@@ -22,6 +22,6 @@ export async function GET() {
     } : null,
     unread,
     mode,
-    as: mode && mode !== "visitor" && user ? `${splitDemo(user.name).name}, conta de demonstração` : null,
+    as: mode && mode !== "visitor" && user ? `com a sua conta, ${splitDemo(user.name).name}` : null,
   }, { headers: { "cache-control": "private, no-store" } });
 }

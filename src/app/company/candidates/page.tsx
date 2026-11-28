@@ -1,3 +1,4 @@
+import Form from "next/form";
 import { CompanyName } from "@/components/CompanyName";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -35,12 +36,12 @@ export default async function CompanyCandidates(props: { searchParams: Promise<{
   });
   return (
     <Shell role="COMPANY" title="Candidatos">
-      <form className="mb-4 flex flex-wrap gap-2" role="search">
+      <Form action="/company/candidates" scroll={false} className="mb-4 flex flex-wrap gap-2" role="search">
         <label className="sr-only" htmlFor="q">Buscar candidatos</label>
         <input id="q" name="q" defaultValue={q} className="input max-w-xs" placeholder="Nome, cidade ou habilidade" />
         <button className="btn-ghost">Buscar</button>
         {q && <Link href="/company/candidates" className="btn-ghost">Limpar</Link>}
-      </form>
+      </Form>
       {candidates.length === 0 ? <Empty title={q ? "Nenhum candidato encontrado" : "Nenhum candidato ainda"}
         hint={q ? "Tente outro termo de busca." : "Quem se candidatar às suas vagas aparece aqui, com currículo e histórico."} /> :
         <ul className="space-y-3">{candidates.map((c) => (

@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { VIEW_COOKIE, parseViewMode, viewModeAccount } from "./view-mode";
+import { VIEW_COOKIE, parseViewMode, viewModeRole } from "./view-mode";
 import { auth } from "./auth";
 import { db } from "./db";
 import { HttpError } from "./errors";
@@ -38,15 +38,15 @@ export const viewMode = cache(async () => {
 
 /**
  * Usuário que as telas devem considerar. Em modo de visualização, o admin aparece como
- * visitante (null) ou como uma conta da demonstração; as ações ficam bloqueadas no middleware.
+ * visitante (null) ou com a própria conta no papel de candidato ou de empresa.
  */
 export const currentUser = cache(async () => {
   const real = await realUser();
   const mode = await viewMode();
   if (!mode) return real;
   if (mode === "visitor") return null;
-  const demo = await db.user.findUnique({ where: { email: viewModeAccount[mode] }, select: userSelect });
-  return demo?.active ? demo : real;
+  // a própria conta do admin, no papel da visão: o perfil de candidato ou de empresa é dele
+  return real ? { ...real, role: viewModeRole[mode] } : null;
 });
 
 /** Para Route Handlers: lança 401/403. */
