@@ -281,7 +281,7 @@ async function profilePrefill(userId: string): Promise<MatchForm | null> {
 }
 
 /** Saudação e atalhos da página inicial para quem está logado, conforme o papel. */
-async function personalData(user: { id: string; name: string; role: "CANDIDATE" | "COMPANY" | "ADMIN" }) {
+async function personalData(user: { id: string; name: string; role: "CANDIDATE" | "COMPANY" | "ADMIN"; emperor?: boolean }) {
   const firstName = splitDemo(user.name).name.split(" ")[0] || "de volta";
   const week = new Date(Date.now() - 7 * 86_400_000);
   if (user.role === "CANDIDATE") {
@@ -307,7 +307,7 @@ async function personalData(user: { id: string; name: string; role: "CANDIDATE" 
   const [tickets, flagged] = await Promise.all([db.supportTicket.count({ where: { status: "OPEN" } }), db.job.count({ where: { flagged: true } })]);
   return {
     firstName, appliedIds: new Set<string>(),
-    summary: `${plural(tickets, "pedido de suporte aberto", "pedidos de suporte abertos")} e ${plural(flagged, "vaga sinalizada", "vagas sinalizadas")} para revisar.`,
-    actions: [["Painel do admin", "/admin/dashboard"], ["Fila de suporte", "/admin/support"]] as [string, string][],
+    summary: `${user.emperor ? "Você é o Imperador, o administrador maior do Nautiwork. " : ""}${plural(tickets, "pedido de suporte aberto", "pedidos de suporte abertos")} e ${plural(flagged, "vaga sinalizada", "vagas sinalizadas")} para revisar.`,
+    actions: [[user.emperor ? "Painel do Imperador" : "Painel do admin", "/admin/dashboard"], ["Fila de suporte", "/admin/support"]] as [string, string][],
   };
 }
