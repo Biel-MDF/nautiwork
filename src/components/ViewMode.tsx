@@ -54,8 +54,8 @@ export function ViewAsButtons({ compact = false }: { compact?: boolean }) {
   const { go, busy, error } = useSwitchView();
   const hint: Record<ViewMode, string> = {
     visitor: "Página pública, sem login",
-    candidate: "Painel, perfil e candidaturas de um candidato demo",
-    company: "Painel, vagas e candidatos de uma empresa demo",
+    candidate: "Seu perfil de candidato: painel, currículo e candidaturas",
+    company: "Seu perfil de empresa: painel, vagas e candidatos",
   };
   return (
     <div>

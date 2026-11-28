@@ -1,3 +1,4 @@
+import { EmperorBadge } from "@/components/Crown";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { splitDemo } from "@/lib/display";
@@ -86,6 +87,7 @@ export async function HomePage({ visitor, aviso }: { visitor: boolean; aviso?: s
             <div className="lg:pt-10">
               {personal ? (
                 <>
+                  {"emperor" in personal && personal.emperor && <EmperorBadge label="Imperador do Nautiwork" className="mb-4 px-3 py-1 text-sm" />}
                   <h1 className="max-w-[16ch] text-[40px] font-semibold leading-[1.05] sm:text-6xl lg:text-[60px]">Olá, {personal.firstName}.</h1>
                   <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-abyss/80">{personal.summary}</p>
                   <div className="mt-6 flex flex-wrap gap-3">
@@ -306,7 +308,7 @@ async function personalData(user: { id: string; name: string; role: "CANDIDATE" 
   }
   const [tickets, flagged] = await Promise.all([db.supportTicket.count({ where: { status: "OPEN" } }), db.job.count({ where: { flagged: true } })]);
   return {
-    firstName, appliedIds: new Set<string>(),
+    firstName, appliedIds: new Set<string>(), emperor: !!user.emperor,
     summary: `${user.emperor ? "Você é o Imperador, o administrador maior do Nautiwork. " : ""}${plural(tickets, "pedido de suporte aberto", "pedidos de suporte abertos")} e ${plural(flagged, "vaga sinalizada", "vagas sinalizadas")} para revisar.`,
     actions: [[user.emperor ? "Painel do Imperador" : "Painel do admin", "/admin/dashboard"], ["Fila de suporte", "/admin/support"]] as [string, string][],
   };

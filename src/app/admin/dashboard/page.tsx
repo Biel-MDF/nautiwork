@@ -1,3 +1,4 @@
+import { Crown } from "@/components/Crown";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { requirePageRole } from "@/lib/rbac";
@@ -27,9 +28,16 @@ export default async function AdminDashboard() {
   const count = Object.fromEntries(byStatus.map((s) => [s.status, s._count._all])) as Record<string, number>;
   return (
     <Shell role="ADMIN" title={me?.emperor ? "Painel do Imperador" : "Painel administrativo"}>
+      {me?.emperor && (
+        <section className="imp-card card mb-6 flex items-center gap-4" aria-label="Imperador">
+          <span className="imp-badge flex h-12 w-12 shrink-0 items-center justify-center rounded-full"><Crown size={26} /></span>
+          <div><p className="imp-text font-display text-lg font-semibold">Imperador do Nautiwork</p>
+            <p className="text-sm text-abyss/75">Administrador maior: só você desativa ou reativa administradores, e ninguém desativa a sua conta.</p></div>
+        </section>
+      )}
       <section className="mb-6" aria-labelledby="ver-como">
         <h2 id="ver-como" className="font-semibold">Ver o site como um usuário</h2>
-        <p className="mb-3 mt-1 text-sm text-abyss/65">Só leitura e sem salvar nada. Usa contas da demonstração e volta ao modo admin a cada login ou ao fechar o navegador.</p>
+        <p className="mb-3 mt-1 text-sm text-abyss/65">Com a sua própria conta, no papel escolhido: o que você fizer fica salvo no seu perfil de candidato ou de empresa. Volta ao modo admin a cada login ou ao fechar o navegador.</p>
         <ViewAsButtons />
       </section>
       <div className="grid gap-4 sm:grid-cols-3">

@@ -1,4 +1,5 @@
 "use client";
+import { Crown, EmperorBadge } from "./Crown";
 import { AppearancePanel } from "./ThemePicker";
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
@@ -65,19 +66,21 @@ export function AccountMenu({ user, signOutAction }: { user: MenuUser; signOutAc
     <div className="relative" ref={wrap}>
       <button ref={button} type="button" onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu" aria-expanded={open} aria-controls={menuId} aria-label={`Conta de ${plain(user.name)}`}
-        className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${open ? "border-tide" : "border-mist hover:border-tide/60"}`}>
+        className={`relative flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${user.emperor ? "imp-ring" : open ? "border-tide" : "border-mist hover:border-tide/60"}`}>
         <UserAvatar userId={user.id} name={user.name} imageVersion={user.imageVersion} size={34} />
+        {user.emperor && <span className="imp-text absolute -top-2.5 left-1/2 -translate-x-1/2 drop-shadow-[0_1px_2px_rgb(0_0_0/0.6)]"><Crown size={16} /></span>}
       </button>
 
       {open && (
         <div id={menuId} role="menu" aria-label="Menu da conta"
           className="absolute right-0 top-[calc(100%+10px)] z-40 w-[min(300px,calc(100vw-2rem))] origin-top-right rounded-panel border border-mist bg-casco p-2 shadow-[0_24px_60px_-12px_rgb(0_0_0/var(--shade-a))] motion-safe:animate-menu">
-          <div className="flex items-center gap-3 px-3 pb-3 pt-2">
-            <UserAvatar userId={user.id} name={user.name} imageVersion={user.imageVersion} size={44} />
+          <div className={`flex items-center gap-3 px-3 pb-3 pt-2 ${user.emperor ? "imp-card -mx-0 rounded-control border" : ""}`}>
+            <span className={`shrink-0 rounded-full ${user.emperor ? "imp-ring" : ""}`}><UserAvatar userId={user.id} name={user.name} imageVersion={user.imageVersion} size={44} /></span>
             <div className="min-w-0">
               <p className="truncate font-display font-semibold">{plain(user.name)}</p>
               <p className="truncate text-xs text-abyss/65">{user.email}</p>
-              <p className="mt-0.5 text-xs text-tide">{user.emperor ? "Imperador, administrador maior" : roleLabel[user.role]}</p>
+              {user.emperor ? <p className="mt-1 flex flex-wrap items-center gap-1.5"><EmperorBadge /><span className="text-xs text-abyss/65">Administrador maior</span></p>
+                : <p className="mt-0.5 text-xs text-tide">{roleLabel[user.role]}</p>}
             </div>
           </div>
           <div className="my-1 h-px bg-mist" />
